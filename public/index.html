@@ -240,23 +240,24 @@ select:focus{border-color:var(--accent)}
 .gate.fail{background:var(--danger-dim);border-color:rgba(226,75,74,.15)}
 .gate.fail .gate-t{color:var(--danger)}
 
-/* Section wrappers */
-.sec-wrap{margin-bottom:10px;position:relative;transition:opacity .2s}
-.sec-wrap.dragging{opacity:.4}
-.sec-wrap.drag-over{border-top:3px solid var(--accent);padding-top:4px}
+/* Section wrappers — dashboard grid */
+#sec-container{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
+.sec-wrap{position:relative;transition:opacity .2s;min-width:0}
+.sec-wrap[data-span="2"]{grid-column:span 2}
+.sec-wrap.dragging{opacity:.4;z-index:10}
+.sec-wrap.drag-over{box-shadow:0 -3px 0 0 var(--accent)}
 .sec-wrap.sec-hidden{display:none}
-.sec-hdr{display:flex;align-items:center;gap:6px;padding:3px 10px;cursor:grab;user-select:none;border-radius:var(--radius) var(--radius) 0 0;background:transparent;border:1px solid transparent;transition:all .25s;opacity:0;height:0;padding-top:0;padding-bottom:0;overflow:hidden}
-.sec-wrap:hover .sec-hdr,.sec-hdr.pinned{opacity:1;height:auto;padding:3px 10px;overflow:visible}
-.sec-hdr:hover{background:rgba(0,0,0,.04);border-color:var(--border)}
-.sec-drag{font-size:12px;color:var(--dim);cursor:grab;line-height:1;opacity:.4;transition:opacity .15s}
-.sec-hdr:hover .sec-drag{opacity:.8}
-.sec-name{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);flex:1;opacity:.5;transition:opacity .15s}
-.sec-hdr:hover .sec-name{opacity:.8}
-.sec-collapse{font-size:11px;color:var(--dim);cursor:pointer;padding:2px 8px;border-radius:4px;transition:all .15s;opacity:.5}
-.sec-collapse:hover{background:rgba(0,0,0,.08);opacity:1}
+.sec-hdr{display:flex;align-items:center;gap:4px;padding:2px 6px;user-select:none;border-radius:var(--radius) var(--radius) 0 0;opacity:.35;transition:opacity .2s}
+.sec-wrap:hover .sec-hdr{opacity:.7}
+.sec-drag{font-size:11px;color:var(--dim);cursor:grab;line-height:1;padding:2px}
+.sec-drag:active{cursor:grabbing}
+.sec-name{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);flex:1}
+.sec-collapse{font-size:9px;color:var(--dim);cursor:pointer;padding:2px 4px;border-radius:3px;transition:background .15s}
+.sec-collapse:hover{background:rgba(0,0,0,.08)}
 .sec-body.collapsed{display:none}
 .sec-collapse.rot{transform:rotate(-90deg)}
-.sec-wrap:has(.sec-body.collapsed) .sec-hdr{opacity:1;height:auto;padding:3px 10px;overflow:visible;background:rgba(0,0,0,.02);border-color:var(--border);border-style:dashed}
+.sec-resize{font-size:9px;color:var(--dim);cursor:pointer;padding:2px 4px;border-radius:3px;transition:background .15s}
+.sec-resize:hover{background:rgba(0,0,0,.08)}
 /* Layout settings panel */
 .layout-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;z-index:1000;max-height:70vh;overflow-y:auto;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
 .layout-panel h3{margin:0 0 12px;font-size:13px;font-weight:600}
@@ -389,10 +390,11 @@ canvas{max-height:250px!important}
 <div id="sec-container">
 
 <!-- KPI Cards -->
-<div class="sec-wrap" data-sec="kpis-sec" draggable="true">
+<div class="sec-wrap" data-sec="kpis-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">KPIs</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -401,10 +403,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Parameter Panels -->
-<div class="sec-wrap" data-sec="squad-sec" draggable="true">
+<div class="sec-wrap" data-sec="squad-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Squad</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -481,10 +484,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Chart 1: CAC por SDR -->
-<div class="sec-wrap" data-sec="cac-chart-sec" draggable="true">
+<div class="sec-wrap" data-sec="cac-chart-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">CAC/SDR</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -496,10 +500,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Breakdown -->
-<div class="sec-wrap" data-sec="bkd-sec" draggable="true">
+<div class="sec-wrap" data-sec="bkd-sec" data-span="1">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Breakdown</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -508,10 +513,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Squad Performance -->
-<div class="sec-wrap" data-sec="squad-perf-sec" draggable="true">
+<div class="sec-wrap" data-sec="squad-perf-sec" data-span="1">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Performance Squad</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -520,10 +526,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Sensitivity -->
-<div class="sec-wrap" data-sec="sens-sec" draggable="true">
+<div class="sec-wrap" data-sec="sens-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Sensibilidade</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -540,10 +547,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Chart 2: Fluxo individual -->
-<div class="sec-wrap" data-sec="cashflow-sec" draggable="true">
+<div class="sec-wrap" data-sec="cashflow-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Fluxo de Caixa</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -574,10 +582,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Timeline Builder -->
-<div class="sec-wrap" data-sec="timeline-sec" draggable="true">
+<div class="sec-wrap" data-sec="timeline-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Timeline</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -600,10 +609,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- ═══ ANÁLISE DE INVESTIMENTO ═══ -->
-<div class="sec-wrap" data-sec="invest-sec" draggable="true">
+<div class="sec-wrap" data-sec="invest-sec" data-span="2">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Investimento</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -628,10 +638,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- ═══ SCORECARD GO / NO-GO ═══ -->
-<div class="sec-wrap" data-sec="scorecard-sec" draggable="true">
+<div class="sec-wrap" data-sec="scorecard-sec" data-span="1">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Scorecard</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -652,10 +663,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- ═══ GATE REVIEWS ═══ -->
-<div class="sec-wrap" data-sec="gates-sec" draggable="true">
+<div class="sec-wrap" data-sec="gates-sec" data-span="1">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Gates</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -669,10 +681,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Stress Test -->
-<div class="sec-wrap" data-sec="stress-sec" draggable="true">
+<div class="sec-wrap" data-sec="stress-sec" data-span="1">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Stress Test</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -689,10 +702,11 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Optimizer -->
-<div class="sec-wrap" data-sec="opt-sec" draggable="true">
+<div class="sec-wrap" data-sec="opt-sec" data-span="1">
   <div class="sec-hdr">
-    <span class="sec-drag">⠿</span>
+    <span class="sec-drag" draggable="true">⠿</span>
     <span class="sec-name">Optimizer</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
   <div class="sec-body">
@@ -2180,170 +2194,204 @@ renderScorecard();
 render();
 
 // ─── LAYOUT MANAGER ─────────────────────────────────────────
-var SEC_KEY='invest-layout-state';
-var SEC_NAMES={
-  'kpis':'KPIs',
-  'params':'Parâmetros Squad',
-  'squad':'Squad Atual',
-  'sensitivity':'Sensibilidade',
-  'cashflow':'Fluxo de Caixa',
-  'timeline':'Timeline de Crescimento',
-  'payback':'Payback & Viabilidade',
-  'arena':'Arena de Cenários',
-  'stress':'Stress Test',
-  'optimizer':'Otimizador',
-  'metrics':'Scorecard de Métricas',
-  'presets':'Presets',
-  'export':'Exportar & Persistência'
+var SEC_KEY = 'm3a-layout';
+var SEC_NAMES = {
+  'kpis-sec':'KPIs','squad-sec':'Squad','cac-chart-sec':'CAC/SDR',
+  'bkd-sec':'Breakdown','squad-perf-sec':'Performance Squad',
+  'sens-sec':'Sensibilidade','cashflow-sec':'Fluxo de Caixa',
+  'timeline-sec':'Timeline','invest-sec':'Investimento',
+  'scorecard-sec':'Scorecard','gates-sec':'Gates',
+  'stress-sec':'Stress Test','opt-sec':'Optimizer'
 };
-var SEC_ORDER=['kpis','params','squad','sensitivity','cashflow','timeline','payback','arena','stress','optimizer','metrics','presets','export'];
-var SEC_VISIBLE={};
-SEC_ORDER.forEach(function(id){SEC_VISIBLE[id]=true;});
+var SEC_DEFAULTS = {
+  'kpis-sec':2,'squad-sec':2,'cac-chart-sec':2,
+  'bkd-sec':1,'squad-perf-sec':1,
+  'sens-sec':2,'cashflow-sec':2,
+  'timeline-sec':2,'invest-sec':2,
+  'scorecard-sec':1,'gates-sec':1,
+  'stress-sec':1,'opt-sec':1
+};
+var SEC_ORDER = Object.keys(SEC_NAMES);
+var SEC_VISIBLE = {};
+var SEC_SPANS = {};
+SEC_ORDER.forEach(function(k){ SEC_VISIBLE[k]=true; SEC_SPANS[k]=SEC_DEFAULTS[k]||2; });
 
 function loadLayout(){
-  var saved=localStorage.getItem(SEC_KEY);
-  if(saved){
-    try{
-      var state=JSON.parse(saved);
-      if(state.order)SEC_ORDER=state.order;
-      if(state.visible)SEC_VISIBLE=state.visible;
-      if(state.collapsed){
-        Object.keys(state.collapsed).forEach(function(id){
-          var wrap=document.querySelector('[data-sec="'+id+'"]');
-          if(wrap){
-            if(state.collapsed[id]){
-              wrap.classList.add('sec-collapsed');
-            }else{
-              wrap.classList.remove('sec-collapsed');
-            }
-          }
-        });
+  try{
+    var d=JSON.parse(localStorage.getItem(SEC_KEY));
+    if(d){
+      if(d.order&&d.order.length)SEC_ORDER=d.order;
+      if(d.visible)for(var k in d.visible)SEC_VISIBLE[k]=d.visible[k];
+      if(d.spans)for(var k in d.spans)SEC_SPANS[k]=d.spans[k];
+      if(d.collapsed)for(var k in d.collapsed){
+        var w=document.querySelector('[data-sec="'+k+'"]');
+        if(w&&d.collapsed[k]){
+          w.querySelector('.sec-body').classList.add('collapsed');
+          var col=w.querySelector('.sec-collapse');
+          if(col)col.classList.add('rot');
+        }
       }
-    }catch(e){console.log('Layout load error:',e)}
-  }
-  applyOrder();
+    }
+  }catch(e){}
 }
 
 function saveLayout(){
   var collapsed={};
-  document.querySelectorAll('[data-sec]').forEach(function(wrap){
-    var id=wrap.getAttribute('data-sec');
-    collapsed[id]=wrap.classList.contains('sec-collapsed');
+  document.querySelectorAll('.sec-wrap').forEach(function(w){
+    var id=w.getAttribute('data-sec');
+    collapsed[id]=w.querySelector('.sec-body').classList.contains('collapsed');
   });
-  var state={
-    order:SEC_ORDER,
-    visible:SEC_VISIBLE,
-    collapsed:collapsed
-  };
-  localStorage.setItem(SEC_KEY,JSON.stringify(state));
+  localStorage.setItem(SEC_KEY,JSON.stringify({order:SEC_ORDER,visible:SEC_VISIBLE,spans:SEC_SPANS,collapsed:collapsed}));
+}
+
+function applySpans(){
+  document.querySelectorAll('.sec-wrap').forEach(function(w){
+    var id=w.getAttribute('data-sec');
+    var span=SEC_SPANS[id]||2;
+    w.setAttribute('data-span',span);
+    var rb=w.querySelector('.sec-resize');
+    if(rb)rb.textContent=span===2?'▣':'◧';
+  });
 }
 
 function applyOrder(){
-  var container=document.querySelector('.sec-container');
-  if(!container)return;
+  var container=document.getElementById('sec-container');
   SEC_ORDER.forEach(function(id){
-    var wrap=document.querySelector('[data-sec="'+id+'"]');
-    if(wrap){
-      wrap.style.display=SEC_VISIBLE[id]?'flex':'none';
-      container.appendChild(wrap);
+    var w=document.querySelector('[data-sec="'+id+'"]');
+    if(w){
+      container.appendChild(w);
+      w.classList.toggle('sec-hidden',!SEC_VISIBLE[id]);
     }
   });
+  applySpans();
 }
 
-function openLayoutSettings(){
-  var modal=document.getElementById('layout-modal');
-  if(!modal){
-    modal=document.createElement('div');
-    modal.id='layout-modal';
-    modal.className='layout-modal';
-    document.body.appendChild(modal);
-  }
-  var html='<div class="layout-panel"><div class="layout-title">⚙ Layout: Mostrar/Esconder & Reordenar<span class="close-btn" onclick="closeLayoutSettings()">✕</span></div>';
-  html+='<div class="layout-content">';
-  html+='<div class="layout-section"><div class="section-title">Visibilidade</div>';
-  SEC_ORDER.forEach(function(id){
-    var name=SEC_NAMES[id]||id;
-    var checked=SEC_VISIBLE[id]?'checked':'';
-    html+='<label class="layout-checkbox"><input type="checkbox" '+checked+' onchange="toggleSectionVisibility(\''+id+'\',this.checked)"> '+name+'</label>';
-  });
-  html+='</div>';
-  html+='<div class="layout-section"><div class="section-title">Ordem (Arraste para reordenar)</div>';
-  html+='<div class="layout-order">';
-  SEC_ORDER.forEach(function(id){
-    var name=SEC_NAMES[id]||id;
-    html+='<div class="order-item" draggable="true" data-order-id="'+id+'" ondragstart="dragStartOrder(event)" ondragover="dragOverOrder(event)" ondrop="dropOrder(event)"><span class="drag-handle">⋮</span> '+name+'</div>';
-  });
-  html+='</div></div></div>';
-  html+='<div class="layout-footer"><button class="btn sm" onclick="closeLayoutSettings()">Fechar</button></div></div>';
-  modal.innerHTML=html;
-  modal.style.display='flex';
-}
-
-function closeLayoutSettings(){
-  var modal=document.getElementById('layout-modal');
-  if(modal)modal.style.display='none';
-  saveLayout();
-}
-
-function toggleSectionVisibility(id,visible){
-  SEC_VISIBLE[id]=visible;
-  var wrap=document.querySelector('[data-sec="'+id+'"]');
-  if(wrap){
-    wrap.style.display=visible?'flex':'none';
-  }
-  saveLayout();
-}
-
-var draggedOrderId=null;
-function dragStartOrder(e){
-  draggedOrderId=e.currentTarget.getAttribute('data-order-id');
-  e.currentTarget.style.opacity='0.5';
-  e.dataTransfer.effectAllowed='move';
-}
-
-function dragOverOrder(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect='move';
-  var target=e.currentTarget;
-  if(target.classList.contains('order-item')&&draggedOrderId!==target.getAttribute('data-order-id')){
-    target.style.borderTop='2px solid var(--accent)';
-  }
-}
-
-function dropOrder(e){
-  e.preventDefault();
-  var target=e.currentTarget;
-  target.style.borderTop='';
-  if(!target.classList.contains('order-item'))return;
-  var targetId=target.getAttribute('data-order-id');
-  if(draggedOrderId===targetId)return;
-  var dragIdx=SEC_ORDER.indexOf(draggedOrderId);
-  var dropIdx=SEC_ORDER.indexOf(targetId);
-  if(dragIdx>-1&&dropIdx>-1){
-    SEC_ORDER.splice(dragIdx,1);
-    SEC_ORDER.splice(dropIdx,0,draggedOrderId);
-    applyOrder();
-    openLayoutSettings();
+// Resize toggle
+document.addEventListener('click',function(e){
+  var rb=e.target.closest('.sec-resize');
+  if(rb){
+    var wrap=rb.closest('.sec-wrap');
+    var id=wrap.getAttribute('data-sec');
+    SEC_SPANS[id]=SEC_SPANS[id]===2?1:2;
+    wrap.setAttribute('data-span',SEC_SPANS[id]);
+    rb.textContent=SEC_SPANS[id]===2?'▣':'◧';
     saveLayout();
+    return;
   }
-}
-
-document.querySelectorAll('[data-sec]').forEach(function(wrap){
-  var hdr=wrap.querySelector('.sec-hdr');
-  if(hdr){
-    var colBtn=hdr.querySelector('.sec-collapse');
-    if(colBtn){
-      colBtn.addEventListener('click',function(e){
-        e.preventDefault();
-        wrap.classList.toggle('sec-collapsed');
-        saveLayout();
-      });
-    }
+  // Collapse/expand
+  var btn=e.target.closest('.sec-collapse');
+  if(btn){
+    var wrap=btn.closest('.sec-wrap');
+    var body=wrap.querySelector('.sec-body');
+    body.classList.toggle('collapsed');
+    btn.classList.toggle('rot');
+    saveLayout();
   }
 });
 
-// Load layout on page load
+// Drag and drop
+var dragSec=null;
+document.addEventListener('dragstart',function(e){
+  var handle=e.target.closest('.sec-drag');
+  if(!handle){e.preventDefault();return;}
+  var wrap=handle.closest('.sec-wrap');
+  if(!wrap)return;
+  dragSec=wrap;
+  wrap.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  try{e.dataTransfer.setDragImage(wrap,20,20);}catch(ex){}
+});
+document.addEventListener('dragend',function(){
+  if(dragSec)dragSec.classList.remove('dragging');
+  document.querySelectorAll('.sec-wrap').forEach(function(w){w.classList.remove('drag-over');});
+  dragSec=null;
+});
+document.addEventListener('dragover',function(e){
+  e.preventDefault();
+  var w=e.target.closest('.sec-wrap');
+  if(!w||w===dragSec)return;
+  document.querySelectorAll('.sec-wrap').forEach(function(s){s.classList.remove('drag-over');});
+  w.classList.add('drag-over');
+});
+document.addEventListener('drop',function(e){
+  e.preventDefault();
+  var target=e.target.closest('.sec-wrap');
+  if(!target||!dragSec||target===dragSec)return;
+  target.classList.remove('drag-over');
+  var container=document.getElementById('sec-container');
+  var all=Array.from(container.querySelectorAll('.sec-wrap'));
+  var dragIdx=all.indexOf(dragSec);
+  var targetIdx=all.indexOf(target);
+  if(dragIdx<targetIdx){
+    target.parentNode.insertBefore(dragSec,target.nextSibling);
+  }else{
+    target.parentNode.insertBefore(dragSec,target);
+  }
+  SEC_ORDER=Array.from(container.querySelectorAll('.sec-wrap')).map(function(w){return w.getAttribute('data-sec');});
+  saveLayout();
+});
+
+// Layout settings panel
+function openLayoutSettings(){
+  var existing=document.getElementById('layout-overlay');
+  if(existing)existing.remove();
+  var ov=document.createElement('div');
+  ov.id='layout-overlay';
+  ov.className='layout-overlay';
+  var pnl=document.createElement('div');
+  pnl.className='layout-panel';
+  pnl.innerHTML='<h3>Organizar seções</h3>';
+  SEC_ORDER.forEach(function(id){
+    var row=document.createElement('div');
+    row.className='layout-row';
+    var cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=SEC_VISIBLE[id]!==false;
+    cb.onchange=function(){SEC_VISIBLE[id]=this.checked;applyOrder();saveLayout();};
+    var lbl=document.createElement('label');
+    lbl.textContent=SEC_NAMES[id]||id;
+    lbl.onclick=function(){cb.click();};
+    var wBtn=document.createElement('button');
+    wBtn.className='btn sm';
+    wBtn.style.cssText='font-size:9px;padding:2px 6px;min-width:44px';
+    wBtn.textContent=SEC_SPANS[id]===2?'▣ full':'◧ half';
+    wBtn.onclick=function(){
+      SEC_SPANS[id]=SEC_SPANS[id]===2?1:2;
+      wBtn.textContent=SEC_SPANS[id]===2?'▣ full':'◧ half';
+      applySpans();saveLayout();
+    };
+    row.appendChild(cb);
+    row.appendChild(lbl);
+    row.appendChild(wBtn);
+    pnl.appendChild(row);
+  });
+  var tip=document.createElement('div');
+  tip.style.cssText='margin-top:12px;font-size:10px;color:var(--dim);text-align:center';
+  tip.textContent='Use ⠿ para arrastar e ◧/▣ para redimensionar.';
+  pnl.appendChild(tip);
+  var resetBtn=document.createElement('button');
+  resetBtn.className='btn sm';
+  resetBtn.style.cssText='margin-top:8px;width:100%';
+  resetBtn.textContent='Resetar layout';
+  resetBtn.onclick=function(){
+    localStorage.removeItem(SEC_KEY);
+    location.reload();
+  };
+  pnl.appendChild(resetBtn);
+  var closeBtn=document.createElement('button');
+  closeBtn.className='btn sm';
+  closeBtn.style.cssText='margin-top:4px;width:100%';
+  closeBtn.textContent='Fechar';
+  closeBtn.onclick=function(){ov.remove();};
+  pnl.appendChild(closeBtn);
+  ov.appendChild(pnl);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+
+// Init layout
 loadLayout();
+applyOrder();
 </script>
 
 <script>
