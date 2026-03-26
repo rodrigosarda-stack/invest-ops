@@ -97,15 +97,15 @@ select:focus{border-color:var(--accent)}
 .kpi.dg .kpi-v{color:var(--danger)}
 
 /* Dashboard sections */
-.dashboard { display: flex; flex-direction: column; gap: 16px; }
-.dash-row { display: grid; gap: 16px; }
+.dashboard { display: flex; flex-direction: column; gap: 12px; }
+.dash-row { display: grid; gap: 12px; }
 .dash-row.cols-2 { grid-template-columns: 1fr 1fr; }
 .dash-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
 .dash-card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 @media(max-width:900px) { .dash-row.cols-2, .dash-row.cols-3 { grid-template-columns: 1fr; } }
 .dash-card .panel-t,
@@ -113,6 +113,9 @@ select:focus{border-color:var(--accent)}
 .dash-card .inv-header {
   cursor: default;
 }
+/* Sensitivity tables responsive */
+.sens-section { overflow-x: auto; }
+.sens-section table { font-size: 10px; min-width: 400px; }
 
 /* Panels grid (deprecated, kept for compatibility) */
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
@@ -618,8 +621,8 @@ canvas{max-height:250px!important}
 <!-- KPIs -->
 <div class="kpis" id="kpis"></div>
 
-<!-- Unit Economics: LTV | Breakdown | Squad -->
-<div class="dash-row cols-3">
+<!-- Unit Economics: LTV | Breakdown -->
+<div class="dash-row cols-2">
   <div class="dash-card">
     <div class="panel-t">LTV</div>
     <div class="ltv-hl">
@@ -640,10 +643,12 @@ canvas{max-height:250px!important}
     <div class="panel-t">Breakdown de Custos</div>
     <div class="bkd" id="bkd"></div>
   </div>
-  <div class="dash-card">
-    <div class="panel-t">Performance Squad</div>
-    <div class="squad-perf" id="squad-perf"></div>
-  </div>
+</div>
+
+<!-- Performance Squad (full width) -->
+<div class="dash-card">
+  <div class="panel-t">Performance Squad</div>
+  <div class="squad-perf" id="squad-perf"></div>
 </div>
 
 <!-- Análise: CAC/SDR | Fluxo de Caixa -->
