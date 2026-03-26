@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulador de Squad Comercial v11 — M3A Médico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.3.1/gridstack.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.3.1/gridstack-all.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -96,11 +98,30 @@ select:focus{border-color:var(--accent)}
 .kpi.dg{background:var(--danger-dim);border-color:rgba(226,75,74,.12)}
 .kpi.dg .kpi-v{color:var(--danger)}
 
-/* Panels grid */
+/* Dashboard grid (gridstack.js) */
+.grid-stack {
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 20px 20px;
+  min-height: 100vh;
+}
+.grid-stack-item-content {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  overflow: auto;
+}
+.grid-stack-item-content .panel-t,
+.grid-stack-item-content .cs-t,
+.grid-stack-item-content .inv-header {
+  cursor: grab;
+}
+
+/* Panels grid (deprecated, kept for compatibility) */
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
 .g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 15px}
+.panel{background:none;border:none;border-radius:0;padding:0}
 .panel-t{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
 .row{display:flex;align-items:center;gap:7px;margin-bottom:8px}
 .row:last-child{margin-bottom:0}
@@ -240,36 +261,12 @@ select:focus{border-color:var(--accent)}
 .gate.fail{background:var(--danger-dim);border-color:rgba(226,75,74,.15)}
 .gate.fail .gate-t{color:var(--danger)}
 
-/* Section wrappers — dashboard grid */
-#sec-container{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;align-items:start}
-.sec-wrap{position:relative;transition:opacity .2s;min-width:0}
-.sec-wrap[data-span="2"]{grid-column:span 2}
-.sec-wrap.dragging{opacity:.4;z-index:10}
-.sec-wrap.drag-over{box-shadow:0 -3px 0 0 var(--accent)}
-.sec-wrap.sec-hidden{display:none}
-.sec-hdr{display:flex;align-items:center;gap:4px;padding:2px 6px;user-select:none;border-radius:var(--radius) var(--radius) 0 0;opacity:.35;transition:opacity .2s}
-.sec-wrap:hover .sec-hdr{opacity:.7}
-.sec-drag{font-size:11px;color:var(--dim);cursor:grab;line-height:1;padding:2px}
-.sec-drag:active{cursor:grabbing}
-.sec-name{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);flex:1}
-.sec-collapse{font-size:9px;color:var(--dim);cursor:pointer;padding:2px 4px;border-radius:3px;transition:background .15s}
-.sec-collapse:hover{background:rgba(0,0,0,.08)}
-.sec-body.collapsed{display:none}
-.sec-collapse.rot{transform:rotate(-90deg)}
-.sec-resize{font-size:9px;color:var(--dim);cursor:pointer;padding:2px 4px;border-radius:3px;transition:background .15s}
-.sec-resize:hover{background:rgba(0,0,0,.08)}
-/* Layout settings panel */
-.layout-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;z-index:1000;max-height:70vh;overflow-y:auto;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
-.layout-panel h3{margin:0 0 12px;font-size:13px;font-weight:600}
-.layout-row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:11px}
-.layout-row:last-child{border-bottom:none}
-.layout-row label{flex:1;cursor:pointer}
-.layout-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.3);z-index:999}
+/* Old section wrappers — deprecated (removed for gridstack) */
 
 /* Print */
 @media print{
 body{background:#fff!important;color:#000!important;padding:10px!important;font-size:11px!important}
-.hdr-r,.profiles,.sc-tabs,.btn,.tgl,.overlay,.hrow,.sec-hdr{display:none!important}
+.hdr-r,.profiles,.sc-tabs,.btn,.tgl,.overlay,.hrow,.gs-drag{display:none!important}
 .kpi,.panel,.cs,.bk,.timeline-section,.cbox{break-inside:avoid;border-color:#ddd!important;background:#fff!important}
 .kpi-v,.bkv{color:#000!important}
 .kpi.hl,.kpi.wn,.kpi.dg{background:#f5f5f5!important}
@@ -386,260 +383,226 @@ canvas{max-height:250px!important}
 <div class="sc-presets" id="sc-presets"></div>
 <div class="sc-tabs" id="sc-tabs"></div>
 
-<!-- Sections Container -->
-<div id="sec-container">
+<!-- Gridstack Container -->
+<div class="grid-stack" id="grid-stack">
 
 <!-- KPI Cards -->
-<div class="sec-wrap" data-sec="kpis-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">KPIs</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
+<div class="grid-stack-item" gs-id="kpis" gs-x="0" gs-y="0" gs-w="12" gs-h="3">
+  <div class="grid-stack-item-content">
     <div class="kpis" id="kpis"></div>
   </div>
 </div>
 
-<!-- Squad Team -->
-<div class="sec-wrap" data-sec="squad-team-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Squad Team</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-<div class="g3" id="squad-panels">
-  <div class="panel">
-    <div class="panel-t">SDR</div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de SDRs (pré-vendedores) na squad. Cada SDR prospecta leads e agenda reuniões para os closers.">?</span></span></label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao SDR por cada venda fechada (cliente ganho). Incentivo extra além da comissão por agendamento.">?</span></span></label><input type="range" id="scomv" min="0" max="1000" value="0" step="50"><span class="rv" id="scomv-v">R$0</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Treinamento<span class="tip-icon" data-tip="Meses de treinamento puro onde o SDR produz ZERO resultado. Está aprendendo o processo, ICP, ferramentas. Após esse período, começa a fase de aceleração.">?</span></span></label><input type="range" id="train" min="0" max="3" value="1" step="0.25"><span class="rv dim" id="train-v">1 mês</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Aceleração<span class="tip-icon" data-tip="Meses de rampa após o treinamento até atingir 100% de performance. A produtividade cresce gradualmente: ex. com 2 meses de aceleração → 33% → 67% → 100%.">?</span></span></label><input type="range" id="accel" min="0" max="6" value="2" step="1"><span class="rv dim" id="accel-v">2 meses</span></div>
-  </div>
-  <div class="panel">
-    <div class="panel-t">Closer</div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de closers (vendedores) na squad. Closers recebem as reuniões dos SDRs e fecham contratos.">?</span></span></label><input type="range" id="clos" min="1" max="5" value="1" step="1"><span class="rv" id="clos-v">1</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada closer.">?</span></span></label><input type="range" id="csal" min="1000" max="15000" value="4500" step="100"><input type="number" id="csal-n" value="4500" min="100" max="50000" step="100"></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação.">?</span></span></label><input type="range" id="cded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="cded-v">8h (100%)</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao closer por cada venda fechada (cada novo cliente).">?</span></span></label><input type="range" id="ccom" min="0" max="2000" value="500" step="50"><span class="rv" id="ccom-v">R$500</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./dia<span class="tip-icon" data-tip="Reuniões de vendas que cada closer consegue fazer por dia útil.">?</span></span></label><input type="range" id="rclo" min="1" max="12" value="6" step="1"><span class="rv" id="rclo-v">6</span></div>
-  </div>
-  <div class="panel">
-    <div class="panel-t">Gabriel (Op. Comercial)<label class="tgl" style="margin-left:auto"><input type="checkbox" id="gon" checked>ativo</label></div>
-    <div id="gctrl">
-      <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal do Head Comercial (gestor da squad).">?</span></span></label><input type="range" id="gsal" min="1000" max="15000" value="6000" step="100"><input type="number" id="gsal-n" value="6000" min="100" max="50000" step="100"></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo do Head dedicado a esta operação.">?</span></span></label><input type="range" id="gded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="gded-v">8h (100%)</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão do Head por cada venda fechada pela squad.">?</span></span></label><input type="range" id="gcom" min="0" max="1000" value="0" step="50"><span class="rv" id="gcom-v">R$0</span></div>
+<!-- Squad Team - SDR -->
+<div class="grid-stack-item" gs-id="sdr" gs-x="0" gs-y="3" gs-w="4" gs-h="7">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">SDR</div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de SDRs (pré-vendedores) na squad. Cada SDR prospecta leads e agenda reuniões para os closers.">?</span></span></label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao SDR por cada venda fechada (cliente ganho). Incentivo extra além da comissão por agendamento.">?</span></span></label><input type="range" id="scomv" min="0" max="1000" value="0" step="50"><span class="rv" id="scomv-v">R$0</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Treinamento<span class="tip-icon" data-tip="Meses de treinamento puro onde o SDR produz ZERO resultado. Está aprendendo o processo, ICP, ferramentas. Após esse período, começa a fase de aceleração.">?</span></span></label><input type="range" id="train" min="0" max="3" value="1" step="0.25"><span class="rv dim" id="train-v">1 mês</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Aceleração<span class="tip-icon" data-tip="Meses de rampa após o treinamento até atingir 100% de performance. A produtividade cresce gradualmente: ex. com 2 meses de aceleração → 33% → 67% → 100%.">?</span></span></label><input type="range" id="accel" min="0" max="6" value="2" step="1"><span class="rv dim" id="accel-v">2 meses</span></div>
     </div>
-    <div id="goff" style="display:none;font-size:10px;color:var(--dim);padding-top:6px">Gabriel não incluído no custo.</div>
   </div>
+</div>
+
+<!-- Squad Team - Closer -->
+<div class="grid-stack-item" gs-id="closer" gs-x="4" gs-y="3" gs-w="4" gs-h="5">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Closer</div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de closers (vendedores) na squad. Closers recebem as reuniões dos SDRs e fecham contratos.">?</span></span></label><input type="range" id="clos" min="1" max="5" value="1" step="1"><span class="rv" id="clos-v">1</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada closer.">?</span></span></label><input type="range" id="csal" min="1000" max="15000" value="4500" step="100"><input type="number" id="csal-n" value="4500" min="100" max="50000" step="100"></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação.">?</span></span></label><input type="range" id="cded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="cded-v">8h (100%)</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao closer por cada venda fechada (cada novo cliente).">?</span></span></label><input type="range" id="ccom" min="0" max="2000" value="500" step="50"><span class="rv" id="ccom-v">R$500</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./dia<span class="tip-icon" data-tip="Reuniões de vendas que cada closer consegue fazer por dia útil.">?</span></span></label><input type="range" id="rclo" min="1" max="12" value="6" step="1"><span class="rv" id="rclo-v">6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Squad Team - Gabriel (Gestor) -->
+<div class="grid-stack-item" gs-id="gestor" gs-x="8" gs-y="3" gs-w="4" gs-h="5">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Gabriel (Op. Comercial)<label class="tgl" style="margin-left:auto"><input type="checkbox" id="gon" checked>ativo</label></div>
+      <div id="gctrl">
+        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal do Head Comercial (gestor da squad).">?</span></span></label><input type="range" id="gsal" min="1000" max="15000" value="6000" step="100"><input type="number" id="gsal-n" value="6000" min="100" max="50000" step="100"></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo do Head dedicado a esta operação.">?</span></span></label><input type="range" id="gded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="gded-v">8h (100%)</span></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão do Head por cada venda fechada pela squad.">?</span></span></label><input type="range" id="gcom" min="0" max="1000" value="0" step="50"><span class="rv" id="gcom-v">R$0</span></div>
+      </div>
+      <div id="goff" style="display:none;font-size:10px;color:var(--dim);padding-top:6px">Gabriel não incluído no custo.</div>
+    </div>
   </div>
 </div>
 
 <!-- Parâmetros do Negócio -->
-<div class="sec-wrap" data-sec="params-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Parâmetros</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-<div class="g4">
-  <div class="panel">
-    <div class="panel-t">Produto
-      <label class="tgl"><input type="checkbox" id="fundador" onchange="toggleFundador()">fundador vitalício</label>
+<div class="grid-stack-item" gs-id="params" gs-x="0" gs-y="10" gs-w="6" gs-h="5">
+  <div class="grid-stack-item-content">
+    <div class="g4">
+      <div class="panel">
+        <div class="panel-t gs-drag">Produto
+          <label class="tgl"><input type="checkbox" id="fundador" onchange="toggleFundador()">fundador vitalício</label>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
+          <button class="btn sm" onclick="setSegmento(580,20)">Anual R$580</button>
+          <button class="btn sm" onclick="setSegmento(698,20)">Mensal R$698</button>
+          <button class="btn sm" onclick="setSegmento(780,20)">Clínica An. R$780</button>
+          <button class="btn sm" onclick="setSegmento(980,20)">Clínica R$980</button>
+        </div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">TKM R$<span class="tip-icon" data-tip="Ticket Médio Mensal: receita média por cliente por mês. Usado para calcular quanto cada cliente gera de lucro.">?</span></span></label><input type="range" id="tkm" min="300" max="3000" value="580" step="10"><input type="number" id="tkm-n" value="580" min="100" max="20000" step="10"></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Perm. meses<span class="tip-icon" data-tip="Permanência Média: quantos meses em média cada cliente fica contratando a clínica. Quanto maior, melhor o LTV.">?</span></span></label><input type="range" id="perm" min="3" max="84" value="20" step="1"><input type="number" id="perm-n" value="20" min="1" max="120" step="1"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-t gs-drag">Margens e Fiscal</div>
+        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Margem contrib.<span class="tip-icon" data-tip="Percentual da receita que sobra após custos diretos de entrega (fulfillment). Ex: 50% = metade cobre o serviço.">?</span></span></label><input type="range" id="mprod" min="1" max="99" value="50" step="1"><span class="rv" id="mprod-v">50%</span></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Carga fiscal<span class="tip-icon" data-tip="Percentual de impostos diretos sobre a receita (ISS, impostos médicos, etc). É deduzido do lucro bruto.">?</span></span></label><input type="range" id="fisc" min="0" max="30" value="8" step="0.5"><span class="rv" id="fisc-v">8%</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-t gs-drag">Funil e Churn</div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Conversão<span class="tip-icon" data-tip="Percentual de reuniões que viram clientes. Taxa de fechamento do closer.">?</span></span></label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Churn mensal<span class="tip-icon" data-tip="Taxa mensal de cancelamento: percentual de clientes que cancelam por mês. Se 5%, a cada 100 clientes, 5 saem.">?</span></span></label><input type="range" id="churn" min="0" max="15" value="5" step="0.5"><span class="rv" id="churn-v">5%</span></div>
+      </div>
+      <div class="ltv-hl">
+        <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
+        <div class="lv" id="ltv-v">R$ 11.600</div>
+        <div class="ls" id="ltv-s">R$580 × 20 meses</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
+          <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
+          <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
+          <div class="ls" id="ltvm-s">margem líq. × vida média</div>
+        </div>
+        <div style="margin-top:6px">
+          <div class="ls" id="cac-max" style="opacity:.8">CAC máx. (3:1): R$ 1.933</div>
+        </div>
+      </div>
     </div>
-    <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
-      <button class="btn sm" onclick="setSegmento(580,20)">Anual R$580</button>
-      <button class="btn sm" onclick="setSegmento(698,20)">Mensal R$698</button>
-      <button class="btn sm" onclick="setSegmento(780,20)">Clínica An. R$780</button>
-      <button class="btn sm" onclick="setSegmento(980,20)">Clínica R$980</button>
-    </div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">TKM R$<span class="tip-icon" data-tip="Ticket Médio Mensal: receita média por cliente por mês. Usado para calcular quanto cada cliente gera de lucro.">?</span></span></label><input type="range" id="tkm" min="300" max="3000" value="580" step="10"><input type="number" id="tkm-n" value="580" min="100" max="20000" step="10"></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Perm. meses<span class="tip-icon" data-tip="Permanência Média: quantos meses em média cada cliente fica contratando a clínica. Quanto maior, melhor o LTV.">?</span></span></label><input type="range" id="perm" min="3" max="84" value="20" step="1"><input type="number" id="perm-n" value="20" min="1" max="120" step="1"></div>
-  </div>
-  <div class="panel">
-    <div class="panel-t">Margens e Fiscal</div>
-    <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Margem contrib.<span class="tip-icon" data-tip="Percentual da receita que sobra após custos diretos de entrega (fulfillment). Ex: 50% = metade cobre o serviço.">?</span></span></label><input type="range" id="mprod" min="1" max="99" value="50" step="1"><span class="rv" id="mprod-v">50%</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Carga fiscal<span class="tip-icon" data-tip="Percentual de impostos diretos sobre a receita (ISS, impostos médicos, etc). É deduzido do lucro bruto.">?</span></span></label><input type="range" id="fisc" min="0" max="30" value="8" step="0.5"><span class="rv" id="fisc-v">8%</span></div>
-  </div>
-  <div class="panel">
-    <div class="panel-t">Funil e Churn</div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Conversão<span class="tip-icon" data-tip="Percentual de reuniões que viram clientes. Taxa de fechamento do closer.">?</span></span></label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Churn mensal<span class="tip-icon" data-tip="Taxa mensal de cancelamento: percentual de clientes que cancelam por mês. Se 5%, a cada 100 clientes, 5 saem.">?</span></span></label><input type="range" id="churn" min="0" max="15" value="5" step="0.5"><span class="rv" id="churn-v">5%</span></div>
-  </div>
-  <div class="ltv-hl">
-    <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
-    <div class="lv" id="ltv-v">R$ 11.600</div>
-    <div class="ls" id="ltv-s">R$580 × 20 meses</div>
-    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
-      <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
-      <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
-      <div class="ls" id="ltvm-s">margem líq. × vida média</div>
-    </div>
-    <div style="margin-top:6px">
-      <div class="ls" id="cac-max" style="opacity:.8">CAC máx. (3:1): R$ 1.933</div>
-    </div>
-  </div>
-</div>
   </div>
 </div>
 
 <!-- Chart 1: CAC por SDR -->
-<div class="sec-wrap" data-sec="cac-chart-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">CAC/SDR</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="cs">
-      <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
-      <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
+<div class="grid-stack-item" gs-id="cac-sdr" gs-x="6" gs-y="10" gs-w="6" gs-h="4">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">CAC/SDR</div>
+      <div class="cs">
+        <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
+        <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Breakdown -->
-<div class="sec-wrap" data-sec="bkd-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Breakdown</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="bkd" id="bkd"></div>
+<div class="grid-stack-item" gs-id="breakdown" gs-x="0" gs-y="15" gs-w="3" gs-h="4">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Breakdown</div>
+      <div class="bkd" id="bkd"></div>
+    </div>
   </div>
 </div>
 
 <!-- Squad Performance -->
-<div class="sec-wrap" data-sec="squad-perf-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Performance Squad</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="squad-perf" id="squad-perf"></div>
+<div class="grid-stack-item" gs-id="squad-perf" gs-x="3" gs-y="15" gs-w="3" gs-h="4">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Performance Squad</div>
+      <div class="squad-perf" id="squad-perf"></div>
+    </div>
   </div>
 </div>
 
 <!-- Sensitivity: Conversão -->
-<div class="sec-wrap" data-sec="sens-conv-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Sens. Conversão</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="cs sens-section">
-      <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
-      <div class="sens" id="sens"></div>
+<div class="grid-stack-item" gs-id="sens-conv" gs-x="6" gs-y="15" gs-w="3" gs-h="3">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Sens. Conversão</div>
+      <div class="cs sens-section">
+        <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
+        <div class="sens" id="sens"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Sensitivity: Churn -->
-<div class="sec-wrap" data-sec="sens-churn-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Sens. Churn</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="cs sens-section">
-      <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
-      <div class="sens" id="sens-churn"></div>
+<div class="grid-stack-item" gs-id="sens-churn" gs-x="9" gs-y="15" gs-w="3" gs-h="3">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Sens. Churn</div>
+      <div class="cs sens-section">
+        <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
+        <div class="sens" id="sens-churn"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Chart 2: Fluxo individual -->
-<div class="sec-wrap" data-sec="cashflow-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Fluxo de Caixa</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="cs">
-      <div class="cs-h">
-        <div>
-          <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
-          <div class="cs-sub" id="csub"></div>
+<div class="grid-stack-item" gs-id="cashflow" gs-x="0" gs-y="19" gs-w="6" gs-h="6">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Fluxo de Caixa</div>
+      <div class="cs">
+        <div class="cs-h">
+          <div>
+            <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
+            <div class="cs-sub" id="csub"></div>
+          </div>
+          <div class="tg">
+            <button class="btn sm" id="b-mrr" onclick="setView('mrr')">MRR acum.</button>
+            <button class="btn sm on" id="b-ind" onclick="setView('ind')">Por cliente</button>
+            <button class="btn sm" id="b-op" onclick="setView('op')">Caixa operação</button>
+          </div>
         </div>
-        <div class="tg">
-          <button class="btn sm" id="b-mrr" onclick="setView('mrr')">MRR acum.</button>
-          <button class="btn sm on" id="b-ind" onclick="setView('ind')">Por cliente</button>
-          <button class="btn sm" id="b-op" onclick="setView('op')">Caixa operação</button>
-        </div>
+        <div class="leg" id="leg"></div>
+        <div class="cw" style="height:280px"><canvas id="ch2"></canvas></div>
       </div>
-      <div class="leg" id="leg"></div>
-      <div class="cw" style="height:280px"><canvas id="ch2"></canvas></div>
-    </div>
 
-    <div class="hrow" id="hrow" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px">
-        <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
-        <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
-        <span class="rv" id="hor-v">18 meses</span>
+      <div class="hrow" id="hrow" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
+          <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
+          <span class="rv" id="hor-v">18 meses</span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Timeline Builder -->
-<div class="sec-wrap" data-sec="timeline-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Timeline</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
-    <div class="timeline-section">
-      <div class="cs-h">
-        <div>
-          <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
-          <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
+<div class="grid-stack-item" gs-id="timeline" gs-x="6" gs-y="19" gs-w="6" gs-h="5">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">Timeline</div>
+      <div class="timeline-section">
+        <div class="cs-h">
+          <div>
+            <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
+            <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
+          </div>
         </div>
+        <div class="tl-config" id="tl-config"></div>
+        <div class="tl-bar" id="tl-bar"></div>
+        <div class="leg" id="tl-leg"></div>
+        <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
+        <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
       </div>
-      <div class="tl-config" id="tl-config"></div>
-      <div class="tl-bar" id="tl-bar"></div>
-      <div class="leg" id="tl-leg"></div>
-      <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
-      <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
-    </div>
 
-    <div class="cbox" id="cbox"></div>
+      <div class="cbox" id="cbox"></div>
+    </div>
   </div>
 </div>
 
 <!-- ═══ ANÁLISE DE INVESTIMENTO ═══ -->
-<div class="sec-wrap" data-sec="invest-sec" data-span="2">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Investimento</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
+<div class="grid-stack-item" gs-id="invest" gs-x="0" gs-y="52" gs-w="12" gs-h="8">
+  <div class="grid-stack-item-content">
 <div class="inv-section" style="margin-top:16px">
-  <div class="inv-header">Análise de investimento <span class="tag">Framework</span></div>
+  <div class="inv-header gs-drag">Análise de investimento <span class="tag">Framework</span></div>
   <div class="cs-sub tip tip-l">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">?</span></div>
 
   <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
@@ -659,16 +622,10 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- ═══ SCORECARD GO / NO-GO ═══ -->
-<div class="sec-wrap" data-sec="scorecard-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Scorecard</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
+<div class="grid-stack-item" gs-id="scorecard" gs-x="0" gs-y="60" gs-w="6" gs-h="8">
+  <div class="grid-stack-item-content">
 <div class="inv-section">
-  <div class="inv-header">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
+  <div class="inv-header gs-drag">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
   <div class="cs-sub">Pontue cada critério de 1 a 10. Peso ponderado conforme framework.</div>
   <div class="score-grid" id="score-grid">
     <div class="score-row"><label class="tip tip-l">Alinhamento estratégico <span class="tip-icon" data-tip="O quanto essa squad se encaixa na estratégia atual da M3A. Pontuação alta = crescimento comercial é prioridade agora. Baixa = existem outras prioridades mais urgentes.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
@@ -684,16 +641,10 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- ═══ GATE REVIEWS ═══ -->
-<div class="sec-wrap" data-sec="gates-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Gates</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
+<div class="grid-stack-item" gs-id="gates" gs-x="6" gs-y="60" gs-w="6" gs-h="6">
+  <div class="grid-stack-item-content">
     <div class="inv-section">
-      <div class="inv-header">Gate reviews <span class="tag">Governança</span></div>
+      <div class="inv-header gs-drag">Gate reviews <span class="tag">Governança</span></div>
       <div class="cs-sub">Capital liberado por fases. Cada gate é validado pelas métricas do simulador.</div>
       <div class="gates" id="gates"></div>
       <div class="cbox" id="gate-notes" style="margin-top:10px"></div>
@@ -702,16 +653,10 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Stress Test -->
-<div class="sec-wrap" data-sec="stress-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Stress Test</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
+<div class="grid-stack-item" gs-id="stress" gs-x="0" gs-y="68" gs-w="6" gs-h="4">
+  <div class="grid-stack-item-content">
     <div class="stress-panel" style="margin-bottom:10px">
-      <div class="cs-t" style="display:flex;align-items:center;justify-content:space-between">
+      <div class="cs-t gs-drag" style="display:flex;align-items:center;justify-content:space-between">
         <span>Stress Test — cenário atual sob pressão <span class="tip-icon" data-tip="Testa o cenário atual em 3 condições: pessimista (churn +50%, conversão -30%, ticket -15%), base (valores atuais) e otimista (churn -30%, conversão +20%, ticket +10%).">?</span></span>
         <button class="btn sm primary" onclick="runStress()">▶ Rodar Stress Test</button>
       </div>
@@ -723,16 +668,10 @@ canvas{max-height:250px!important}
 </div>
 
 <!-- Optimizer -->
-<div class="sec-wrap" data-sec="opt-sec" data-span="1">
-  <div class="sec-hdr">
-    <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Optimizer</span>
-    <span class="sec-resize" title="Alternar largura">◧</span>
-    <span class="sec-collapse">▼</span>
-  </div>
-  <div class="sec-body">
+<div class="grid-stack-item" gs-id="optimizer" gs-x="6" gs-y="68" gs-w="6" gs-h="5">
+  <div class="grid-stack-item-content">
     <div class="opt-panel" style="margin-bottom:10px">
-      <div class="cs-t">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
+      <div class="cs-t gs-drag">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
       <div class="opt-constraints">
         <div><label>Orçamento máx./mês (R$)</label><input type="number" id="opt-budget" value="80000" step="5000"></div>
         <div><label>Headcount máximo</label><input type="number" id="opt-head" value="8" step="1" min="2" max="15"></div>
@@ -747,7 +686,7 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
-</div><!-- End sec-container -->
+</div><!-- End grid-stack -->
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -2214,205 +2153,45 @@ renderPresets();
 renderScorecard();
 render();
 
-// ─── LAYOUT MANAGER ─────────────────────────────────────────
-var SEC_KEY = 'm3a-layout';
-var SEC_NAMES = {
-  'kpis-sec':'KPIs','squad-team-sec':'Squad Team','params-sec':'Parâmetros',
-  'cac-chart-sec':'CAC/SDR','bkd-sec':'Breakdown','squad-perf-sec':'Performance Squad',
-  'sens-conv-sec':'Sens. Conversão','sens-churn-sec':'Sens. Churn',
-  'cashflow-sec':'Fluxo de Caixa','timeline-sec':'Timeline','invest-sec':'Investimento',
-  'scorecard-sec':'Scorecard','gates-sec':'Gates',
-  'stress-sec':'Stress Test','opt-sec':'Optimizer'
-};
-var SEC_DEFAULTS = {
-  'kpis-sec':2,'squad-team-sec':2,'params-sec':2,
-  'cac-chart-sec':2,'bkd-sec':1,'squad-perf-sec':1,
-  'sens-conv-sec':1,'sens-churn-sec':1,
-  'cashflow-sec':2,'timeline-sec':2,'invest-sec':2,
-  'scorecard-sec':1,'gates-sec':1,
-  'stress-sec':1,'opt-sec':1
-};
-var SEC_ORDER = Object.keys(SEC_NAMES);
-var SEC_VISIBLE = {};
-var SEC_SPANS = {};
-SEC_ORDER.forEach(function(k){ SEC_VISIBLE[k]=true; SEC_SPANS[k]=SEC_DEFAULTS[k]||2; });
+// ─── DASHBOARD (gridstack.js) ────────────────────────────────
+var GRID_KEY = 'm3a-grid-layout';
+var grid;
 
-function loadLayout(){
-  try{
-    var d=JSON.parse(localStorage.getItem(SEC_KEY));
-    if(d){
-      if(d.order&&d.order.length)SEC_ORDER=d.order;
-      if(d.visible)for(var k in d.visible)SEC_VISIBLE[k]=d.visible[k];
-      if(d.spans)for(var k in d.spans)SEC_SPANS[k]=d.spans[k];
-      if(d.collapsed)for(var k in d.collapsed){
-        var w=document.querySelector('[data-sec="'+k+'"]');
-        if(w&&d.collapsed[k]){
-          w.querySelector('.sec-body').classList.add('collapsed');
-          var col=w.querySelector('.sec-collapse');
-          if(col)col.classList.add('rot');
-        }
-      }
-    }
-  }catch(e){}
-}
-
-function saveLayout(){
-  var collapsed={};
-  document.querySelectorAll('.sec-wrap').forEach(function(w){
-    var id=w.getAttribute('data-sec');
-    collapsed[id]=w.querySelector('.sec-body').classList.contains('collapsed');
+function initDashboard() {
+  grid = GridStack.init({
+    column: 12,
+    cellHeight: 30,
+    margin: 5,
+    float: true,
+    animate: true,
+    resizable: { handles: 'e,se,s,sw,w' },
+    draggable: { handle: '.panel-t, .cs-t, .inv-header, .gs-drag' }
   });
-  localStorage.setItem(SEC_KEY,JSON.stringify({order:SEC_ORDER,visible:SEC_VISIBLE,spans:SEC_SPANS,collapsed:collapsed}));
-}
 
-function applySpans(){
-  document.querySelectorAll('.sec-wrap').forEach(function(w){
-    var id=w.getAttribute('data-sec');
-    var span=SEC_SPANS[id]||2;
-    w.setAttribute('data-span',span);
-    var rb=w.querySelector('.sec-resize');
-    if(rb)rb.textContent=span===2?'▣':'◧';
-  });
-}
-
-function applyOrder(){
-  var container=document.getElementById('sec-container');
-  SEC_ORDER.forEach(function(id){
-    var w=document.querySelector('[data-sec="'+id+'"]');
-    if(w){
-      container.appendChild(w);
-      w.classList.toggle('sec-hidden',!SEC_VISIBLE[id]);
-    }
-  });
-  applySpans();
-}
-
-// Resize toggle
-document.addEventListener('click',function(e){
-  var rb=e.target.closest('.sec-resize');
-  if(rb){
-    var wrap=rb.closest('.sec-wrap');
-    var id=wrap.getAttribute('data-sec');
-    SEC_SPANS[id]=SEC_SPANS[id]===2?1:2;
-    wrap.setAttribute('data-span',SEC_SPANS[id]);
-    rb.textContent=SEC_SPANS[id]===2?'▣':'◧';
-    saveLayout();
-    return;
+  // Load saved layout
+  var saved = localStorage.getItem(GRID_KEY);
+  if (saved) {
+    try {
+      var items = JSON.parse(saved);
+      grid.load(items);
+    } catch(e) {}
   }
-  // Collapse/expand
-  var btn=e.target.closest('.sec-collapse');
-  if(btn){
-    var wrap=btn.closest('.sec-wrap');
-    var body=wrap.querySelector('.sec-body');
-    body.classList.toggle('collapsed');
-    btn.classList.toggle('rot');
-    saveLayout();
-  }
-});
 
-// Drag and drop
-var dragSec=null;
-document.addEventListener('dragstart',function(e){
-  var handle=e.target.closest('.sec-drag');
-  if(!handle){e.preventDefault();return;}
-  var wrap=handle.closest('.sec-wrap');
-  if(!wrap)return;
-  dragSec=wrap;
-  wrap.classList.add('dragging');
-  e.dataTransfer.effectAllowed='move';
-  try{e.dataTransfer.setDragImage(wrap,20,20);}catch(ex){}
-});
-document.addEventListener('dragend',function(){
-  if(dragSec)dragSec.classList.remove('dragging');
-  document.querySelectorAll('.sec-wrap').forEach(function(w){w.classList.remove('drag-over');});
-  dragSec=null;
-});
-document.addEventListener('dragover',function(e){
-  e.preventDefault();
-  var w=e.target.closest('.sec-wrap');
-  if(!w||w===dragSec)return;
-  document.querySelectorAll('.sec-wrap').forEach(function(s){s.classList.remove('drag-over');});
-  w.classList.add('drag-over');
-});
-document.addEventListener('drop',function(e){
-  e.preventDefault();
-  var target=e.target.closest('.sec-wrap');
-  if(!target||!dragSec||target===dragSec)return;
-  target.classList.remove('drag-over');
-  var container=document.getElementById('sec-container');
-  var all=Array.from(container.querySelectorAll('.sec-wrap'));
-  var dragIdx=all.indexOf(dragSec);
-  var targetIdx=all.indexOf(target);
-  if(dragIdx<targetIdx){
-    target.parentNode.insertBefore(dragSec,target.nextSibling);
-  }else{
-    target.parentNode.insertBefore(dragSec,target);
-  }
-  SEC_ORDER=Array.from(container.querySelectorAll('.sec-wrap')).map(function(w){return w.getAttribute('data-sec');});
-  saveLayout();
-});
-
-// Layout settings panel
-function openLayoutSettings(){
-  var existing=document.getElementById('layout-overlay');
-  if(existing)existing.remove();
-  var ov=document.createElement('div');
-  ov.id='layout-overlay';
-  ov.className='layout-overlay';
-  var pnl=document.createElement('div');
-  pnl.className='layout-panel';
-  pnl.innerHTML='<h3>Organizar seções</h3>';
-  SEC_ORDER.forEach(function(id){
-    var row=document.createElement('div');
-    row.className='layout-row';
-    var cb=document.createElement('input');
-    cb.type='checkbox';
-    cb.checked=SEC_VISIBLE[id]!==false;
-    cb.onchange=function(){SEC_VISIBLE[id]=this.checked;applyOrder();saveLayout();};
-    var lbl=document.createElement('label');
-    lbl.textContent=SEC_NAMES[id]||id;
-    lbl.onclick=function(){cb.click();};
-    var wBtn=document.createElement('button');
-    wBtn.className='btn sm';
-    wBtn.style.cssText='font-size:9px;padding:2px 6px;min-width:44px';
-    wBtn.textContent=SEC_SPANS[id]===2?'▣ full':'◧ half';
-    wBtn.onclick=function(){
-      SEC_SPANS[id]=SEC_SPANS[id]===2?1:2;
-      wBtn.textContent=SEC_SPANS[id]===2?'▣ full':'◧ half';
-      applySpans();saveLayout();
-    };
-    row.appendChild(cb);
-    row.appendChild(lbl);
-    row.appendChild(wBtn);
-    pnl.appendChild(row);
+  // Save on change
+  grid.on('change', function() {
+    var items = grid.save(false);
+    localStorage.setItem(GRID_KEY, JSON.stringify(items));
   });
-  var tip=document.createElement('div');
-  tip.style.cssText='margin-top:12px;font-size:10px;color:var(--dim);text-align:center';
-  tip.textContent='Use ⠿ para arrastar e ◧/▣ para redimensionar.';
-  pnl.appendChild(tip);
-  var resetBtn=document.createElement('button');
-  resetBtn.className='btn sm';
-  resetBtn.style.cssText='margin-top:8px;width:100%';
-  resetBtn.textContent='Resetar layout';
-  resetBtn.onclick=function(){
-    localStorage.removeItem(SEC_KEY);
+}
+
+function openLayoutSettings() {
+  if (confirm('Resetar layout para o padrão?')) {
+    localStorage.removeItem(GRID_KEY);
     location.reload();
-  };
-  pnl.appendChild(resetBtn);
-  var closeBtn=document.createElement('button');
-  closeBtn.className='btn sm';
-  closeBtn.style.cssText='margin-top:4px;width:100%';
-  closeBtn.textContent='Fechar';
-  closeBtn.onclick=function(){ov.remove();};
-  pnl.appendChild(closeBtn);
-  ov.appendChild(pnl);
-  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
-  document.body.appendChild(ov);
+  }
 }
 
-// Init layout
-loadLayout();
-applyOrder();
+initDashboard();
 </script>
 
 <script>
