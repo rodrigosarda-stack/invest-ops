@@ -356,6 +356,7 @@ canvas{max-height:250px!important}
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao SDR por cada venda fechada (cliente ganho). Incentivo extra além da comissão por agendamento.">?</span></span></label><input type="range" id="scomv" min="0" max="1000" value="0" step="50"><span class="rv" id="scomv-v">R$0</span></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Treinamento<span class="tip-icon" data-tip="Meses de treinamento puro onde o SDR produz ZERO resultado. Está aprendendo o processo, ICP, ferramentas. Após esse período, começa a fase de aceleração.">?</span></span></label><input type="range" id="train" min="0" max="3" value="1" step="0.25"><span class="rv dim" id="train-v">1 mês</span></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Aceleração<span class="tip-icon" data-tip="Meses de rampa após o treinamento até atingir 100% de performance. A produtividade cresce gradualmente: ex. com 2 meses de aceleração → 33% → 67% → 100%.">?</span></span></label><input type="range" id="accel" min="0" max="6" value="2" step="1"><span class="rv dim" id="accel-v">2 meses</span></div>
@@ -811,7 +812,7 @@ function getRaw() {
     sdrs:el('sdrs').value,clos:el('clos').value,rsdr:el('rsdr').value,rclo:el('rclo').value,
     ssal:el('ssal-n').value,csal:el('csal-n').value,gsal:el('gsal-n').value,
     sded:el('sded').value,cded:el('cded').value,gded:el('gded').value,
-    scom:el('scom').value,ccom:el('ccom').value,gcom:el('gcom').value,
+    scom:el('scom').value,scomv:el('scomv').value,ccom:el('ccom').value,gcom:el('gcom').value,
     gon:el('gon').checked,conv:el('conv').value,
     tkm:el('tkm-n').value,perm:el('perm-n').value,
     mprod:el('mprod').value,fisc:el('fisc').value,
@@ -825,7 +826,7 @@ function applyRaw(r) {
   sv('ssal',r.ssal);sv('ssal-n',r.ssal);sv('csal',r.csal);sv('csal-n',r.csal);
   sv('gsal',r.gsal);sv('gsal-n',r.gsal);
   sv('sded',r.sded);sv('cded',r.cded);sv('gded',r.gded);
-  sv('scom',r.scom);sv('ccom',r.ccom);sv('gcom',r.gcom);
+  sv('scom',r.scom);sv('scomv',r.scomv||'0');sv('ccom',r.ccom);sv('gcom',r.gcom);
   sv('conv',r.conv);sv('tkm',r.tkm);sv('tkm-n',r.tkm);sv('perm',r.perm);sv('perm-n',r.perm);
   sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('train',r.train||'1');sv('accel',r.accel||'2');
   el('gon').checked=r.gon!==false&&r.gon!=='false';
@@ -853,7 +854,7 @@ function parseRaw(raw) {
     csal:Math.max(100,parseInt(raw.csal)||4500),
     gsal:Math.max(100,parseInt(raw.gsal)||6000),
     sded:parseFloat(raw.sded)||8, cded:parseFloat(raw.cded)||8, gded:parseFloat(raw.gded)||8,
-    scom:parseInt(raw.scom)||60, ccom:parseInt(raw.ccom)||500, gcom:parseInt(raw.gcom)||0,
+    scom:parseInt(raw.scom)||60, scomv:parseInt(raw.scomv)||0, ccom:parseInt(raw.ccom)||500, gcom:parseInt(raw.gcom)||0,
     gon:raw.gon!==false&&raw.gon!=='false',
     conv:(parseInt(raw.conv)||35)/100,
     tkm:Math.max(100,parseInt(raw.tkm)||800),
@@ -895,7 +896,7 @@ function simulate(raw) {
 }
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────
-['sdrs','clos','rsdr','rclo','sded','cded','gded','scom','ccom','gcom','conv','mprod','fisc','churn','train','accel'].forEach(function(id){
+['sdrs','clos','rsdr','rclo','sded','cded','gded','scom','scomv','ccom','gcom','conv','mprod','fisc','churn','train','accel'].forEach(function(id){
   el(id).addEventListener('input',render);
 });
 el('gon').addEventListener('change',render);
@@ -911,7 +912,7 @@ function getP() {
     csal:Math.max(100,parseInt(el('csal-n').value)||4500),
     gsal:Math.max(100,parseInt(el('gsal-n').value)||6000),
     sded:parseFloat(el('sded').value), cded:parseFloat(el('cded').value), gded:parseFloat(el('gded').value),
-    scom:parseInt(el('scom').value), ccom:parseInt(el('ccom').value), gcom:parseInt(el('gcom').value),
+    scom:parseInt(el('scom').value), scomv:parseInt(el('scomv').value)||0, ccom:parseInt(el('ccom').value), gcom:parseInt(el('gcom').value),
     gon:el('gon').checked,
     conv:parseInt(el('conv').value)/100,
     tkm:Math.max(100,parseInt(el('tkm-n').value)||800),
@@ -934,9 +935,10 @@ function calcFromP(p) {
   var sal = se + ce + ge;
   var afc = p.conv >= BASE_CONV ? au : (cl / BASE_CONV);
   var cs = Math.round(afc * p.scom);
+  var csv = cl * (p.scomv||0);
   var cc = cl * p.ccom;
   var cg = p.gon ? cl * p.gcom : 0;
-  var tot = Math.round(sal + cs + cc + cg);
+  var tot = Math.round(sal + cs + csv + cc + cg);
   var cac = cl > 0 ? Math.round(tot / cl) : 0;
   var prod = Math.round(p.tkm * (100 - p.mprod) / 100);
   var fisc = Math.round(p.tkm * p.fisc / 100);
@@ -1003,6 +1005,7 @@ function render() {
   el('cded-v').textContent = fmtH(p.cded);
   el('gded-v').textContent = fmtH(p.gded);
   el('scom-v').textContent = 'R$'+p.scom;
+  el('scomv-v').textContent = 'R$'+(p.scomv||0);
   el('ccom-v').textContent = 'R$'+p.ccom;
   el('gcom-v').textContent = 'R$'+p.gcom;
   el('conv-v').textContent = Math.round(p.conv*100)+'%';
@@ -1329,7 +1332,7 @@ function getScParams(idx) {
     csal:Math.max(100,parseInt(raw.csal)||4500),
     gsal:Math.max(100,parseInt(raw.gsal)||6000),
     sded:parseFloat(raw.sded)||8, cded:parseFloat(raw.cded)||8, gded:parseFloat(raw.gded)||8,
-    scom:parseInt(raw.scom)||60, ccom:parseInt(raw.ccom)||500, gcom:parseInt(raw.gcom)||0,
+    scom:parseInt(raw.scom)||60, scomv:parseInt(raw.scomv)||0, ccom:parseInt(raw.ccom)||500, gcom:parseInt(raw.gcom)||0,
     gon:raw.gon!==false&&raw.gon!=='false',
     conv:(parseInt(raw.conv)||35)/100,
     tkm:Math.max(100,parseInt(raw.tkm)||800),
@@ -1753,7 +1756,7 @@ function newProfile(){
   if(!confirm('Limpar tudo e começar do zero?'))return;
   SCENARIOS=[null];SC_DURATIONS=[6];CUR_SC=0;LOADED_P=null;
   // Reset all inputs to defaults
-  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,ccom:500,gcom:0,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
+  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,scomv:0,ccom:500,gcom:0,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
   applyRaw(defs);el('gon').checked=true;
   SCENARIOS[0]=getRaw();
   renderTabs();renderTimelineConfig();renderPs();render();
