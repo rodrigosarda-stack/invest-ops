@@ -1009,8 +1009,8 @@ function render() {
   el('mprod-v').textContent = p.mprod+'%';
   el('fisc-v').textContent = p.fisc+'%';
   el('churn-v').textContent = (p.churn*100).toFixed(1)+'%';
-  el('train-v').textContent = p.train===0?'sem treino':p.train+(p.train===1?' mês':' meses');
-  el('accel-v').textContent = p.accel===0?'imediato':p.accel+(p.accel===1?' mês':' meses');
+  el('train-v').textContent = p.train===0?'sem treino':p.train<1?Math.round(p.train*4)+(Math.round(p.train*4)===1?' semana':' semanas'):p.train===1?'1 mês':p.train+' meses';
+  el('accel-v').textContent = p.accel===0?'imediato':p.accel===1?'1 mês':p.accel+' meses';
   el('gctrl').style.display = p.gon?'block':'none';
   el('goff').style.display = p.gon?'none':'block';
 
