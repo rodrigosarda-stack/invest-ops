@@ -1368,18 +1368,20 @@ function renderInvestment() {
   var totalLoss = netFlows.reduce(function(a2, b2) { return a2 + (b2 < 0 ? Math.abs(b2) : 0); }, 0);
   var netResult = netFlows.reduce(function(a2, b2) { return a2 + b2; }, 0);
 
-  // CDI alternative
-  var cdiResult = 0, cdiAcum = 0;
+  // CDI alternative: simulate monthly cost invested in CDI for remaining months
+  var cdiTotal = 0;
+  var monthlyCosts = [];
   for (var mi = 0; mi < total; mi++) {
-    // If the same capital were in CDI
-    cdiAcum = (cdiAcum + Math.abs(netFlows[mi] < 0 ? netFlows[mi] : 0)) * (1 + cdiMo);
-    cdiResult += Math.abs(netFlows[mi] < 0 ? netFlows[mi] : 0) * cdiMo;
+    var costM = netFlows[mi] < 0 ? Math.abs(netFlows[mi]) : 0;
+    monthlyCosts.push(costM);
+    // Each monthly cost compounds in CDI for remaining months
+    cdiTotal += Math.round(costM * (Math.pow(1 + cdiMo, total - mi) - 1));
   }
 
-  // Simplified: total invested at CDI
-  var cdiTotal = Math.round(totalInvested * (Math.pow(1 + cdiMo, total) - 1));
+  // Squad ROI: net result over total invested (simple ROI)
   var squadROI = totalInvested > 0 ? Math.round((netResult / totalInvested) * 100) : 0;
-  var cdiROI = Math.round((Math.pow(1 + cdiAa, total / 12) - 1) * 100);
+  // CDI ROI: CDI earnings over same total invested (apples-to-apples)
+  var cdiROI = totalInvested > 0 ? Math.round((cdiTotal / totalInvested) * 100) : 0;
 
   // VPL card class
   var vplCls = vpl > 0 ? 'pos' : vpl < 0 ? 'neg' : 'neu';
