@@ -139,6 +139,19 @@ select:focus{border-color:var(--accent)}
 .bkv{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
 .bkn{font-size:9px;color:var(--dim);line-height:1.4}
 
+/* Squad Performance */
+.squad-perf{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px}
+.sp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.sp-title{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sp-title .sp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sp-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)}
+.sp-row:last-child{border-bottom:none}
+.sp-lbl{font-size:10px;color:var(--dim)}
+.sp-val{font-size:12px;font-weight:600;color:var(--text)}
+.sp-total{margin-top:8px;padding-top:8px;border-top:2px solid var(--border);display:flex;justify-content:space-between;align-items:baseline}
+.sp-total .sp-lbl{font-size:11px;font-weight:600;color:var(--text)}
+.sp-total .sp-val{font-size:15px;color:var(--accent)}
+
 /* Timeline builder */
 .timeline-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px}
 .tl-bar{display:flex;height:44px;border-radius:8px;overflow:hidden;margin:12px 0;border:1px solid var(--border)}
@@ -427,6 +440,9 @@ canvas{max-height:250px!important}
 
 <!-- Breakdown -->
 <div class="bkd" id="bkd"></div>
+
+<!-- Squad Performance -->
+<div class="squad-perf" id="squad-perf"></div>
 
 <!-- Sensitivity -->
 <div class="cs sens-section">
@@ -959,7 +975,7 @@ function calcFromP(p) {
   var roi12 = tot > 0 ? Math.round(((cl * net * 12 - tot * 12) / (tot * 12)) * 100) : 0;
   return {
     cl:cl, sal:Math.round(sal), se:Math.round(se), ce:Math.round(ce), ge:Math.round(ge),
-    cs:cs, cc:Math.round(cc), cg:Math.round(cg), tot:tot, cac:cac,
+    cs:cs, csv:Math.round(csv), cc:Math.round(cc), cg:Math.round(cg), tot:tot, cac:cac,
     pb:pb, util:util, au:Math.round(au),
     mrr:cl*p.tkm, ltv:ltv, ltvMargin:ltvMargin, ltvNet:ltvNet,
     ltvCac:ltvCac, ltvMarginCac:ltvMarginCac, ltvNetCac:ltvNetCac,
@@ -1049,9 +1065,50 @@ function render() {
   var gn = p.gon&&p.gded<FD?' ×'+Math.round(p.gded/FD*100)+'%':'';
   el('bkd').innerHTML =
     mkBk('Salários efetivos','R$ '+fmt(r.sal),'SDR R$'+fmt(r.se)+sn+' | Closer R$'+fmt(r.ce)+cn2+(p.gon?' | Gab R$'+fmt(r.ge)+gn:'')) +
-    mkBk('Comissões','R$ '+fmt(r.cs+r.cc+r.cg),'SDR R$'+fmt(r.cs)+' | Closer R$'+fmt(r.cc)+(p.gon&&r.cg>0?' | Gab R$'+fmt(r.cg):'')) +
+    mkBk('Comissões','R$ '+fmt(r.cs+r.csv+r.cc+r.cg),'SDR ag. R$'+fmt(r.cs)+(r.csv>0?' + vda R$'+fmt(r.csv):'')+' | Closer R$'+fmt(r.cc)+(p.gon&&r.cg>0?' | Gab R$'+fmt(r.cg):'')) +
     mkBk('Carga fiscal/mês','R$ '+fmt(r.mrrF),p.fisc+'% sobre MRR') +
     mkBk('Custo total / aproveit.','R$ '+fmt(r.tot),'Closer: '+r.util+'% capacidade');
+
+  // Squad Performance
+  var sdrReun = Math.round(p.sdrs * p.rsdr * WEEKS);
+  var sdrVendas = r.cl; // SDR contributes to all sales (they generate the pipeline)
+  var sdrCustoTotal = Math.round(r.se + r.cs + r.csv);
+  var closerReun = Math.round(r.au); // meetings attended
+  var closerVendas = r.cl;
+  var closerCustoTotal = Math.round(r.ce + r.cc);
+  var gestorCustoTotal = p.gon ? Math.round(r.ge + r.cg) : 0;
+
+  function mkSpCard(title, color, rows, total) {
+    var h = '<div class="sp-card"><div class="sp-title"><span class="sp-dot" style="background:'+color+'"></span>'+title+'</div>';
+    for (var i=0; i<rows.length; i++) h += '<div class="sp-row"><span class="sp-lbl">'+rows[i][0]+'</span><span class="sp-val">'+rows[i][1]+'</span></div>';
+    h += '<div class="sp-total"><span class="sp-lbl">Custo total</span><span class="sp-val">R$ '+fmt(total)+'</span></div></div>';
+    return h;
+  }
+
+  var spHtml = mkSpCard('SDR (×'+p.sdrs+')', '#2eab6f', [
+    ['Reuniões/mês', sdrReun],
+    ['Salário efetivo', 'R$ '+fmt(r.se)],
+    ['Comis. agendamento', 'R$ '+fmt(r.cs)],
+    ['Comis. venda', 'R$ '+fmt(r.csv)]
+  ], sdrCustoTotal);
+  spHtml += mkSpCard('Closer (×'+p.clos+')', '#3b82f6', [
+    ['Reuniões atendidas', closerReun],
+    ['Vendas/mês', closerVendas],
+    ['Salário efetivo', 'R$ '+fmt(r.ce)],
+    ['Comis. venda', 'R$ '+fmt(r.cc)]
+  ], closerCustoTotal);
+  if (p.gon) {
+    spHtml += mkSpCard('Gestor', '#8b5cf6', [
+      ['Salário efetivo', 'R$ '+fmt(r.ge)],
+      ['Comis. venda', 'R$ '+fmt(r.cg)]
+    ], gestorCustoTotal);
+  }
+  spHtml += mkSpCard('SQUAD TOTAL', '#1a1a1a', [
+    ['Headcount', (p.sdrs+p.clos+(p.gon?1:0))+' pessoas'],
+    ['Vendas/mês', r.cl+' clientes'],
+    ['Custo por venda', 'R$ '+fmt(r.cac)]
+  ], r.tot);
+  el('squad-perf').innerHTML = spHtml;
 
   // Sensitivity tables
   drawSensitivity(p, r);
