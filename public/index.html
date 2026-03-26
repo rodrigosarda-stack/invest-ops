@@ -1143,20 +1143,32 @@ function drawChart1(p, r) {
   });
 }
 
+// ─── RAMP HELPER ────────────────────────────────────────────
+function getRampedN(p, r, month) {
+  var totalRamp = (p.train||0) + (p.accel||0);
+  if (totalRamp <= 0 || month > totalRamp) return r.cl;
+  if (month <= (p.train||0)) return 0;
+  var accelMonth = month - (p.train||0);
+  return Math.round(r.cl * accelMonth / ((p.accel||0) + 1));
+}
+
 // ─── CHART 2a: MRR ACUMULADO (com churn) ─────────────────────
 function drawMRR(p, r) {
-  var H=12, N=r.cl, chr=p.churn;
+  var H=12, chr=p.churn;
   var mrr_arr=[], cost_arr=[], acum_arr=[];
   var acum=0;
+  var cohorts3=[];
   for (var m=1; m<=H; m++) {
+    var Nm=getRampedN(p,r,m);
+    cohorts3.push({month:m,N:Nm});
     var act=0;
-    for(var i=1;i<=m;i++){ var age=m-i; if(age<p.perm) act += N*Math.pow(1-chr,age); }
+    for(var i=0;i<cohorts3.length;i++){var age=m-cohorts3[i].month;if(age<p.perm)act+=cohorts3[i].N*Math.pow(1-chr,age);}
     var rec = Math.round(act*p.tkm);
     var sp=0;
-    for(var j=1;j<=m;j++){ var age2=m-j; if(age2>=1&&age2<p.perm) sp+=N*Math.pow(1-chr,age2)*r.prod; }
+    for(var j=0;j<cohorts3.length;j++){var age2=m-cohorts3[j].month;if(age2>=1&&age2<p.perm)sp+=cohorts3[j].N*Math.pow(1-chr,age2)*r.prod;}
     var sf=0;
-    if(m>=2){var actP=0;for(var k=1;k<=m-1;k++){var ag3=(m-1)-k;if(ag3<p.perm)actP+=N*Math.pow(1-chr,ag3);}sf=actP*r.fisc;}
-    var sq = m>=2?r.tot:0;
+    if(m>=2){var actP=0;for(var k=0;k<cohorts3.length-1;k++){var ag3=(m-1)-cohorts3[k].month;if(ag3>=0&&ag3<p.perm)actP+=cohorts3[k].N*Math.pow(1-chr,ag3);}sf=actP*r.fisc;}
+    var sq = r.tot;
     var totalCost = Math.round(sp+sf+sq);
     acum += rec-totalCost;
     mrr_arr.push(rec); cost_arr.push(totalCost); acum_arr.push(Math.round(acum));
@@ -1164,7 +1176,7 @@ function drawMRR(p, r) {
   var be=-1; for(var mi=0;mi<mrr_arr.length;mi++){if(mrr_arr[mi]>=cost_arr[mi]&&be===-1)be=mi+1;}
   var labels=[]; for(var mi2=1;mi2<=H;mi2++)labels.push('M'+mi2);
   setLeg([{c:gc('g1'),l:'MRR total',t:'d'},{c:gc('r1'),l:'Custos totais',t:'l'},{c:gc('lnAc'),l:'Caixa acumulado',t:'l'}]);
-  el('csub').textContent='12 meses · '+N+' novos/mês · churn '+Math.round(chr*100)+'% · MRR>custos: M'+(be>0?be:'?');
+  el('csub').textContent='12 meses · '+r.cl+' novos/mês (pós-ramp) · churn '+Math.round(chr*100)+'% · MRR>custos: M'+(be>0?be:'?');
   if(C2)C2.destroy();
   C2=new Chart(el('ch2'),{type:'bar',data:{labels:labels,datasets:[
     {label:'MRR',data:mrr_arr,backgroundColor:mrr_arr.map(function(_,i){return i+1>=be&&be>0?gc('bAct'):gc('bDim');}),borderRadius:4,maxBarThickness:38,order:2},
@@ -1228,23 +1240,26 @@ function drawInd(p, r) {
 
 // ─── CHART 2c: CAIXA DA OPERAÇÃO (com churn) ─────────────────
 function drawOp(p, r) {
-  var H=parseInt(el('hor').value)||18, N=r.cl, chr=p.churn;
+  var H=parseInt(el('hor').value)||18, chr=p.churn;
   var rec_arr=[],sprod_arr=[],sfis_arr=[],squad_arr=[],scac_arr=[],acum_arr=[];
   var acum=0, labels=[];
+  var cohorts4=[];
   for(var m=1;m<=H;m++){
     labels.push('M'+m);
-    var act=0;for(var i=1;i<=m;i++){var age=m-i;if(age<p.perm)act+=N*Math.pow(1-chr,age);}
+    var Nm=getRampedN(p,r,m);
+    cohorts4.push({month:m,N:Nm});
+    var act=0;for(var i=0;i<cohorts4.length;i++){var age=m-cohorts4[i].month;if(age<p.perm)act+=cohorts4[i].N*Math.pow(1-chr,age);}
     var rec=Math.round(act*p.tkm);
-    var sp=0;for(var j=1;j<=m;j++){var age2=m-j;if(age2>=1&&age2<p.perm)sp+=N*Math.pow(1-chr,age2)*r.prod;}
-    var sc=m>=2?N*r.cac:0;
-    var sf=0;if(m>=2){var actP=0;for(var k=1;k<=m-1;k++){var ag3=(m-1)-k;if(ag3<p.perm)actP+=N*Math.pow(1-chr,ag3);}sf=actP*r.fisc;}
-    var sq=m>=2?r.tot:0;
+    var sp=0;for(var j=0;j<cohorts4.length;j++){var age2=m-cohorts4[j].month;if(age2>=1&&age2<p.perm)sp+=cohorts4[j].N*Math.pow(1-chr,age2)*r.prod;}
+    var sc=m>=2?cohorts4[cohorts4.length-2].N*r.cac:0;
+    var sf=0;if(m>=2){var actP=0;for(var k=0;k<cohorts4.length-1;k++){var ag3=(m-1)-cohorts4[k].month;if(ag3>=0&&ag3<p.perm)actP+=cohorts4[k].N*Math.pow(1-chr,ag3);}sf=actP*r.fisc;}
+    var sq=r.tot;
     acum+=rec-Math.round(sp)-Math.round(sc)-Math.round(sf)-sq;
     rec_arr.push(rec);sprod_arr.push(Math.round(sp));sfis_arr.push(Math.round(sf));squad_arr.push(sq);scac_arr.push(Math.round(sc));acum_arr.push(Math.round(acum));
   }
   var be=-1;for(var bi=0;bi<acum_arr.length;bi++){if(acum_arr[bi]>=0&&be===-1)be=bi+1;}
   setLeg([{c:gc('g1'),l:'Receita',t:'d'},{c:gc('r1'),l:'Squad',t:'d'},{c:gc('r2'),l:'Produção',t:'d'},{c:gc('pu'),l:'Fiscal',t:'d'},{c:gc('r3'),l:'CAC cohort',t:'d'},{c:gc('lnAc'),l:'Acumulado',t:'l'}]);
-  el('csub').textContent='Operação · '+H+' meses · '+N+' cl/mês · churn '+Math.round(chr*100)+'% · breakeven: '+(be>0?'M'+be:'além');
+  el('csub').textContent='Operação · '+H+' meses · '+r.cl+' cl/mês (pós-ramp) · churn '+Math.round(chr*100)+'% · breakeven: '+(be>0?'M'+be:'além');
   if(C2)C2.destroy();
   C2=new Chart(el('ch2'),{type:'bar',data:{labels:labels,datasets:[
     {label:'Receita',data:rec_arr,backgroundColor:gc('g1'),stack:'e',maxBarThickness:34},
