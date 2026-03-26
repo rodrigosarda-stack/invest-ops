@@ -239,10 +239,31 @@ select:focus{border-color:var(--accent)}
 .gate.fail{background:var(--danger-dim);border-color:rgba(226,75,74,.15)}
 .gate.fail .gate-t{color:var(--danger)}
 
+/* Section wrappers */
+.sec-wrap{margin-bottom:10px;position:relative;transition:opacity .2s}
+.sec-wrap.dragging{opacity:.4}
+.sec-wrap.drag-over{border-top:3px solid var(--accent)}
+.sec-wrap.sec-hidden{display:none}
+.sec-hdr{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:grab;user-select:none;border-radius:var(--radius) var(--radius) 0 0;background:rgba(0,0,0,.02);border:1px solid transparent;transition:background .15s}
+.sec-hdr:hover{background:rgba(0,0,0,.05);border-color:var(--border)}
+.sec-drag{font-size:14px;color:var(--dim);cursor:grab;line-height:1}
+.sec-name{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);flex:1}
+.sec-collapse{font-size:10px;color:var(--dim);cursor:pointer;padding:2px 6px;border-radius:4px;transition:background .15s}
+.sec-collapse:hover{background:rgba(0,0,0,.08)}
+.sec-body.collapsed{display:none}
+.sec-collapse.rot{transform:rotate(-90deg)}
+/* Layout settings panel */
+.layout-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;z-index:1000;max-height:70vh;overflow-y:auto;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.layout-panel h3{margin:0 0 12px;font-size:13px;font-weight:600}
+.layout-row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:11px}
+.layout-row:last-child{border-bottom:none}
+.layout-row label{flex:1;cursor:pointer}
+.layout-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.3);z-index:999}
+
 /* Print */
 @media print{
 body{background:#fff!important;color:#000!important;padding:10px!important;font-size:11px!important}
-.hdr-r,.profiles,.sc-tabs,.btn,.tgl,.overlay,.hrow{display:none!important}
+.hdr-r,.profiles,.sc-tabs,.btn,.tgl,.overlay,.hrow,.sec-hdr{display:none!important}
 .kpi,.panel,.cs,.bk,.timeline-section,.cbox{break-inside:avoid;border-color:#ddd!important;background:#fff!important}
 .kpi-v,.bkv{color:#000!important}
 .kpi.hl,.kpi.wn,.kpi.dg{background:#f5f5f5!important}
@@ -344,6 +365,7 @@ canvas{max-height:250px!important}
     <button class="btn sm" onclick="window.print()" data-tip="Exportar a página atual como PDF para impressão ou envio">🖨 PDF</button>
     <button class="btn sm" onclick="openPresetM()" data-tip="Salvar apenas o cenário ativo como preset reutilizável em outros perfis">📋 Preset</button>
     <button class="btn sm" onclick="openM()" data-tip="Salvar todos os cenários e configurações como perfil nomeado no navegador">💾 Salvar</button>
+    <button class="btn sm" onclick="openLayoutSettings()" data-tip="Organizar layout: mostrar/esconder e reordenar seções">⚙ Layout</button>
     <button class="btn rnd" id="tbtn" onclick="toggleTheme()" data-tip="Alternar tema claro/escuro">🌙</button>
   </div>
 </div>
@@ -358,10 +380,29 @@ canvas{max-height:250px!important}
 <div class="sc-presets" id="sc-presets"></div>
 <div class="sc-tabs" id="sc-tabs"></div>
 
+<!-- Sections Container -->
+<div id="sec-container">
+
 <!-- KPI Cards -->
-<div class="kpis" id="kpis"></div>
+<div class="sec-wrap" data-sec="kpis-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">KPIs</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="kpis" id="kpis"></div>
+  </div>
+</div>
 
 <!-- Parameter Panels -->
+<div class="sec-wrap" data-sec="squad-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Squad</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
 <div class="g3" id="squad-panels">
   <div class="panel">
     <div class="panel-t">SDR</div>
@@ -431,73 +472,136 @@ canvas{max-height:250px!important}
     </div>
   </div>
 </div>
+  </div>
+</div>
 
 <!-- Chart 1: CAC por SDR -->
-<div class="cs">
-  <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
-  <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
+<div class="sec-wrap" data-sec="cac-chart-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">CAC/SDR</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="cs">
+      <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
+      <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
+    </div>
+  </div>
 </div>
 
 <!-- Breakdown -->
-<div class="bkd" id="bkd"></div>
-
-<!-- Squad Performance -->
-<div class="squad-perf" id="squad-perf"></div>
-
-<!-- Sensitivity -->
-<div class="cs sens-section">
-  <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
-  <div class="sens" id="sens"></div>
+<div class="sec-wrap" data-sec="bkd-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Breakdown</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="bkd" id="bkd"></div>
+  </div>
 </div>
 
-<div class="cs sens-section">
-  <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
-  <div class="sens" id="sens-churn"></div>
+<!-- Squad Performance -->
+<div class="sec-wrap" data-sec="squad-perf-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Performance Squad</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="squad-perf" id="squad-perf"></div>
+  </div>
+</div>
+
+<!-- Sensitivity -->
+<div class="sec-wrap" data-sec="sens-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Sensibilidade</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="cs sens-section">
+      <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
+      <div class="sens" id="sens"></div>
+    </div>
+
+    <div class="cs sens-section">
+      <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
+      <div class="sens" id="sens-churn"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Chart 2: Fluxo individual -->
-<div class="cs">
-  <div class="cs-h">
-    <div>
-      <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
-      <div class="cs-sub" id="csub"></div>
-    </div>
-    <div class="tg">
-      <button class="btn sm" id="b-mrr" onclick="setView('mrr')">MRR acum.</button>
-      <button class="btn sm on" id="b-ind" onclick="setView('ind')">Por cliente</button>
-      <button class="btn sm" id="b-op" onclick="setView('op')">Caixa operação</button>
-    </div>
+<div class="sec-wrap" data-sec="cashflow-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Fluxo de Caixa</span>
+    <span class="sec-collapse">▼</span>
   </div>
-  <div class="leg" id="leg"></div>
-  <div class="cw" style="height:280px"><canvas id="ch2"></canvas></div>
-</div>
+  <div class="sec-body">
+    <div class="cs">
+      <div class="cs-h">
+        <div>
+          <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
+          <div class="cs-sub" id="csub"></div>
+        </div>
+        <div class="tg">
+          <button class="btn sm" id="b-mrr" onclick="setView('mrr')">MRR acum.</button>
+          <button class="btn sm on" id="b-ind" onclick="setView('ind')">Por cliente</button>
+          <button class="btn sm" id="b-op" onclick="setView('op')">Caixa operação</button>
+        </div>
+      </div>
+      <div class="leg" id="leg"></div>
+      <div class="cw" style="height:280px"><canvas id="ch2"></canvas></div>
+    </div>
 
-<div class="hrow" id="hrow" style="display:none">
-  <div style="display:flex;align-items:center;gap:10px">
-    <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
-    <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
-    <span class="rv" id="hor-v">18 meses</span>
+    <div class="hrow" id="hrow" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
+        <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
+        <span class="rv" id="hor-v">18 meses</span>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- Timeline Builder -->
-<div class="timeline-section">
-  <div class="cs-h">
-    <div>
-      <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
-      <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
-    </div>
+<div class="sec-wrap" data-sec="timeline-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Timeline</span>
+    <span class="sec-collapse">▼</span>
   </div>
-  <div class="tl-config" id="tl-config"></div>
-  <div class="tl-bar" id="tl-bar"></div>
-  <div class="leg" id="tl-leg"></div>
-  <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
-  <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
+  <div class="sec-body">
+    <div class="timeline-section">
+      <div class="cs-h">
+        <div>
+          <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
+          <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
+        </div>
+      </div>
+      <div class="tl-config" id="tl-config"></div>
+      <div class="tl-bar" id="tl-bar"></div>
+      <div class="leg" id="tl-leg"></div>
+      <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
+      <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
+    </div>
+
+    <div class="cbox" id="cbox"></div>
+  </div>
 </div>
 
-<div class="cbox" id="cbox"></div>
-
 <!-- ═══ ANÁLISE DE INVESTIMENTO ═══ -->
+<div class="sec-wrap" data-sec="invest-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Investimento</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
 <div class="inv-section" style="margin-top:16px">
   <div class="inv-header">Análise de investimento <span class="tag">Framework</span></div>
   <div class="cs-sub tip tip-l">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">?</span></div>
@@ -515,8 +619,17 @@ canvas{max-height:250px!important}
     <table class="opp-table" id="opp-table"></table>
   </div>
 </div>
+  </div>
+</div>
 
 <!-- ═══ SCORECARD GO / NO-GO ═══ -->
+<div class="sec-wrap" data-sec="scorecard-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Scorecard</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
 <div class="inv-section">
   <div class="inv-header">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
   <div class="cs-sub">Pontue cada critério de 1 a 10. Peso ponderado conforme framework.</div>
@@ -530,40 +643,71 @@ canvas{max-height:250px!important}
   </div>
   <div class="score-total" id="score-total"></div>
 </div>
+  </div>
+</div>
 
 <!-- ═══ GATE REVIEWS ═══ -->
-<div class="inv-section">
-  <div class="inv-header">Gate reviews <span class="tag">Governança</span></div>
-  <div class="cs-sub">Capital liberado por fases. Cada gate é validado pelas métricas do simulador.</div>
-  <div class="gates" id="gates"></div>
-  <div class="cbox" id="gate-notes" style="margin-top:10px"></div>
+<div class="sec-wrap" data-sec="gates-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Gates</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="inv-section">
+      <div class="inv-header">Gate reviews <span class="tag">Governança</span></div>
+      <div class="cs-sub">Capital liberado por fases. Cada gate é validado pelas métricas do simulador.</div>
+      <div class="gates" id="gates"></div>
+      <div class="cbox" id="gate-notes" style="margin-top:10px"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Stress Test -->
-<div class="stress-panel" style="margin-bottom:10px">
-  <div class="cs-t" style="display:flex;align-items:center;justify-content:space-between">
-    <span>Stress Test — cenário atual sob pressão <span class="tip-icon" data-tip="Testa o cenário atual em 3 condições: pessimista (churn +50%, conversão -30%, ticket -15%), base (valores atuais) e otimista (churn -30%, conversão +20%, ticket +10%).">?</span></span>
-    <button class="btn sm primary" onclick="runStress()">▶ Rodar Stress Test</button>
+<div class="sec-wrap" data-sec="stress-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Stress Test</span>
+    <span class="sec-collapse">▼</span>
   </div>
-  <div id="stress-results" style="margin-top:8px">
-    <p style="color:var(--dim);font-size:11px">Clique para testar o cenário atual sob condições pessimistas e otimistas.</p>
+  <div class="sec-body">
+    <div class="stress-panel" style="margin-bottom:10px">
+      <div class="cs-t" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Stress Test — cenário atual sob pressão <span class="tip-icon" data-tip="Testa o cenário atual em 3 condições: pessimista (churn +50%, conversão -30%, ticket -15%), base (valores atuais) e otimista (churn -30%, conversão +20%, ticket +10%).">?</span></span>
+        <button class="btn sm primary" onclick="runStress()">▶ Rodar Stress Test</button>
+      </div>
+      <div id="stress-results" style="margin-top:8px">
+        <p style="color:var(--dim);font-size:11px">Clique para testar o cenário atual sob condições pessimistas e otimistas.</p>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- Optimizer -->
-<div class="opt-panel" style="margin-bottom:10px">
-  <div class="cs-t">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
-  <div class="opt-constraints">
-    <div><label>Orçamento máx./mês (R$)</label><input type="number" id="opt-budget" value="80000" step="5000"></div>
-    <div><label>Headcount máximo</label><input type="number" id="opt-head" value="8" step="1" min="2" max="15"></div>
-    <div><label>Payback máximo (meses)</label><input type="number" id="opt-pb" value="10" step="1" min="1" max="24"></div>
-    <div><label>Objetivo</label><select id="opt-obj"><option value="payback">Menor payback</option><option value="vpl">Maior VPL</option><option value="tir">Maior TIR</option><option value="margem">Maior margem</option></select></div>
+<div class="sec-wrap" data-sec="opt-sec" draggable="true">
+  <div class="sec-hdr">
+    <span class="sec-drag">⠿</span>
+    <span class="sec-name">Optimizer</span>
+    <span class="sec-collapse">▼</span>
   </div>
-  <div style="text-align:center"><button class="btn sm primary" onclick="runOptimizer()">🔍 Otimizar</button></div>
-  <div id="opt-results" style="margin-top:8px">
-    <p style="color:var(--dim);font-size:11px">Defina as restrições e clique para encontrar a configuração ideal.</p>
+  <div class="sec-body">
+    <div class="opt-panel" style="margin-bottom:10px">
+      <div class="cs-t">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
+      <div class="opt-constraints">
+        <div><label>Orçamento máx./mês (R$)</label><input type="number" id="opt-budget" value="80000" step="5000"></div>
+        <div><label>Headcount máximo</label><input type="number" id="opt-head" value="8" step="1" min="2" max="15"></div>
+        <div><label>Payback máximo (meses)</label><input type="number" id="opt-pb" value="10" step="1" min="1" max="24"></div>
+        <div><label>Objetivo</label><select id="opt-obj"><option value="payback">Menor payback</option><option value="vpl">Maior VPL</option><option value="tir">Maior TIR</option><option value="margem">Maior margem</option></select></div>
+      </div>
+      <div style="text-align:center"><button class="btn sm primary" onclick="runOptimizer()">🔍 Otimizar</button></div>
+      <div id="opt-results" style="margin-top:8px">
+        <p style="color:var(--dim);font-size:11px">Defina as restrições e clique para encontrar a configuração ideal.</p>
+      </div>
+    </div>
   </div>
 </div>
+
+</div><!-- End sec-container -->
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -2029,6 +2173,172 @@ renderPs();
 renderPresets();
 renderScorecard();
 render();
+
+// ─── LAYOUT MANAGER ─────────────────────────────────────────
+var SEC_KEY='invest-layout-state';
+var SEC_NAMES={
+  'kpis':'KPIs',
+  'params':'Parâmetros Squad',
+  'squad':'Squad Atual',
+  'sensitivity':'Sensibilidade',
+  'cashflow':'Fluxo de Caixa',
+  'timeline':'Timeline de Crescimento',
+  'payback':'Payback & Viabilidade',
+  'arena':'Arena de Cenários',
+  'stress':'Stress Test',
+  'optimizer':'Otimizador',
+  'metrics':'Scorecard de Métricas',
+  'presets':'Presets',
+  'export':'Exportar & Persistência'
+};
+var SEC_ORDER=['kpis','params','squad','sensitivity','cashflow','timeline','payback','arena','stress','optimizer','metrics','presets','export'];
+var SEC_VISIBLE={};
+SEC_ORDER.forEach(function(id){SEC_VISIBLE[id]=true;});
+
+function loadLayout(){
+  var saved=localStorage.getItem(SEC_KEY);
+  if(saved){
+    try{
+      var state=JSON.parse(saved);
+      if(state.order)SEC_ORDER=state.order;
+      if(state.visible)SEC_VISIBLE=state.visible;
+      if(state.collapsed){
+        Object.keys(state.collapsed).forEach(function(id){
+          var wrap=document.querySelector('[data-sec="'+id+'"]');
+          if(wrap){
+            if(state.collapsed[id]){
+              wrap.classList.add('sec-collapsed');
+            }else{
+              wrap.classList.remove('sec-collapsed');
+            }
+          }
+        });
+      }
+    }catch(e){console.log('Layout load error:',e)}
+  }
+  applyOrder();
+}
+
+function saveLayout(){
+  var collapsed={};
+  document.querySelectorAll('[data-sec]').forEach(function(wrap){
+    var id=wrap.getAttribute('data-sec');
+    collapsed[id]=wrap.classList.contains('sec-collapsed');
+  });
+  var state={
+    order:SEC_ORDER,
+    visible:SEC_VISIBLE,
+    collapsed:collapsed
+  };
+  localStorage.setItem(SEC_KEY,JSON.stringify(state));
+}
+
+function applyOrder(){
+  var container=document.querySelector('.sec-container');
+  if(!container)return;
+  SEC_ORDER.forEach(function(id){
+    var wrap=document.querySelector('[data-sec="'+id+'"]');
+    if(wrap){
+      wrap.style.display=SEC_VISIBLE[id]?'flex':'none';
+      container.appendChild(wrap);
+    }
+  });
+}
+
+function openLayoutSettings(){
+  var modal=document.getElementById('layout-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='layout-modal';
+    modal.className='layout-modal';
+    document.body.appendChild(modal);
+  }
+  var html='<div class="layout-panel"><div class="layout-title">⚙ Layout: Mostrar/Esconder & Reordenar<span class="close-btn" onclick="closeLayoutSettings()">✕</span></div>';
+  html+='<div class="layout-content">';
+  html+='<div class="layout-section"><div class="section-title">Visibilidade</div>';
+  SEC_ORDER.forEach(function(id){
+    var name=SEC_NAMES[id]||id;
+    var checked=SEC_VISIBLE[id]?'checked':'';
+    html+='<label class="layout-checkbox"><input type="checkbox" '+checked+' onchange="toggleSectionVisibility(\''+id+'\',this.checked)"> '+name+'</label>';
+  });
+  html+='</div>';
+  html+='<div class="layout-section"><div class="section-title">Ordem (Arraste para reordenar)</div>';
+  html+='<div class="layout-order">';
+  SEC_ORDER.forEach(function(id){
+    var name=SEC_NAMES[id]||id;
+    html+='<div class="order-item" draggable="true" data-order-id="'+id+'" ondragstart="dragStartOrder(event)" ondragover="dragOverOrder(event)" ondrop="dropOrder(event)"><span class="drag-handle">⋮</span> '+name+'</div>';
+  });
+  html+='</div></div></div>';
+  html+='<div class="layout-footer"><button class="btn sm" onclick="closeLayoutSettings()">Fechar</button></div></div>';
+  modal.innerHTML=html;
+  modal.style.display='flex';
+}
+
+function closeLayoutSettings(){
+  var modal=document.getElementById('layout-modal');
+  if(modal)modal.style.display='none';
+  saveLayout();
+}
+
+function toggleSectionVisibility(id,visible){
+  SEC_VISIBLE[id]=visible;
+  var wrap=document.querySelector('[data-sec="'+id+'"]');
+  if(wrap){
+    wrap.style.display=visible?'flex':'none';
+  }
+  saveLayout();
+}
+
+var draggedOrderId=null;
+function dragStartOrder(e){
+  draggedOrderId=e.currentTarget.getAttribute('data-order-id');
+  e.currentTarget.style.opacity='0.5';
+  e.dataTransfer.effectAllowed='move';
+}
+
+function dragOverOrder(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  var target=e.currentTarget;
+  if(target.classList.contains('order-item')&&draggedOrderId!==target.getAttribute('data-order-id')){
+    target.style.borderTop='2px solid var(--accent)';
+  }
+}
+
+function dropOrder(e){
+  e.preventDefault();
+  var target=e.currentTarget;
+  target.style.borderTop='';
+  if(!target.classList.contains('order-item'))return;
+  var targetId=target.getAttribute('data-order-id');
+  if(draggedOrderId===targetId)return;
+  var dragIdx=SEC_ORDER.indexOf(draggedOrderId);
+  var dropIdx=SEC_ORDER.indexOf(targetId);
+  if(dragIdx>-1&&dropIdx>-1){
+    SEC_ORDER.splice(dragIdx,1);
+    SEC_ORDER.splice(dropIdx,0,draggedOrderId);
+    applyOrder();
+    openLayoutSettings();
+    saveLayout();
+  }
+}
+
+document.querySelectorAll('[data-sec]').forEach(function(wrap){
+  var hdr=wrap.querySelector('.sec-hdr');
+  if(hdr){
+    var colBtn=hdr.querySelector('.sec-collapse');
+    if(colBtn){
+      colBtn.addEventListener('click',function(e){
+        e.preventDefault();
+        wrap.classList.toggle('sec-collapsed');
+        saveLayout();
+      });
+    }
+  }
+});
+
+// Load layout on page load
+loadLayout();
 </script>
 
 <script>
