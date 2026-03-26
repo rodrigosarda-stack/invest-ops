@@ -357,7 +357,7 @@ canvas{max-height:250px!important}
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
     <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
-    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Ramp-up<span class="tip-icon" data-tip="Meses até o SDR atingir performance plena. Durante o ramp-up, a produtividade cresce gradualmente.">?</span></span></label><input type="range" id="ramp" min="0" max="3" value="2" step="1"><span class="rv dim" id="ramp-v">2 meses</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Ramp-up<span class="tip-icon" data-tip="Meses até o SDR atingir performance plena. Mês 1 = zero resultado (treinamento). A produtividade cresce gradualmente até atingir 100%.">?</span></span></label><input type="range" id="ramp" min="0" max="6" value="3" step="1"><span class="rv dim" id="ramp-v">3 meses</span></div>
   </div>
   <div class="panel">
     <div class="panel-t">Closer</div>
@@ -826,7 +826,7 @@ function applyRaw(r) {
   sv('sded',r.sded);sv('cded',r.cded);sv('gded',r.gded);
   sv('scom',r.scom);sv('ccom',r.ccom);sv('gcom',r.gcom);
   sv('conv',r.conv);sv('tkm',r.tkm);sv('tkm-n',r.tkm);sv('perm',r.perm);sv('perm-n',r.perm);
-  sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('ramp',r.ramp||'2');
+  sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('ramp',r.ramp||'3');
   el('gon').checked=r.gon!==false&&r.gon!=='false';
   el('fundador').checked=r.fundador===true;
 }
@@ -859,7 +859,7 @@ function parseRaw(raw) {
     perm:Math.max(1,parseInt(raw.perm)||16),
     mprod:parseInt(raw.mprod)||45, fisc:parseFloat(raw.fisc)||8,
     churn:(parseFloat(raw.churn)||3)/100,
-    ramp:parseInt(raw.ramp)||2
+    ramp:parseInt(raw.ramp)||3
   };
 }
 function simulate(raw) {
@@ -916,7 +916,7 @@ function getP() {
     perm:Math.max(1,parseInt(el('perm-n').value)||16),
     mprod:parseInt(el('mprod').value), fisc:parseFloat(el('fisc').value),
     churn:parseFloat(el('churn').value)/100,
-    ramp:parseInt(el('ramp').value)
+    ramp:parseInt(el('ramp').value)||3
   };
 }
 
@@ -1317,7 +1317,7 @@ function getScParams(idx) {
     perm:Math.max(1,parseInt(raw.perm)||16),
     mprod:parseInt(raw.mprod)||45, fisc:parseFloat(raw.fisc)||8,
     churn:(parseFloat(raw.churn)||3)/100,
-    ramp:parseInt(raw.ramp)||2
+    ramp:parseInt(raw.ramp)||3
   };
 }
 
@@ -1389,7 +1389,7 @@ function renderTimeline() {
     var sp = scParams[sc];
     var sr = scCalc[sc];
     var monthsInSc = m - scStarts[sc] + 1;
-    var rampFactor = sp.ramp > 0 && monthsInSc <= sp.ramp ? monthsInSc / (sp.ramp + 1) : 1;
+    var rampFactor = sp.ramp > 0 && monthsInSc <= sp.ramp ? Math.max(0, (monthsInSc - 1) / sp.ramp) : 1;
     var newClients = Math.round(sr.cl * rampFactor);
     cohorts.push({ month: m, N: newClients, tkm: sp.tkm, prod: sr.prod, fisc: sr.fisc, churn: sp.churn, perm: sp.perm, scIdx: sc });
 
@@ -1580,7 +1580,7 @@ function renderInvestment() {
     var sp = scParams[sc];
     var sr = scCalc[sc];
     var monthsInSc = m - scStarts[sc] + 1;
-    var rampFactor = sp.ramp > 0 && monthsInSc <= sp.ramp ? monthsInSc / (sp.ramp + 1) : 1;
+    var rampFactor = sp.ramp > 0 && monthsInSc <= sp.ramp ? Math.max(0, (monthsInSc - 1) / sp.ramp) : 1;
     var newCl = Math.round(sr.cl * rampFactor);
     cohorts.push({ month:m, N:newCl, tkm:sp.tkm, prod:sr.prod, fisc:sr.fisc, churn:sp.churn, perm:sp.perm, scIdx:sc });
 
@@ -1731,7 +1731,7 @@ function newProfile(){
   if(!confirm('Limpar tudo e começar do zero?'))return;
   SCENARIOS=[null];SC_DURATIONS=[6];CUR_SC=0;LOADED_P=null;
   // Reset all inputs to defaults
-  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,ccom:500,gcom:0,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,ramp:2,gon:true,fundador:false};
+  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,ccom:500,gcom:0,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,ramp:3,gon:true,fundador:false};
   applyRaw(defs);el('gon').checked=true;
   SCENARIOS[0]=getRaw();
   renderTabs();renderTimelineConfig();renderPs();render();
