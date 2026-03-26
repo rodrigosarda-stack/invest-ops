@@ -141,7 +141,8 @@ select:focus{border-color:var(--accent)}
 
 /* Squad Performance */
 .squad-perf{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px}
-.sp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.sp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;border-left:3px solid var(--sp-color,var(--border));transition:box-shadow .15s}
+.sp-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .sp-title{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .sp-title .sp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sp-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)}
@@ -242,16 +243,20 @@ select:focus{border-color:var(--accent)}
 /* Section wrappers */
 .sec-wrap{margin-bottom:10px;position:relative;transition:opacity .2s}
 .sec-wrap.dragging{opacity:.4}
-.sec-wrap.drag-over{border-top:3px solid var(--accent)}
+.sec-wrap.drag-over{border-top:3px solid var(--accent);padding-top:4px}
 .sec-wrap.sec-hidden{display:none}
-.sec-hdr{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:grab;user-select:none;border-radius:var(--radius) var(--radius) 0 0;background:rgba(0,0,0,.02);border:1px solid transparent;transition:background .15s}
-.sec-hdr:hover{background:rgba(0,0,0,.05);border-color:var(--border)}
-.sec-drag{font-size:14px;color:var(--dim);cursor:grab;line-height:1}
-.sec-name{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);flex:1}
-.sec-collapse{font-size:10px;color:var(--dim);cursor:pointer;padding:2px 6px;border-radius:4px;transition:background .15s}
-.sec-collapse:hover{background:rgba(0,0,0,.08)}
+.sec-hdr{display:flex;align-items:center;gap:6px;padding:3px 10px;cursor:grab;user-select:none;border-radius:var(--radius) var(--radius) 0 0;background:transparent;border:1px solid transparent;transition:all .25s;opacity:0;height:0;padding-top:0;padding-bottom:0;overflow:hidden}
+.sec-wrap:hover .sec-hdr,.sec-hdr.pinned{opacity:1;height:auto;padding:3px 10px;overflow:visible}
+.sec-hdr:hover{background:rgba(0,0,0,.04);border-color:var(--border)}
+.sec-drag{font-size:12px;color:var(--dim);cursor:grab;line-height:1;opacity:.4;transition:opacity .15s}
+.sec-hdr:hover .sec-drag{opacity:.8}
+.sec-name{font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);flex:1;opacity:.5;transition:opacity .15s}
+.sec-hdr:hover .sec-name{opacity:.8}
+.sec-collapse{font-size:11px;color:var(--dim);cursor:pointer;padding:2px 8px;border-radius:4px;transition:all .15s;opacity:.5}
+.sec-collapse:hover{background:rgba(0,0,0,.08);opacity:1}
 .sec-body.collapsed{display:none}
 .sec-collapse.rot{transform:rotate(-90deg)}
+.sec-wrap:has(.sec-body.collapsed) .sec-hdr{opacity:1;height:auto;padding:3px 10px;overflow:visible;background:rgba(0,0,0,.02);border-color:var(--border);border-style:dashed}
 /* Layout settings panel */
 .layout-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;z-index:1000;max-height:70vh;overflow-y:auto;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
 .layout-panel h3{margin:0 0 12px;font-size:13px;font-weight:600}
@@ -1223,7 +1228,7 @@ function render() {
   var gestorCustoTotal = p.gon ? Math.round(r.ge + r.cg) : 0;
 
   function mkSpCard(title, color, rows, total) {
-    var h = '<div class="sp-card"><div class="sp-title"><span class="sp-dot" style="background:'+color+'"></span>'+title+'</div>';
+    var h = '<div class="sp-card" style="--sp-color:'+color+'"><div class="sp-title"><span class="sp-dot" style="background:'+color+'"></span>'+title+'</div>';
     for (var i=0; i<rows.length; i++) h += '<div class="sp-row"><span class="sp-lbl">'+rows[i][0]+'</span><span class="sp-val">'+rows[i][1]+'</span></div>';
     h += '<div class="sp-total"><span class="sp-lbl">Custo total</span><span class="sp-val">R$ '+fmt(total)+'</span></div></div>';
     return h;
