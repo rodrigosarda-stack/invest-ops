@@ -672,39 +672,6 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
-<!-- Squad Team - SDR -->
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de SDRs (pré-vendedores) na squad. Cada SDR prospecta leads e agenda reuniões para os closers.">?</span></span></label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao SDR por cada venda fechada (cliente ganho). Incentivo extra além da comissão por agendamento.">?</span></span></label><input type="range" id="scomv" min="0" max="1000" value="0" step="50"><span class="rv" id="scomv-v">R$0</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Treinamento<span class="tip-icon" data-tip="Meses de treinamento puro onde o SDR produz ZERO resultado. Está aprendendo o processo, ICP, ferramentas. Após esse período, começa a fase de aceleração.">?</span></span></label><input type="range" id="train" min="0" max="3" value="1" step="0.25"><span class="rv dim" id="train-v">1 mês</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Aceleração<span class="tip-icon" data-tip="Meses de rampa após o treinamento até atingir 100% de performance. A produtividade cresce gradualmente: ex. com 2 meses de aceleração → 33% → 67% → 100%.">?</span></span></label><input type="range" id="accel" min="0" max="6" value="2" step="1"><span class="rv dim" id="accel-v">2 meses</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- Squad Team - Closer -->
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de closers (vendedores) na squad. Closers recebem as reuniões dos SDRs e fecham contratos.">?</span></span></label><input type="range" id="clos" min="1" max="5" value="1" step="1"><span class="rv" id="clos-v">1</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada closer.">?</span></span></label><input type="range" id="csal" min="1000" max="15000" value="4500" step="100"><input type="number" id="csal-n" value="4500" min="100" max="50000" step="100"></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação.">?</span></span></label><input type="range" id="cded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="cded-v">8h (100%)</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao closer por cada venda fechada (cada novo cliente).">?</span></span></label><input type="range" id="ccom" min="0" max="2000" value="500" step="50"><span class="rv" id="ccom-v">R$500</span></div>
-      <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./dia<span class="tip-icon" data-tip="Reuniões de vendas que cada closer consegue fazer por dia útil.">?</span></span></label><input type="range" id="rclo" min="1" max="12" value="6" step="1"><span class="rv" id="rclo-v">6</span></div>
-    </div>
-  </div>
-</div>
-
-      <div id="gctrl">
-        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal do Head Comercial (gestor da squad).">?</span></span></label><input type="range" id="gsal" min="1000" max="15000" value="6000" step="100"><input type="number" id="gsal-n" value="6000" min="100" max="50000" step="100"></div>
-        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo do Head dedicado a esta operação.">?</span></span></label><input type="range" id="gded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="gded-v">8h (100%)</span></div>
-        <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão do Head por cada venda fechada pela squad.">?</span></span></label><input type="range" id="gcom" min="0" max="1000" value="0" step="50"><span class="rv" id="gcom-v">R$0</span></div>
-      </div>
-      <div id="goff" style="display:none;font-size:10px;color:var(--dim);padding-top:6px">Gabriel não incluído no custo.</div>
-    </div>
-  </div>
-</div>
-
 <!-- Chart 1: CAC por SDR -->
 <div class="grid-stack-item" gs-id="cac-sdr" gs-x="6" gs-y="3" gs-w="6" gs-h="4">
   <div class="grid-stack-item-content">
