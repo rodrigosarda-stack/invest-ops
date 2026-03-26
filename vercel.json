@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "name": "simulador-squad-m3a",
+  "outputDirectory": "public",
+  "buildCommand": "",
+  "installCommand": ""
+}
