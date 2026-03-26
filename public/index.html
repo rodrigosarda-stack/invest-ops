@@ -325,13 +325,13 @@ canvas{max-height:250px!important}
     <div class="sub">M3A Médico · v11 · CAC · Payback · Fluxo de Caixa · Cenários dinâmicos</div>
   </div>
   <div class="hdr-r">
-    <button class="btn sm" onclick="newProfile()" title="Limpar tudo e começar uma simulação do zero">🆕 Novo</button>
-    <button class="btn sm" onclick="duplicateP()" title="Duplicar o perfil atual com outro nome para comparar variações">📑 Duplicar</button>
-    <button class="btn sm" onclick="openArena()" title="Comparar perfis salvos lado a lado com semáforo de métricas">⚔️ Comparar</button>
-    <button class="btn sm" onclick="window.print()" title="Exportar a página atual como PDF para impressão ou envio">🖨 PDF</button>
-    <button class="btn sm" onclick="openPresetM()" title="Salvar apenas o cenário ativo como preset reutilizável em outros perfis">📋 Preset</button>
-    <button class="btn sm" onclick="openM()" title="Salvar todos os cenários e configurações como perfil nomeado no navegador">💾 Salvar</button>
-    <button class="btn rnd" id="tbtn" onclick="toggleTheme()" title="Alternar tema claro/escuro">🌙</button>
+    <button class="btn sm" onclick="newProfile()" data-tip="Limpar tudo e começar uma simulação do zero">🆕 Novo</button>
+    <button class="btn sm" onclick="duplicateP()" data-tip="Duplicar o perfil atual com outro nome para comparar variações">📑 Duplicar</button>
+    <button class="btn sm" onclick="openArena()" data-tip="Comparar perfis salvos lado a lado com semáforo de métricas">⚔️ Comparar</button>
+    <button class="btn sm" onclick="window.print()" data-tip="Exportar a página atual como PDF para impressão ou envio">🖨 PDF</button>
+    <button class="btn sm" onclick="openPresetM()" data-tip="Salvar apenas o cenário ativo como preset reutilizável em outros perfis">📋 Preset</button>
+    <button class="btn sm" onclick="openM()" data-tip="Salvar todos os cenários e configurações como perfil nomeado no navegador">💾 Salvar</button>
+    <button class="btn rnd" id="tbtn" onclick="toggleTheme()" data-tip="Alternar tema claro/escuro">🌙</button>
   </div>
 </div>
 
@@ -1960,30 +1960,33 @@ render();
 (function(){
 var tp=document.createElement('div');tp.id='tip-popup';document.body.appendChild(tp);
 var cur=null;
+function getTipTarget(e){return e.target.closest('.tip-icon')||e.target.closest('[data-tip]');}
 function show(icon){
   var txt=icon.getAttribute('data-tip');if(!txt)return;
   tp.textContent=txt;tp.style.display='block';
   var r=icon.getBoundingClientRect();
   var tw=tp.offsetWidth,th=tp.offsetHeight;
-  var top=r.top-th-8;
+  var isBtn=!icon.classList.contains('tip-icon');
+  var top=isBtn?r.bottom+6:r.top-th-8;
   var left=r.left+r.width/2-tw/2;
-  if(top<4){top=r.bottom+8}
+  if(!isBtn&&top<4){top=r.bottom+8}
+  if(isBtn&&top+th>window.innerHeight-8){top=r.top-th-6}
   if(left<8)left=8;
   if(left+tw>window.innerWidth-8)left=window.innerWidth-8-tw;
   tp.style.top=top+'px';tp.style.left=left+'px';
-  cur=icon;icon.classList.add('tip-active');
+  cur=icon;if(icon.classList.contains('tip-icon'))icon.classList.add('tip-active');
 }
 function hide(){
   tp.style.display='none';
   if(cur){cur.classList.remove('tip-active');cur=null}
 }
 document.addEventListener('mouseover',function(e){
-  var icon=e.target.closest('.tip-icon');
-  if(icon){show(icon)}
+  var t=getTipTarget(e);
+  if(t){show(t)}
 });
 document.addEventListener('mouseout',function(e){
-  var icon=e.target.closest('.tip-icon');
-  if(icon&&!icon.classList.contains('tip-clicked')){hide()}
+  var t=getTipTarget(e);
+  if(t&&!t.classList.contains('tip-clicked')){hide()}
 });
 document.addEventListener('click',function(e){
   var icon=e.target.closest('.tip-icon');
