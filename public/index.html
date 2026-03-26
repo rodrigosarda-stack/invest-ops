@@ -2434,42 +2434,55 @@ document.addEventListener('click',function(e){
   var sbBlocks = document.querySelectorAll('.sb-block');
   
   if (!sidebar || !sbTab) return;
-  
-  // Toggle sidebar on button click
+
+  var pinned = false; // true = user clicked to pin open
+  var hoverCooldown = false;
+
+  // Toggle sidebar on button click (pin/unpin)
   sbTab.addEventListener('click', function(e) {
     e.stopPropagation();
-    sidebar.classList.toggle('open');
+    pinned = !pinned;
+    if (pinned) {
+      sidebar.classList.add('open');
+      sidebar.classList.remove('hover-open');
+    } else {
+      sidebar.classList.remove('open');
+      sidebar.classList.remove('hover-open');
+      hoverCooldown = true;
+      setTimeout(function() { hoverCooldown = false; }, 500);
+    }
     updateWrapMargin();
   });
-  
+
   // Close sidebar when clicking outside
   document.addEventListener('click', function(e) {
-    if (!sidebar.contains(e.target) && !sbTab.contains(e.target)) {
+    if (pinned && !sidebar.contains(e.target) && !sbTab.contains(e.target)) {
+      pinned = false;
       sidebar.classList.remove('open');
+      sidebar.classList.remove('hover-open');
+      hoverCooldown = true;
+      setTimeout(function() { hoverCooldown = false; }, 500);
       updateWrapMargin();
     }
   });
-  
-  // Hover proximity detection (open within 20px of left edge)
+
+  // Hover proximity: open when mouse near left edge
   document.addEventListener('mousemove', function(e) {
-    if (e.clientX < 20 && !sidebar.classList.contains('open')) {
+    if (hoverCooldown || pinned) return;
+    if (e.clientX < 20) {
       sidebar.classList.add('hover-open');
-    } else if (e.clientX > 370 && sidebar.classList.contains('hover-open') && !sidebar.classList.contains('open')) {
-      sidebar.classList.remove('hover-open');
+      updateWrapMargin();
     }
   });
-  
-  // Close hover-open when moving away
+
+  // Close hover when mouse leaves sidebar
   sidebar.addEventListener('mouseleave', function() {
-    if (!sidebar.classList.contains('open')) {
+    if (!pinned) {
       sidebar.classList.remove('hover-open');
+      updateWrapMargin();
     }
   });
-  
-  sidebar.addEventListener('mouseenter', function() {
-    sidebar.classList.add('hover-open');
-  });
-  
+
   function updateWrapMargin() {
     if (sidebar.classList.contains('open') || sidebar.classList.contains('hover-open')) {
       wrap.style.marginLeft = '370px';
