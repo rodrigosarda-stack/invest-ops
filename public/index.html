@@ -683,7 +683,8 @@ function calcFromP(p) {
   var avgLife = p.churn > 0 ? Math.min(1 / p.churn, p.perm) : p.perm;
   var ltv = Math.round(p.tkm * avgLife);
   var margemContribMensal = Math.round(p.tkm * p.mprod / 100);
-  var ltvMargin = Math.round(margemContribMensal * avgLife); // LTV com margem (padrão documento)
+  var margemLiqMensal = margemContribMensal - fisc; // margem contrib - carga fiscal
+  var ltvMargin = Math.round(margemLiqMensal * avgLife); // LTV com margem (inclui fiscal)
   var ltvNet = Math.round(net * avgLife); // LTV net (após fiscal)
   var ltvCac = cac > 0 ? (ltv / cac) : 0;
   var ltvMarginCac = cac > 0 ? (ltvMargin / cac) : 0;
@@ -700,7 +701,7 @@ function calcFromP(p) {
     mrrG:Math.round(cl*p.tkm*p.mprod/100),
     mrrP:Math.round(cl*p.tkm*(100-p.mprod)/100),
     mrrF:Math.round(cl*p.tkm*p.fisc/100),
-    prod:prod, fisc:fisc, net:Math.round(net), conv:p.conv, margemContrib:margemContribMensal,
+    prod:prod, fisc:fisc, net:Math.round(net), conv:p.conv, margemContrib:margemContribMensal, margemLiq:margemLiqMensal,
     marginBruta:Math.round(cl*p.tkm - cl*prod - cl*fisc - tot),
     roi12:roi12
   };
@@ -755,7 +756,7 @@ function render() {
   el('ltv-v').textContent = 'R$ '+fmt(r.ltv);
   el('ltv-s').textContent = 'R$'+fmt(p.tkm)+' × '+r.avgLife.toFixed(1)+' meses'+(p.churn>0?' (churn '+Math.round(p.churn*100)+'%)':'');
   el('ltvm-v').textContent = 'R$ '+fmt(r.ltvMargin);
-  el('ltvm-s').textContent = 'R$'+fmt(r.margemContrib)+'/mês × '+r.avgLife.toFixed(1)+' meses';
+  el('ltvm-s').textContent = 'R$'+fmt(r.margemLiq)+'/mês × '+r.avgLife.toFixed(1)+' meses';
   el('cac-max').innerHTML = 'CAC máx. (3:1): <strong>R$ '+fmt(r.cacMax)+'</strong>'+(r.cac>0?(r.cac<=r.cacMax?' ✓':' ⚠ CAC excede!'):'');
 
   // KPIs — 7 cards
