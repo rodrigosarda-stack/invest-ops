@@ -230,6 +230,14 @@ canvas{max-height:250px!important}
 /* Responsive */
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(4,1fr)}.bkd{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.g3,.g4{grid-template-columns:1fr}.bkd{grid-template-columns:1fr}}
+
+/* Tooltips */
+.tip{position:relative;cursor:help}
+.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-s);color:var(--text);font-family:'Syne',sans-serif;font-size:11px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:10px;white-space:normal;width:280px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:200;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);text-transform:none;letter-spacing:0}
+.tip:hover::after{opacity:1;visibility:visible}
+.tip.tip-r::after{left:auto;right:0;transform:none}
+.tip.tip-l::after{left:0;transform:none}
+.tip-icon{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--border-s);font-size:9px;color:var(--muted);margin-left:4px;vertical-align:middle;flex-shrink:0}
 </style>
 </head>
 <body class="phase-colors">
@@ -427,18 +435,18 @@ canvas{max-height:250px!important}
 <!-- ═══ ANÁLISE DE INVESTIMENTO ═══ -->
 <div class="inv-section" style="margin-top:16px">
   <div class="inv-header">Análise de investimento <span class="tag">Framework</span></div>
-  <div class="cs-sub">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada.</div>
+  <div class="cs-sub tip tip-l" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon">?</span></div>
 
   <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
-    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap">Taxa CDI a.a.</label><input type="range" id="cdi" min="5" max="20" value="14" step="0.5" style="width:100px"><span class="rv" id="cdi-v">14%</span></div>
-    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap">Prêmio risco</label><input type="range" id="riskp" min="0" max="30" value="10" step="1" style="width:100px"><span class="rv" id="riskp-v">10%</span></div>
-    <div class="rv" id="hurdle-v" style="color:var(--warn);font-weight:600">Hurdle: 24% a.a.</div>
+    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip" data-tip="Taxa Selic / CDI anualizada. É o retorno que você teria deixando o dinheiro parado em renda fixa sem risco. Serve como base para calcular se a squad vale mais a pena que o investimento seguro.">Taxa CDI a.a.<span class="tip-icon">?</span></label><input type="range" id="cdi" min="5" max="20" value="14" step="0.5" style="width:100px"><span class="rv" id="cdi-v">14%</span></div>
+    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip" data-tip="Percentual extra que você exige acima do CDI para compensar o risco de investir na operação comercial. Quanto mais arriscado o projeto, maior deve ser esse prêmio. Exemplo: 10% significa que você só aceita se render pelo menos CDI + 10%.">Prêmio risco<span class="tip-icon">?</span></label><input type="range" id="riskp" min="0" max="30" value="10" step="1" style="width:100px"><span class="rv" id="riskp-v">10%</span></div>
+    <div class="rv tip tip-r" id="hurdle-v" style="color:var(--warn);font-weight:600" data-tip="Hurdle Rate = CDI + Prêmio de Risco. É a taxa mínima de retorno que o projeto precisa superar para justificar o investimento. Se a TIR for maior que o Hurdle, vale investir na squad.">Hurdle: 24% a.a.<span class="tip-icon">?</span></div>
   </div>
 
   <div class="inv-grid" id="inv-grid"></div>
 
   <div style="margin-top:14px">
-    <div class="cs-t">Custo de oportunidade — comparativo</div>
+    <div class="cs-t tip tip-l" data-tip="Compara investir na squad vs aplicar o mesmo dinheiro no CDI. O fluxo é espelhado: cada mês que a squad precisa de dinheiro, o mesmo valor é aplicado no CDI. Quando a squad para de precisar de aporte, o CDI também para de receber. Assim a comparação é justa — mesmo dinheiro, mesmo timing.">Custo de oportunidade — comparativo <span class="tip-icon">?</span></div>
     <table class="opp-table" id="opp-table"></table>
   </div>
 </div>
@@ -448,12 +456,12 @@ canvas{max-height:250px!important}
   <div class="inv-header">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
   <div class="cs-sub">Pontue cada critério de 1 a 10. Peso ponderado conforme framework.</div>
   <div class="score-grid" id="score-grid">
-    <div class="score-row"><label>Alinhamento estratégico</label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
-    <div class="score-row"><label>Retorno financeiro (VPL/TIR)</label><span class="sw">25%</span><input type="range" min="1" max="10" value="7" data-w="25" class="sc-input"><span class="sv">7</span></div>
-    <div class="score-row"><label>Risco de execução</label><span class="sw">20%</span><input type="range" min="1" max="10" value="6" data-w="20" class="sc-input"><span class="sv">6</span></div>
-    <div class="score-row"><label>Custo de oportunidade</label><span class="sw">15%</span><input type="range" min="1" max="10" value="7" data-w="15" class="sc-input"><span class="sv">7</span></div>
-    <div class="score-row"><label>Reversibilidade</label><span class="sw">10%</span><input type="range" min="1" max="10" value="8" data-w="10" class="sc-input"><span class="sv">8</span></div>
-    <div class="score-row"><label>Fit cultural / operacional</label><span class="sw">5%</span><input type="range" min="1" max="10" value="9" data-w="5" class="sc-input"><span class="sv">9</span></div>
+    <div class="score-row"><label class="tip tip-l" data-tip="O quanto essa squad se encaixa na estratégia atual da M3A. Pontuação alta = crescimento comercial é prioridade agora. Baixa = existem outras prioridades mais urgentes.">Alinhamento estratégico <span class="tip-icon">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
+    <div class="score-row"><label class="tip tip-l" data-tip="Avaliação subjetiva do retorno financeiro baseado no VPL e TIR calculados acima. 10 = VPL muito positivo e TIR muito acima do hurdle. 1 = VPL negativo ou TIR abaixo do CDI.">Retorno financeiro (VPL/TIR) <span class="tip-icon">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="7" data-w="25" class="sc-input"><span class="sv">7</span></div>
+    <div class="score-row"><label class="tip tip-l" data-tip="Risco de a execução dar errado: não conseguir contratar, SDR não performar, closer não converter, turnover alto. 10 = baixo risco (time experiente, processo validado). 1 = alto risco (tudo novo).">Risco de execução <span class="tip-icon">?</span></label><span class="sw">20%</span><input type="range" min="1" max="10" value="6" data-w="20" class="sc-input"><span class="sv">6</span></div>
+    <div class="score-row"><label class="tip tip-l" data-tip="O que você deixa de fazer ao investir nessa squad? 10 = não tem nada melhor pra investir esse dinheiro. 1 = tem outra iniciativa muito mais rentável esperando.">Custo de oportunidade <span class="tip-icon">?</span></label><span class="sw">15%</span><input type="range" min="1" max="10" value="7" data-w="15" class="sc-input"><span class="sv">7</span></div>
+    <div class="score-row"><label class="tip tip-l" data-tip="Facilidade de desfazer a decisão se der errado. 10 = pode desmontar a squad em 30 dias sem grandes perdas. 1 = contratos longos, investimento irrecuperável.">Reversibilidade <span class="tip-icon">?</span></label><span class="sw">10%</span><input type="range" min="1" max="10" value="8" data-w="10" class="sc-input"><span class="sv">8</span></div>
+    <div class="score-row"><label class="tip tip-l" data-tip="A squad se encaixa na cultura e na operação atual da M3A? 10 = time comercial já existe, processos claros. 1 = cultura técnica, nunca tiveram vendedores.">Fit cultural / operacional <span class="tip-icon">?</span></label><span class="sw">5%</span><input type="range" min="1" max="10" value="9" data-w="5" class="sc-input"><span class="sv">9</span></div>
   </div>
   <div class="score-total" id="score-total"></div>
 </div>
@@ -1402,13 +1410,13 @@ function renderInvestment() {
   var cashCls = squadWins ? 'pos' : 'neg';
 
   el('inv-grid').innerHTML =
-    '<div class="inv-card '+vplCls+'"><div class="inv-card-l">VPL</div><div class="inv-card-v">'+(vpl>=0?'+':'')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
-    '<div class="inv-card '+tirCls+'"><div class="inv-card-l">TIR</div><div class="inv-card-v">'+tirAa+'% a.a.</div><div class="inv-card-s">Hurdle rate: '+(hurdleAa*100).toFixed(0)+'% · CDI: '+(cdiAa*100).toFixed(1)+'%<br>'+(tirAa>hurdleAa*100?'TIR > Hurdle → aceitar':'TIR < Hurdle → reavaliar')+'</div></div>'+
-    '<div class="inv-card"><div class="inv-card-l">NECESSIDADE DE CAIXA</div><div class="inv-card-v" style="color:var(--warn)">R$ '+fmt(cashNeed)+'</div><div class="inv-card-s">Pico no mês '+peakMonth+' · Total aportado: R$'+fmt(totalAported)+'<br>Capital máximo necessário para bancar a operação</div></div>';
+    '<div class="inv-card '+vplCls+' tip tip-l" data-tip="Valor Presente Líquido: traz todos os fluxos de caixa futuros da squad a valor de hoje, descontados pela taxa Hurdle ('+(hurdleAa*100).toFixed(0)+'% a.a.). VPL positivo = o projeto gera mais valor do que custaria investir esse dinheiro a '+(hurdleAa*100).toFixed(0)+'%. Quanto maior, melhor."><div class="inv-card-l">VPL <span class="tip-icon">?</span></div><div class="inv-card-v">'+(vpl>=0?'+':'')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
+    '<div class="inv-card '+tirCls+' tip" data-tip="Taxa Interna de Retorno: é o retorno anualizado real que a squad gera. Calculada a partir do fluxo de caixa mês a mês. Se a TIR for maior que o Hurdle Rate ('+(hurdleAa*100).toFixed(0)+'%), o investimento se justifica. TIR de '+tirAa+'% significa que cada real investido rende '+tirAa+'% ao ano."><div class="inv-card-l">TIR <span class="tip-icon">?</span></div><div class="inv-card-v">'+tirAa+'% a.a.</div><div class="inv-card-s">Hurdle rate: '+(hurdleAa*100).toFixed(0)+'% · CDI: '+(cdiAa*100).toFixed(1)+'%<br>'+(tirAa>hurdleAa*100?'TIR > Hurdle → aceitar':'TIR < Hurdle → reavaliar')+'</div></div>'+
+    '<div class="inv-card tip tip-r" data-tip="O máximo de dinheiro que você precisa ter disponível para bancar a operação até ela se pagar. No mês '+peakMonth+' o caixa acumulado atinge o ponto mais negativo (R$'+fmt(cashNeed)+'). Após isso, a receita dos clientes começa a cobrir os custos. Total aportado ao longo de toda a operação: R$'+fmt(totalAported)+'."><div class="inv-card-l">NECESSIDADE DE CAIXA <span class="tip-icon">?</span></div><div class="inv-card-v" style="color:var(--warn)">R$ '+fmt(cashNeed)+'</div><div class="inv-card-s">Pico no mês '+peakMonth+' · Total aportado: R$'+fmt(totalAported)+'<br>Capital máximo necessário para bancar a operação</div></div>';
 
   // Opportunity cost table: squad vs CDI with same cash flow
   el('opp-table').innerHTML =
-    '<tr><th>Opção</th><th>Aporte total</th><th>Resultado em '+total+'m</th><th>Ganho líquido</th><th>Risco</th></tr>'+
+    '<tr><th class="tip tip-l" data-tip="Compara as duas opções lado a lado: investir na squad comercial ou aplicar o mesmo dinheiro no CDI, respeitando o mesmo fluxo de aportes mês a mês.">Opção <span class="tip-icon">?</span></th><th class="tip" data-tip="Soma de todos os aportes feitos ao longo dos '+total+' meses. Nos meses em que a operação tem fluxo negativo, esse valor vai para a squad ou para o CDI.">Aporte total</th><th class="tip" data-tip="Squad: soma de todos os fluxos (receitas - custos). CDI: rendimento acumulado dos mesmos aportes aplicados em renda fixa.">Resultado em '+total+'m</th><th class="tip" data-tip="O lucro líquido de cada opção após os '+total+' meses. A linha final mostra a diferença entre as duas.">Ganho líquido</th><th class="tip tip-r" data-tip="Squad tem risco alto (depende de execução, vendas, churn). CDI tem risco mínimo (garantido pelo governo até R$250K via FGC).">Risco</th></tr>'+
     '<tr><td'+(squadWins?' class="best"':'')+'>Squad comercial</td><td'+(squadWins?' class="best"':'')+'>R$ '+fmt(totalAported)+'</td><td'+(squadWins?' class="best"':'')+'>R$ '+fmt(squadGain)+'</td><td'+(squadWins?' class="best"':'')+'>'+(squadGain>=0?'+':'')+' R$ '+fmt(squadGain)+'</td><td>Alto</td></tr>'+
     '<tr><td'+(!squadWins?' class="best"':'')+'>CDI (mesmo fluxo)</td><td'+(!squadWins?' class="best"':'')+'>R$ '+fmt(totalAported)+'</td><td'+(!squadWins?' class="best"':'')+'>R$ '+fmt(cdiEarnings)+'</td><td'+(!squadWins?' class="best"':'')+'>+ R$ '+fmt(cdiEarnings)+'</td><td>Mínimo</td></tr>'+
     '<tr><td colspan="5" style="text-align:center;font-weight:600;color:'+(squadWins?'var(--accent)':'var(--danger)')+'">Diferença: '+(diff>=0?'+':'')+' R$ '+fmt(Math.abs(diff))+' '+(squadWins?'a favor da squad':'a favor do CDI')+'</td></tr>';
