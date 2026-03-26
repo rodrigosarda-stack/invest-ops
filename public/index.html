@@ -109,7 +109,7 @@ select:focus{border-color:var(--accent)}
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 12px 14px;
-  overflow: auto;
+  overflow: visible !important;
 }
 .grid-stack-item-content .panel-t,
 .grid-stack-item-content .cs-t,
@@ -2164,6 +2164,7 @@ function initDashboard() {
     margin: 5,
     float: true,
     animate: true,
+    sizeToContent: true,
     resizable: { handles: 'e,se,s,sw,w' },
     draggable: { handle: '.panel-t, .cs-t, .inv-header, .gs-drag' }
   });
