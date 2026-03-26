@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulador de Squad Comercial v11 — M3A Médico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.3.1/gridstack.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.3.1/gridstack-all.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -98,23 +96,22 @@ select:focus{border-color:var(--accent)}
 .kpi.dg{background:var(--danger-dim);border-color:rgba(226,75,74,.12)}
 .kpi.dg .kpi-v{color:var(--danger)}
 
-/* Dashboard grid (gridstack.js) */
-.grid-stack {
-  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
-  background-size: 20px 20px;
-  min-height: 100vh;
-}
-.grid-stack-item-content {
+/* Dashboard sections */
+.dashboard { display: flex; flex-direction: column; gap: 16px; }
+.dash-row { display: grid; gap: 16px; }
+.dash-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.dash-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.dash-card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 12px 14px;
-  overflow: visible !important;
+  padding: 14px 16px;
 }
-.grid-stack-item-content .panel-t,
-.grid-stack-item-content .cs-t,
-.grid-stack-item-content .inv-header {
-  cursor: grab;
+@media(max-width:900px) { .dash-row.cols-2, .dash-row.cols-3 { grid-template-columns: 1fr; } }
+.dash-card .panel-t,
+.dash-card .cs-t,
+.dash-card .inv-header {
+  cursor: default;
 }
 
 /* Panels grid (deprecated, kept for compatibility) */
@@ -615,212 +612,151 @@ canvas{max-height:250px!important}
 <div class="sc-presets" id="sc-presets"></div>
 <div class="sc-tabs" id="sc-tabs"></div>
 
-<!-- Gridstack Container -->
-<div class="grid-stack" id="grid-stack">
+<!-- Dashboard -->
+<div class="dashboard">
 
-<!-- KPI Cards -->
-<div class="grid-stack-item" gs-id="kpis" gs-x="0" gs-y="0" gs-w="12" gs-h="3">
-  <div class="grid-stack-item-content">
-    <div class="kpis" id="kpis"></div>
-  </div>
-</div>
+<!-- KPIs -->
+<div class="kpis" id="kpis"></div>
 
-<!-- ━━━ NÍVEL 1: Unit Economics ━━━ -->
-
-<!-- LTV Panel -->
-<div class="grid-stack-item" gs-id="ltv" gs-x="0" gs-y="3" gs-w="4" gs-h="5">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">LTV</div>
-      <div class="ltv-hl">
-        <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
-        <div class="lv" id="ltv-v">R$ 11.600</div>
-        <div class="ls" id="ltv-s">R$580 × 20 meses</div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
-          <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
-          <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
-          <div class="ls" id="ltvm-s">margem líq. × vida média</div>
-        </div>
-        <div style="margin-top:6px">
-          <div class="ls" id="cac-max" style="opacity:.8">CAC máx. (3:1): R$ 1.933</div>
-        </div>
+<!-- Unit Economics: LTV | Breakdown | Squad -->
+<div class="dash-row cols-3">
+  <div class="dash-card">
+    <div class="panel-t">LTV</div>
+    <div class="ltv-hl">
+      <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
+      <div class="lv" id="ltv-v">R$ 11.600</div>
+      <div class="ls" id="ltv-s">R$580 × 20 meses</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
+        <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
+        <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
+        <div class="ls" id="ltvm-s">margem líq. × vida média</div>
+      </div>
+      <div style="margin-top:6px">
+        <div class="ls" id="cac-max" style="opacity:.8">CAC máx. (3:1): R$ 1.933</div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Breakdown -->
-<div class="grid-stack-item" gs-id="breakdown" gs-x="4" gs-y="3" gs-w="4" gs-h="5">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">Breakdown de Custos</div>
-      <div class="bkd" id="bkd"></div>
-    </div>
+  <div class="dash-card">
+    <div class="panel-t">Breakdown de Custos</div>
+    <div class="bkd" id="bkd"></div>
+  </div>
+  <div class="dash-card">
+    <div class="panel-t">Performance Squad</div>
+    <div class="squad-perf" id="squad-perf"></div>
   </div>
 </div>
 
-<!-- Squad Performance -->
-<div class="grid-stack-item" gs-id="squad-perf" gs-x="8" gs-y="3" gs-w="4" gs-h="5">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">Performance Squad</div>
-      <div class="squad-perf" id="squad-perf"></div>
+<!-- Análise: CAC/SDR | Fluxo de Caixa -->
+<div class="dash-row cols-2">
+  <div class="dash-card">
+    <div class="panel-t">CAC/SDR</div>
+    <div class="cs">
+      <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
+      <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
     </div>
   </div>
-</div>
-
-<!-- ━━━ NÍVEL 2: Análise Financeira ━━━ -->
-
-<!-- Chart: CAC por SDR -->
-<div class="grid-stack-item" gs-id="cac-sdr" gs-x="0" gs-y="8" gs-w="6" gs-h="5">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">CAC/SDR</div>
-      <div class="cs">
-        <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
-        <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Fluxo de Caixa -->
-<div class="grid-stack-item" gs-id="cashflow" gs-x="6" gs-y="8" gs-w="6" gs-h="6">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">Fluxo de Caixa</div>
-      <div class="cs">
-        <div class="cs-h">
-          <div>
-            <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
-            <div class="cs-sub" id="csub"></div>
-          </div>
-          <div class="tg">
-            <button class="btn sm" id="b-mrr" onclick="setView('mrr')">MRR acum.</button>
-            <button class="btn sm on" id="b-ind" onclick="setView('ind')">Por cliente</button>
-            <button class="btn sm" id="b-op" onclick="setView('op')">Caixa operação</button>
-          </div>
+  <div class="dash-card">
+    <div class="panel-t">Fluxo de Caixa</div>
+    <div class="cs">
+      <div class="cs-h">
+        <div>
+          <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
+          <div class="cs-sub" id="csub"></div>
         </div>
-        <div class="leg" id="leg"></div>
-        <div class="cw" style="height:280px"><canvas id="ch2"></canvas></div>
-      </div>
-
-      <div class="hrow" id="hrow" style="display:none">
-        <div style="display:flex;align-items:center;gap:10px">
-          <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
-          <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
-          <span class="rv" id="hor-v">18 meses</span>
+        <div class="tg">
+          <button class="btn sm" id="b-mrr" onclick="setView('mrr')">MRR acum.</button>
+          <button class="btn sm on" id="b-ind" onclick="setView('ind')">Por cliente</button>
+          <button class="btn sm" id="b-op" onclick="setView('op')">Caixa operação</button>
         </div>
       </div>
+      <div class="leg" id="leg"></div>
+      <div class="cw" style="height:280px"><canvas id="ch2"></canvas></div>
     </div>
-  </div>
-</div>
-
-<!-- ━━━ NÍVEL 3: Sensibilidade ━━━ -->
-
-<!-- Sensibilidade: Conversão -->
-<div class="grid-stack-item" gs-id="sens-conv" gs-x="0" gs-y="14" gs-w="6" gs-h="4">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">Sens. Conversão</div>
-      <div class="cs sens-section">
-        <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
-        <div class="sens" id="sens"></div>
+    <div class="hrow" id="hrow" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
+        <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
+        <span class="rv" id="hor-v">18 meses</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Sensibilidade: Churn -->
-<div class="grid-stack-item" gs-id="sens-churn" gs-x="6" gs-y="14" gs-w="6" gs-h="4">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">Sens. Churn</div>
-      <div class="cs sens-section">
-        <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
-        <div class="sens" id="sens-churn"></div>
-      </div>
+<!-- Sensibilidade -->
+<div class="dash-row cols-2">
+  <div class="dash-card">
+    <div class="panel-t">Sens. Conversão</div>
+    <div class="cs sens-section">
+      <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
+      <div class="sens" id="sens"></div>
+    </div>
+  </div>
+  <div class="dash-card">
+    <div class="panel-t">Sens. Churn</div>
+    <div class="cs sens-section">
+      <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
+      <div class="sens" id="sens-churn"></div>
     </div>
   </div>
 </div>
 
-<!-- ━━━ NÍVEL 4: Planejamento ━━━ -->
-
-<!-- Timeline Builder -->
-<div class="grid-stack-item" gs-id="timeline" gs-x="0" gs-y="18" gs-w="12" gs-h="6">
-  <div class="grid-stack-item-content">
-    <div class="panel">
-      <div class="panel-t gs-drag">Timeline</div>
-      <div class="timeline-section">
-        <div class="cs-h">
-          <div>
-            <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
-            <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
-          </div>
-        </div>
-        <div class="tl-config" id="tl-config"></div>
-        <div class="tl-bar" id="tl-bar"></div>
-        <div class="leg" id="tl-leg"></div>
-        <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
-        <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
+<!-- Timeline -->
+<div class="dash-card">
+  <div class="panel-t">Timeline</div>
+  <div class="timeline-section">
+    <div class="cs-h">
+      <div>
+        <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
+        <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
       </div>
-
-      <div class="cbox" id="cbox"></div>
     </div>
+    <div class="tl-config" id="tl-config"></div>
+    <div class="tl-bar" id="tl-bar"></div>
+    <div class="leg" id="tl-leg"></div>
+    <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
+    <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
   </div>
+  <div class="cbox" id="cbox"></div>
 </div>
-
-<!-- ━━━ NÍVEL 5: Decisão de Investimento ━━━ -->
 
 <!-- Análise de Investimento -->
-<div class="grid-stack-item" gs-id="invest" gs-x="0" gs-y="24" gs-w="12" gs-h="8">
-  <div class="grid-stack-item-content">
-<div class="inv-section" style="margin-top:16px">
-  <div class="inv-header gs-drag">Análise de investimento <span class="tag">Framework</span></div>
-  <div class="cs-sub tip tip-l">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">?</span></div>
-
-  <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
-    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip">Taxa CDI a.a.<span class="tip-icon" data-tip="Taxa Selic / CDI anualizada. É o retorno que você teria deixando o dinheiro parado em renda fixa sem risco. Serve como base para calcular se a squad vale mais a pena que o investimento seguro.">?</span></label><input type="range" id="cdi" min="5" max="20" value="14" step="0.5" style="width:100px"><span class="rv" id="cdi-v">14%</span></div>
-    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip">Prêmio risco<span class="tip-icon" data-tip="Percentual extra que você exige acima do CDI para compensar o risco de investir na operação comercial. Quanto mais arriscado o projeto, maior deve ser esse prêmio. Exemplo: 10% significa que você só aceita se render pelo menos CDI + 10%.">?</span></label><input type="range" id="riskp" min="0" max="30" value="10" step="1" style="width:100px"><span class="rv" id="riskp-v">10%</span></div>
-    <div class="rv tip tip-r" id="hurdle-v" style="color:var(--warn);font-weight:600">Hurdle: 24% a.a.<span class="tip-icon" data-tip="Hurdle Rate = CDI + Prêmio de Risco. É a taxa mínima de retorno que o projeto precisa superar para justificar o investimento. Se a TIR for maior que o Hurdle, vale investir na squad.">?</span></div>
-  </div>
-
-  <div class="inv-grid" id="inv-grid"></div>
-
-  <div style="margin-top:14px">
-    <div class="cs-t tip tip-l">Custo de oportunidade — comparativo <span class="tip-icon" data-tip="Compara investir na squad vs aplicar o mesmo dinheiro no CDI. O fluxo é espelhado: cada mês que a squad precisa de dinheiro, o mesmo valor é aplicado no CDI. Quando a squad para de precisar de aporte, o CDI também para de receber. Assim a comparação é justa — mesmo dinheiro, mesmo timing.">?</span></div>
-    <table class="opp-table" id="opp-table"></table>
-  </div>
-</div>
+<div class="dash-card">
+  <div class="inv-section">
+    <div class="inv-header">Análise de investimento <span class="tag">Framework</span></div>
+    <div class="cs-sub tip tip-l">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">?</span></div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
+      <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip">Taxa CDI a.a.<span class="tip-icon" data-tip="Taxa Selic / CDI anualizada. É o retorno que você teria deixando o dinheiro parado em renda fixa sem risco. Serve como base para calcular se a squad vale mais a pena que o investimento seguro.">?</span></label><input type="range" id="cdi" min="5" max="20" value="14" step="0.5" style="width:100px"><span class="rv" id="cdi-v">14%</span></div>
+      <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip">Prêmio risco<span class="tip-icon" data-tip="Percentual extra que você exige acima do CDI para compensar o risco de investir na operação comercial. Quanto mais arriscado o projeto, maior deve ser esse prêmio. Exemplo: 10% significa que você só aceita se render pelo menos CDI + 10%.">?</span></label><input type="range" id="riskp" min="0" max="30" value="10" step="1" style="width:100px"><span class="rv" id="riskp-v">10%</span></div>
+      <div class="rv tip tip-r" id="hurdle-v" style="color:var(--warn);font-weight:600">Hurdle: 24% a.a.<span class="tip-icon" data-tip="Hurdle Rate = CDI + Prêmio de Risco. É a taxa mínima de retorno que o projeto precisa superar para justificar o investimento. Se a TIR for maior que o Hurdle, vale investir na squad.">?</span></div>
+    </div>
+    <div class="inv-grid" id="inv-grid"></div>
+    <div style="margin-top:14px">
+      <div class="cs-t tip tip-l">Custo de oportunidade — comparativo <span class="tip-icon" data-tip="Compara investir na squad vs aplicar o mesmo dinheiro no CDI. O fluxo é espelhado: cada mês que a squad precisa de dinheiro, o mesmo valor é aplicado no CDI. Quando a squad para de precisar de aporte, o CDI também para de receber. Assim a comparação é justa — mesmo dinheiro, mesmo timing.">?</span></div>
+      <table class="opp-table" id="opp-table"></table>
+    </div>
   </div>
 </div>
 
-<!-- ━━━ NÍVEL 6: Governança ━━━ -->
-
-<!-- Scorecard GO / NO-GO -->
-<div class="grid-stack-item" gs-id="scorecard" gs-x="0" gs-y="32" gs-w="6" gs-h="8">
-  <div class="grid-stack-item-content">
-<div class="inv-section">
-  <div class="inv-header gs-drag">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
-  <div class="cs-sub">Pontue cada critério de 1 a 10. Peso ponderado conforme framework.</div>
-  <div class="score-grid" id="score-grid">
-    <div class="score-row"><label class="tip tip-l">Alinhamento estratégico <span class="tip-icon" data-tip="O quanto essa squad se encaixa na estratégia atual da M3A. Pontuação alta = crescimento comercial é prioridade agora. Baixa = existem outras prioridades mais urgentes.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
-    <div class="score-row"><label class="tip tip-l">Retorno financeiro (VPL/TIR) <span class="tip-icon" data-tip="Avaliação subjetiva do retorno financeiro baseado no VPL e TIR calculados acima. 10 = VPL muito positivo e TIR muito acima do hurdle. 1 = VPL negativo ou TIR abaixo do CDI.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="7" data-w="25" class="sc-input"><span class="sv">7</span></div>
-    <div class="score-row"><label class="tip tip-l">Risco de execução <span class="tip-icon" data-tip="Risco de a execução dar errado: não conseguir contratar, SDR não performar, closer não converter, turnover alto. 10 = baixo risco (time experiente, processo validado). 1 = alto risco (tudo novo).">?</span></label><span class="sw">20%</span><input type="range" min="1" max="10" value="6" data-w="20" class="sc-input"><span class="sv">6</span></div>
-    <div class="score-row"><label class="tip tip-l">Custo de oportunidade <span class="tip-icon" data-tip="O que você deixa de fazer ao investir nessa squad? 10 = não tem nada melhor pra investir esse dinheiro. 1 = tem outra iniciativa muito mais rentável esperando.">?</span></label><span class="sw">15%</span><input type="range" min="1" max="10" value="7" data-w="15" class="sc-input"><span class="sv">7</span></div>
-    <div class="score-row"><label class="tip tip-l">Reversibilidade <span class="tip-icon" data-tip="Facilidade de desfazer a decisão se der errado. 10 = pode desmontar a squad em 30 dias sem grandes perdas. 1 = contratos longos, investimento irrecuperável.">?</span></label><span class="sw">10%</span><input type="range" min="1" max="10" value="8" data-w="10" class="sc-input"><span class="sv">8</span></div>
-    <div class="score-row"><label class="tip tip-l">Fit cultural / operacional <span class="tip-icon" data-tip="A squad se encaixa na cultura e na operação atual da M3A? 10 = time comercial já existe, processos claros. 1 = cultura técnica, nunca tiveram vendedores.">?</span></label><span class="sw">5%</span><input type="range" min="1" max="10" value="9" data-w="5" class="sc-input"><span class="sv">9</span></div>
-  </div>
-  <div class="score-total" id="score-total"></div>
-</div>
-  </div>
-</div>
-
-<!-- Gate Reviews -->
-<div class="grid-stack-item" gs-id="gates" gs-x="6" gs-y="32" gs-w="6" gs-h="8">
-  <div class="grid-stack-item-content">
+<!-- Governança: Scorecard | Gates -->
+<div class="dash-row cols-2">
+  <div class="dash-card">
     <div class="inv-section">
-      <div class="inv-header gs-drag">Gate reviews <span class="tag">Governança</span></div>
+      <div class="inv-header">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
+      <div class="cs-sub">Pontue cada critério de 1 a 10. Peso ponderado conforme framework.</div>
+      <div class="score-grid" id="score-grid">
+        <div class="score-row"><label class="tip tip-l">Alinhamento estratégico <span class="tip-icon" data-tip="O quanto essa squad se encaixa na estratégia atual da M3A. Pontuação alta = crescimento comercial é prioridade agora. Baixa = existem outras prioridades mais urgentes.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
+        <div class="score-row"><label class="tip tip-l">Retorno financeiro (VPL/TIR) <span class="tip-icon" data-tip="Avaliação subjetiva do retorno financeiro baseado no VPL e TIR calculados acima. 10 = VPL muito positivo e TIR muito acima do hurdle. 1 = VPL negativo ou TIR abaixo do CDI.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="7" data-w="25" class="sc-input"><span class="sv">7</span></div>
+        <div class="score-row"><label class="tip tip-l">Risco de execução <span class="tip-icon" data-tip="Risco de a execução dar errado: não conseguir contratar, SDR não performar, closer não converter, turnover alto. 10 = baixo risco (time experiente, processo validado). 1 = alto risco (tudo novo).">?</span></label><span class="sw">20%</span><input type="range" min="1" max="10" value="6" data-w="20" class="sc-input"><span class="sv">6</span></div>
+        <div class="score-row"><label class="tip tip-l">Custo de oportunidade <span class="tip-icon" data-tip="O que você deixa de fazer ao investir nessa squad? 10 = não tem nada melhor pra investir esse dinheiro. 1 = tem outra iniciativa muito mais rentável esperando.">?</span></label><span class="sw">15%</span><input type="range" min="1" max="10" value="7" data-w="15" class="sc-input"><span class="sv">7</span></div>
+        <div class="score-row"><label class="tip tip-l">Reversibilidade <span class="tip-icon" data-tip="Facilidade de desfazer a decisão se der errado. 10 = pode desmontar a squad em 30 dias sem grandes perdas. 1 = contratos longos, investimento irrecuperável.">?</span></label><span class="sw">10%</span><input type="range" min="1" max="10" value="8" data-w="10" class="sc-input"><span class="sv">8</span></div>
+        <div class="score-row"><label class="tip tip-l">Fit cultural / operacional <span class="tip-icon" data-tip="A squad se encaixa na cultura e na operação atual da M3A? 10 = time comercial já existe, processos claros. 1 = cultura técnica, nunca tiveram vendedores.">?</span></label><span class="sw">5%</span><input type="range" min="1" max="10" value="9" data-w="5" class="sc-input"><span class="sv">9</span></div>
+      </div>
+      <div class="score-total" id="score-total"></div>
+    </div>
+  </div>
+  <div class="dash-card">
+    <div class="inv-section">
+      <div class="inv-header">Gate reviews <span class="tag">Governança</span></div>
       <div class="cs-sub">Capital liberado por fases. Cada gate é validado pelas métricas do simulador.</div>
       <div class="gates" id="gates"></div>
       <div class="cbox" id="gate-notes" style="margin-top:10px"></div>
@@ -828,13 +764,11 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
-<!-- ━━━ NÍVEL 7: Ferramentas ━━━ -->
-
-<!-- Stress Test -->
-<div class="grid-stack-item" gs-id="stress" gs-x="0" gs-y="40" gs-w="6" gs-h="4">
-  <div class="grid-stack-item-content">
-    <div class="stress-panel" style="margin-bottom:10px">
-      <div class="cs-t gs-drag" style="display:flex;align-items:center;justify-content:space-between">
+<!-- Ferramentas: Stress | Optimizer -->
+<div class="dash-row cols-2">
+  <div class="dash-card">
+    <div class="stress-panel" style="border:none;padding:0">
+      <div class="cs-t" style="display:flex;align-items:center;justify-content:space-between">
         <span>Stress Test — cenário atual sob pressão <span class="tip-icon" data-tip="Testa o cenário atual em 3 condições: pessimista (churn +50%, conversão -30%, ticket -15%), base (valores atuais) e otimista (churn -30%, conversão +20%, ticket +10%).">?</span></span>
         <button class="btn sm primary" onclick="runStress()">▶ Rodar Stress Test</button>
       </div>
@@ -843,13 +777,9 @@ canvas{max-height:250px!important}
       </div>
     </div>
   </div>
-</div>
-
-<!-- Otimizador -->
-<div class="grid-stack-item" gs-id="optimizer" gs-x="6" gs-y="40" gs-w="6" gs-h="5">
-  <div class="grid-stack-item-content">
-    <div class="opt-panel" style="margin-bottom:10px">
-      <div class="cs-t gs-drag">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
+  <div class="dash-card">
+    <div class="opt-panel" style="border:none;padding:0">
+      <div class="cs-t">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
       <div class="opt-constraints">
         <div><label>Orçamento máx./mês (R$)</label><input type="number" id="opt-budget" value="80000" step="5000"></div>
         <div><label>Headcount máximo</label><input type="number" id="opt-head" value="8" step="1" min="2" max="15"></div>
@@ -864,7 +794,7 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
-</div><!-- End grid-stack -->
+</div><!-- End dashboard -->
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -2331,46 +2261,10 @@ renderPresets();
 renderScorecard();
 render();
 
-// ─── DASHBOARD (gridstack.js) ────────────────────────────────
-var GRID_KEY = 'm3a-grid-layout-v2';
-var grid;
-
-function initDashboard() {
-  grid = GridStack.init({
-    column: 12,
-    cellHeight: 30,
-    margin: 5,
-    float: true,
-    animate: true,
-    sizeToContent: true,
-    resizable: { handles: 'e,se,s,sw,w' },
-    draggable: { handle: '.panel-t, .cs-t, .inv-header, .gs-drag' }
-  });
-
-  // Load saved layout
-  var saved = localStorage.getItem(GRID_KEY);
-  if (saved) {
-    try {
-      var items = JSON.parse(saved);
-      grid.load(items);
-    } catch(e) {}
-  }
-
-  // Save on change
-  grid.on('change', function() {
-    var items = grid.save(false);
-    localStorage.setItem(GRID_KEY, JSON.stringify(items));
-  });
-}
-
+// ─── LAYOUT ─────────────────────────────────────────────────
 function openLayoutSettings() {
-  if (confirm('Resetar layout para o padrão?')) {
-    localStorage.removeItem(GRID_KEY);
-    location.reload();
-  }
+  // No-op: layout is now CSS-based
 }
-
-initDashboard();
 </script>
 
 <script>
