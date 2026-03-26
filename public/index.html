@@ -402,11 +402,11 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
-<!-- Parameter Panels -->
-<div class="sec-wrap" data-sec="squad-sec" data-span="2">
+<!-- Squad Team -->
+<div class="sec-wrap" data-sec="squad-team-sec" data-span="2">
   <div class="sec-hdr">
     <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Squad</span>
+    <span class="sec-name">Squad Team</span>
     <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
@@ -440,8 +440,18 @@ canvas{max-height:250px!important}
     </div>
     <div id="goff" style="display:none;font-size:10px;color:var(--dim);padding-top:6px">Gabriel não incluído no custo.</div>
   </div>
+  </div>
 </div>
 
+<!-- Parâmetros do Negócio -->
+<div class="sec-wrap" data-sec="params-sec" data-span="2">
+  <div class="sec-hdr">
+    <span class="sec-drag" draggable="true">⠿</span>
+    <span class="sec-name">Parâmetros</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
 <div class="g4">
   <div class="panel">
     <div class="panel-t">Produto
@@ -525,11 +535,11 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
-<!-- Sensitivity -->
-<div class="sec-wrap" data-sec="sens-sec" data-span="2">
+<!-- Sensitivity: Conversão -->
+<div class="sec-wrap" data-sec="sens-conv-sec" data-span="1">
   <div class="sec-hdr">
     <span class="sec-drag" draggable="true">⠿</span>
-    <span class="sec-name">Sensibilidade</span>
+    <span class="sec-name">Sens. Conversão</span>
     <span class="sec-resize" title="Alternar largura">◧</span>
     <span class="sec-collapse">▼</span>
   </div>
@@ -538,7 +548,18 @@ canvas{max-height:250px!important}
       <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
       <div class="sens" id="sens"></div>
     </div>
+  </div>
+</div>
 
+<!-- Sensitivity: Churn -->
+<div class="sec-wrap" data-sec="sens-churn-sec" data-span="1">
+  <div class="sec-hdr">
+    <span class="sec-drag" draggable="true">⠿</span>
+    <span class="sec-name">Sens. Churn</span>
+    <span class="sec-resize" title="Alternar largura">◧</span>
+    <span class="sec-collapse">▼</span>
+  </div>
+  <div class="sec-body">
     <div class="cs sens-section">
       <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
       <div class="sens" id="sens-churn"></div>
@@ -2196,18 +2217,18 @@ render();
 // ─── LAYOUT MANAGER ─────────────────────────────────────────
 var SEC_KEY = 'm3a-layout';
 var SEC_NAMES = {
-  'kpis-sec':'KPIs','squad-sec':'Squad','cac-chart-sec':'CAC/SDR',
-  'bkd-sec':'Breakdown','squad-perf-sec':'Performance Squad',
-  'sens-sec':'Sensibilidade','cashflow-sec':'Fluxo de Caixa',
-  'timeline-sec':'Timeline','invest-sec':'Investimento',
+  'kpis-sec':'KPIs','squad-team-sec':'Squad Team','params-sec':'Parâmetros',
+  'cac-chart-sec':'CAC/SDR','bkd-sec':'Breakdown','squad-perf-sec':'Performance Squad',
+  'sens-conv-sec':'Sens. Conversão','sens-churn-sec':'Sens. Churn',
+  'cashflow-sec':'Fluxo de Caixa','timeline-sec':'Timeline','invest-sec':'Investimento',
   'scorecard-sec':'Scorecard','gates-sec':'Gates',
   'stress-sec':'Stress Test','opt-sec':'Optimizer'
 };
 var SEC_DEFAULTS = {
-  'kpis-sec':2,'squad-sec':2,'cac-chart-sec':2,
-  'bkd-sec':1,'squad-perf-sec':1,
-  'sens-sec':2,'cashflow-sec':2,
-  'timeline-sec':2,'invest-sec':2,
+  'kpis-sec':2,'squad-team-sec':2,'params-sec':2,
+  'cac-chart-sec':2,'bkd-sec':1,'squad-perf-sec':1,
+  'sens-conv-sec':1,'sens-churn-sec':1,
+  'cashflow-sec':2,'timeline-sec':2,'invest-sec':2,
   'scorecard-sec':1,'gates-sec':1,
   'stress-sec':1,'opt-sec':1
 };
