@@ -1368,37 +1368,50 @@ function renderInvestment() {
   var totalLoss = netFlows.reduce(function(a2, b2) { return a2 + (b2 < 0 ? Math.abs(b2) : 0); }, 0);
   var netResult = netFlows.reduce(function(a2, b2) { return a2 + b2; }, 0);
 
-  // CDI alternative: simulate monthly cost invested in CDI for remaining months
-  var cdiTotal = 0;
-  var monthlyCosts = [];
+  // Cash flow analysis: cumulative flow and peak capital need
+  var cumFlow = 0, peakNeg = 0, peakMonth = 0;
+  var cumFlows = [];
   for (var mi = 0; mi < total; mi++) {
-    var costM = netFlows[mi] < 0 ? Math.abs(netFlows[mi]) : 0;
-    monthlyCosts.push(costM);
-    // Each monthly cost compounds in CDI for remaining months
-    cdiTotal += Math.round(costM * (Math.pow(1 + cdiMo, total - mi) - 1));
+    cumFlow += netFlows[mi];
+    cumFlows.push(cumFlow);
+    if (cumFlow < peakNeg) { peakNeg = cumFlow; peakMonth = mi + 1; }
   }
+  var cashNeed = Math.abs(peakNeg); // max capital needed
 
-  // Squad ROI: net result over total invested (simple ROI)
-  var squadROI = totalInvested > 0 ? Math.round((netResult / totalInvested) * 100) : 0;
-  // CDI ROI: CDI earnings over same total invested (apples-to-apples)
-  var cdiROI = totalInvested > 0 ? Math.round((cdiTotal / totalInvested) * 100) : 0;
+  // CDI alternative: mirror exact funding pattern (only negative months = actual cash out of pocket)
+  var cdiBalance = 0;
+  var totalAported = 0;
+  for (var mi2 = 0; mi2 < total; mi2++) {
+    // Only add to CDI when squad needs cash (negative cumulative or negative monthly flow)
+    var aporte = netFlows[mi2] < 0 ? Math.abs(netFlows[mi2]) : 0;
+    totalAported += aporte;
+    cdiBalance = (cdiBalance + aporte) * (1 + cdiMo); // compound existing + new aporte
+  }
+  var cdiEarnings = Math.round(cdiBalance - totalAported); // net CDI gain
+
+  // Squad net result at end of period
+  var squadGain = netResult; // sum of all flows
+
+  // Comparison
+  var squadWins = squadGain > cdiEarnings;
+  var diff = Math.round(squadGain - cdiEarnings);
 
   // VPL card class
   var vplCls = vpl > 0 ? 'pos' : vpl < 0 ? 'neg' : 'neu';
   var tirCls = tirAa > hurdleAa * 100 ? 'pos' : tirAa > cdiAa * 100 ? 'neu' : 'neg';
-  var roiCls = squadROI > cdiROI ? 'pos' : squadROI > 0 ? 'neu' : 'neg';
+  var cashCls = squadWins ? 'pos' : 'neg';
 
   el('inv-grid').innerHTML =
     '<div class="inv-card '+vplCls+'"><div class="inv-card-l">VPL</div><div class="inv-card-v">'+(vpl>=0?'+':'')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
     '<div class="inv-card '+tirCls+'"><div class="inv-card-l">TIR</div><div class="inv-card-v">'+tirAa+'% a.a.</div><div class="inv-card-s">Hurdle rate: '+(hurdleAa*100).toFixed(0)+'% · CDI: '+(cdiAa*100).toFixed(1)+'%<br>'+(tirAa>hurdleAa*100?'TIR > Hurdle → aceitar':'TIR < Hurdle → reavaliar')+'</div></div>'+
-    '<div class="inv-card '+roiCls+'"><div class="inv-card-l">ROI Squad vs CDI</div><div class="inv-card-v">'+squadROI+'% vs '+cdiROI+'%</div><div class="inv-card-s">Squad: R$'+fmt(netResult)+' / CDI: R$'+fmt(cdiTotal)+'<br>'+(squadROI>cdiROI?'Squad supera CDI → justifica o risco':'CDI rende mais com menos risco')+'</div></div>';
+    '<div class="inv-card"><div class="inv-card-l">NECESSIDADE DE CAIXA</div><div class="inv-card-v" style="color:var(--warn)">R$ '+fmt(cashNeed)+'</div><div class="inv-card-s">Pico no mês '+peakMonth+' · Total aportado: R$'+fmt(totalAported)+'<br>Capital máximo necessário para bancar a operação</div></div>';
 
-  // Opportunity cost table
+  // Opportunity cost table: squad vs CDI with same cash flow
   el('opp-table').innerHTML =
-    '<tr><th>Opção</th><th>Retorno '+total+'m</th><th>ROI</th><th>Risco</th><th>Liquidez</th></tr>'+
-    '<tr><td'+(squadROI>=cdiROI?' class="best"':'')+'>Squad comercial</td><td'+(squadROI>=cdiROI?' class="best"':'')+'>R$ '+fmt(netResult)+'</td><td'+(squadROI>=cdiROI?' class="best"':'')+'>'+squadROI+'%</td><td>Alto</td><td>Baixa</td></tr>'+
-    '<tr><td'+(cdiROI>squadROI?' class="best"':'')+'>Renda fixa (CDI '+(cdiAa*100).toFixed(1)+'%)</td><td'+(cdiROI>squadROI?' class="best"':'')+'>R$ '+fmt(cdiTotal)+'</td><td'+(cdiROI>squadROI?' class="best"':'')+'>'+cdiROI+'%</td><td>Mínimo</td><td>Alta</td></tr>'+
-    '<tr><td>Não investir</td><td>R$ 0</td><td>0%</td><td>Zero</td><td>Total</td></tr>';
+    '<tr><th>Opção</th><th>Aporte total</th><th>Resultado em '+total+'m</th><th>Ganho líquido</th><th>Risco</th></tr>'+
+    '<tr><td'+(squadWins?' class="best"':'')+'>Squad comercial</td><td'+(squadWins?' class="best"':'')+'>R$ '+fmt(totalAported)+'</td><td'+(squadWins?' class="best"':'')+'>R$ '+fmt(squadGain)+'</td><td'+(squadWins?' class="best"':'')+'>'+(squadGain>=0?'+':'')+' R$ '+fmt(squadGain)+'</td><td>Alto</td></tr>'+
+    '<tr><td'+(!squadWins?' class="best"':'')+'>CDI (mesmo fluxo)</td><td'+(!squadWins?' class="best"':'')+'>R$ '+fmt(totalAported)+'</td><td'+(!squadWins?' class="best"':'')+'>R$ '+fmt(cdiEarnings)+'</td><td'+(!squadWins?' class="best"':'')+'>+ R$ '+fmt(cdiEarnings)+'</td><td>Mínimo</td></tr>'+
+    '<tr><td colspan="5" style="text-align:center;font-weight:600;color:'+(squadWins?'var(--accent)':'var(--danger)')+'">Diferença: '+(diff>=0?'+':'')+' R$ '+fmt(Math.abs(diff))+' '+(squadWins?'a favor da squad':'a favor do CDI')+'</td></tr>';
 
   // Update gate reviews
   renderGates(netFlows, vpl, tirAa, hurdleAa * 100);
