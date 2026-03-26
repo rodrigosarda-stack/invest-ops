@@ -232,13 +232,13 @@ canvas{max-height:250px!important}
 @media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.g3,.g4{grid-template-columns:1fr}.bkd{grid-template-columns:1fr}}
 
 /* Tooltips */
-.tip{position:relative;cursor:help}
-.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-s);color:var(--text);font-family:'Syne',sans-serif;font-size:11px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:10px;white-space:normal;width:280px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:200;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);text-transform:none;letter-spacing:0}
-.tip:hover::after,.tip.tip-active::after{opacity:1;visibility:visible}
+.tip{position:relative}
+.tip-icon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border-s);color:var(--text);font-family:'Syne',sans-serif;font-size:11px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:10px;white-space:normal;width:280px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:200;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);text-transform:none;letter-spacing:0}
+.tip-icon:hover::after,.tip-icon.tip-active::after{opacity:1;visibility:visible}
 .tip.tip-r::after{left:auto;right:0;transform:none}
 .tip.tip-l::after{left:0;transform:none}
-.tip-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);font-size:11px;color:var(--accent);margin-left:6px;vertical-align:middle;flex-shrink:0;font-weight:700;transition:background .2s,color .2s}
-.tip-icon:hover,.tip.tip-active .tip-icon{background:var(--accent);color:var(--bg)}
+.tip-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);font-size:11px;color:var(--accent);margin-left:6px;vertical-align:middle;flex-shrink:0;font-weight:700;transition:background .2s,color .2s;position:relative;cursor:help}
+.tip-icon:hover,.tip-icon.tip-active{background:var(--accent);color:var(--bg)}.tip-icon.tip-r::after{left:auto;right:0;transform:none}.tip-icon.tip-l::after{left:0;transform:none}
 </style>
 </head>
 <body class="phase-colors">
@@ -289,27 +289,27 @@ canvas{max-height:250px!important}
 <div class="g3" id="squad-panels">
   <div class="panel">
     <div class="panel-t">SDR</div>
-    <div class="row"><label>Quantidade</label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
-    <div class="row"><label>Salário (R$)</label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
-    <div class="row"><label>Dedicação</label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
-    <div class="row"><label>Comis. agend.</label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
-    <div class="row"><label>Reun./semana</label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
-    <div class="row"><label>Ramp-up</label><input type="range" id="ramp" min="0" max="3" value="2" step="1"><span class="rv dim" id="ramp-v">2 meses</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de SDRs (pré-vendedores) na squad. Cada SDR prospecta leads e agenda reuniões para os closers.">?</span></span></label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Ramp-up<span class="tip-icon" data-tip="Meses até o SDR atingir performance plena. Durante o ramp-up, a produtividade cresce gradualmente.">?</span></span></label><input type="range" id="ramp" min="0" max="3" value="2" step="1"><span class="rv dim" id="ramp-v">2 meses</span></div>
   </div>
   <div class="panel">
     <div class="panel-t">Closer</div>
-    <div class="row"><label>Quantidade</label><input type="range" id="clos" min="1" max="5" value="1" step="1"><span class="rv" id="clos-v">1</span></div>
-    <div class="row"><label>Salário (R$)</label><input type="range" id="csal" min="1000" max="15000" value="4500" step="100"><input type="number" id="csal-n" value="4500" min="100" max="50000" step="100"></div>
-    <div class="row"><label>Dedicação</label><input type="range" id="cded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="cded-v">8h (100%)</span></div>
-    <div class="row"><label>Comis. venda</label><input type="range" id="ccom" min="0" max="2000" value="500" step="50"><span class="rv" id="ccom-v">R$500</span></div>
-    <div class="row"><label>Reun./dia</label><input type="range" id="rclo" min="1" max="12" value="6" step="1"><span class="rv" id="rclo-v">6</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de closers (vendedores) na squad. Closers recebem as reuniões dos SDRs e fecham contratos.">?</span></span></label><input type="range" id="clos" min="1" max="5" value="1" step="1"><span class="rv" id="clos-v">1</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada closer.">?</span></span></label><input type="range" id="csal" min="1000" max="15000" value="4500" step="100"><input type="number" id="csal-n" value="4500" min="100" max="50000" step="100"></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação.">?</span></span></label><input type="range" id="cded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="cded-v">8h (100%)</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao closer por cada venda fechada (cada novo cliente).">?</span></span></label><input type="range" id="ccom" min="0" max="2000" value="500" step="50"><span class="rv" id="ccom-v">R$500</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./dia<span class="tip-icon" data-tip="Reuniões de vendas que cada closer consegue fazer por dia útil.">?</span></span></label><input type="range" id="rclo" min="1" max="12" value="6" step="1"><span class="rv" id="rclo-v">6</span></div>
   </div>
   <div class="panel">
     <div class="panel-t">Gabriel (Op. Comercial)<label class="tgl" style="margin-left:auto"><input type="checkbox" id="gon" checked>ativo</label></div>
     <div id="gctrl">
-      <div class="row"><label>Salário (R$)</label><input type="range" id="gsal" min="1000" max="15000" value="6000" step="100"><input type="number" id="gsal-n" value="6000" min="100" max="50000" step="100"></div>
-      <div class="row"><label>Dedicação</label><input type="range" id="gded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="gded-v">8h (100%)</span></div>
-      <div class="row"><label>Comis. venda</label><input type="range" id="gcom" min="0" max="1000" value="0" step="50"><span class="rv" id="gcom-v">R$0</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal do Head Comercial (gestor da squad).">?</span></span></label><input type="range" id="gsal" min="1000" max="15000" value="6000" step="100"><input type="number" id="gsal-n" value="6000" min="100" max="50000" step="100"></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo do Head dedicado a esta operação.">?</span></span></label><input type="range" id="gded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="gded-v">8h (100%)</span></div>
+      <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão do Head por cada venda fechada pela squad.">?</span></span></label><input type="range" id="gcom" min="0" max="1000" value="0" step="50"><span class="rv" id="gcom-v">R$0</span></div>
     </div>
     <div id="goff" style="display:none;font-size:10px;color:var(--dim);padding-top:6px">Gabriel não incluído no custo.</div>
   </div>
@@ -326,25 +326,25 @@ canvas{max-height:250px!important}
       <button class="btn sm" onclick="setSegmento(780,20)">Clínica An. R$780</button>
       <button class="btn sm" onclick="setSegmento(980,20)">Clínica R$980</button>
     </div>
-    <div class="row"><label>TKM R$</label><input type="range" id="tkm" min="300" max="3000" value="580" step="10"><input type="number" id="tkm-n" value="580" min="100" max="20000" step="10"></div>
-    <div class="row"><label>Perm. meses</label><input type="range" id="perm" min="3" max="84" value="20" step="1"><input type="number" id="perm-n" value="20" min="1" max="120" step="1"></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">TKM R$<span class="tip-icon" data-tip="Ticket Médio Mensal: receita média por cliente por mês. Usado para calcular quanto cada cliente gera de lucro.">?</span></span></label><input type="range" id="tkm" min="300" max="3000" value="580" step="10"><input type="number" id="tkm-n" value="580" min="100" max="20000" step="10"></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Perm. meses<span class="tip-icon" data-tip="Permanência Média: quantos meses em média cada cliente fica contratando a clínica. Quanto maior, melhor o LTV.">?</span></span></label><input type="range" id="perm" min="3" max="84" value="20" step="1"><input type="number" id="perm-n" value="20" min="1" max="120" step="1"></div>
   </div>
   <div class="panel">
     <div class="panel-t">Margens e Fiscal</div>
-    <div class="row"><label>Margem contrib.</label><input type="range" id="mprod" min="1" max="99" value="50" step="1"><span class="rv" id="mprod-v">50%</span></div>
-    <div class="row"><label>Carga fiscal</label><input type="range" id="fisc" min="0" max="30" value="8" step="0.5"><span class="rv" id="fisc-v">8%</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Margem contrib.<span class="tip-icon" data-tip="Percentual da receita que sobra após custos diretos de entrega (fulfillment). Ex: 50% = metade cobre o serviço.">?</span></span></label><input type="range" id="mprod" min="1" max="99" value="50" step="1"><span class="rv" id="mprod-v">50%</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Carga fiscal<span class="tip-icon" data-tip="Percentual de impostos diretos sobre a receita (ISS, impostos médicos, etc). É deduzido do lucro bruto.">?</span></span></label><input type="range" id="fisc" min="0" max="30" value="8" step="0.5"><span class="rv" id="fisc-v">8%</span></div>
   </div>
   <div class="panel">
     <div class="panel-t">Funil e Churn</div>
-    <div class="row"><label>Conversão</label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
-    <div class="row"><label>Churn mensal</label><input type="range" id="churn" min="0" max="15" value="5" step="0.5"><span class="rv" id="churn-v">5%</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Conversão<span class="tip-icon" data-tip="Percentual de reuniões que viram clientes. Taxa de fechamento do closer.">?</span></span></label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
+    <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Churn mensal<span class="tip-icon" data-tip="Taxa mensal de cancelamento: percentual de clientes que cancelam por mês. Se 5%, a cada 100 clientes, 5 saem.">?</span></span></label><input type="range" id="churn" min="0" max="15" value="5" step="0.5"><span class="rv" id="churn-v">5%</span></div>
   </div>
   <div class="ltv-hl">
-    <div class="ll">LTV bruto</div>
+    <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
     <div class="lv" id="ltv-v">R$ 11.600</div>
     <div class="ls" id="ltv-s">R$580 × 20 meses</div>
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
-      <div class="ll">LTV com margem</div>
+      <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
       <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
       <div class="ls" id="ltvm-s">margem líq. × vida média</div>
     </div>
@@ -356,7 +356,7 @@ canvas{max-height:250px!important}
 
 <!-- Chart 1: CAC por SDR -->
 <div class="cs">
-  <div class="cs-t">CAC e Payback por número de SDRs</div>
+  <div class="cs-t">CAC e Payback por número de SDRs <span class="tip-icon" data-tip="Mostra como o CAC e payback mudam conforme você adiciona mais SDRs. Ajuda a encontrar o tamanho ideal da squad.">?</span></div>
   <div class="cw" style="height:200px;margin-top:10px"><canvas id="ch1"></canvas></div>
 </div>
 
@@ -365,12 +365,12 @@ canvas{max-height:250px!important}
 
 <!-- Sensitivity -->
 <div class="cs sens-section">
-  <div class="cs-t">Sensibilidade: CAC × Conversão</div>
+  <div class="cs-t">Sensibilidade: CAC × Conversão <span class="tip-icon" data-tip="Mapa de calor cruzando taxa de conversão com cenários de custo. Mostra em quais combinações a operação é viável.">?</span></div>
   <div class="sens" id="sens"></div>
 </div>
 
 <div class="cs sens-section">
-  <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade</div>
+  <div class="cs-t">Sensibilidade: Churn → LTV → Viabilidade <span class="tip-icon" data-tip="Mostra como diferentes taxas de churn impactam o LTV e a viabilidade do negócio.">?</span></div>
   <div class="sens" id="sens-churn"></div>
 </div>
 
@@ -378,7 +378,7 @@ canvas{max-height:250px!important}
 <div class="cs">
   <div class="cs-h">
     <div>
-      <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa<span class="pbadge ac" id="pbadge"></span></div>
+      <div class="cs-t" style="display:flex;align-items:center;gap:8px">Fluxo de caixa <span class="tip-icon" data-tip="Gráfico mês a mês mostrando receitas, custos e resultado acumulado. Mostra quando a operação se paga.">?</span><span class="pbadge ac" id="pbadge"></span></div>
       <div class="cs-sub" id="csub"></div>
     </div>
     <div class="tg">
@@ -393,7 +393,7 @@ canvas{max-height:250px!important}
 
 <div class="hrow" id="hrow" style="display:none">
   <div style="display:flex;align-items:center;gap:10px">
-    <label style="font-size:11px;color:var(--muted);white-space:nowrap">Horizonte</label>
+    <label style="font-size:11px;color:var(--muted);white-space:nowrap"><span class="tip" style="display:inline-flex;align-items:center;">Horizonte<span class="tip-icon" data-tip="Período total da simulação em meses. Quanto maior, mais se vê o efeito do churn e payback.">?</span></span></label>
     <input type="range" id="hor" min="6" max="36" value="18" step="1" style="flex:1">
     <span class="rv" id="hor-v">18 meses</span>
   </div>
@@ -403,24 +403,24 @@ canvas{max-height:250px!important}
 <div class="timeline-section">
   <div class="cs-h">
     <div>
-      <div class="cs-t">Timeline combinada — sequência de cenários</div>
+      <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
       <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
     </div>
   </div>
   <div class="tl-config" id="tl-config">
     <div style="display:flex;align-items:center;gap:6px">
       <span class="sc-dot" style="background:var(--p1);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-      <label>Cenário A:</label>
+      <label><span class="tip" style="display:inline-flex;align-items:center;">Cenário A:<span class="tip-icon" data-tip="Quantos meses o cenário A fica ativo antes de passar para o próximo.">?</span></span></label>
       <input type="number" id="tl-a" value="4" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
       <span class="sc-dot" style="background:var(--p2);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-      <label>Cenário B:</label>
+      <label><span class="tip" style="display:inline-flex;align-items:center;">Cenário B:<span class="tip-icon" data-tip="Quantos meses o cenário B fica ativo antes de passar para o próximo.">?</span></span></label>
       <input type="number" id="tl-b" value="6" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px">
       <span class="sc-dot" style="background:var(--p3);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-      <label>Cenário C:</label>
+      <label><span class="tip" style="display:inline-flex;align-items:center;">Cenário C:<span class="tip-icon" data-tip="Quantos meses o cenário C fica ativo antes de passar para o próximo.">?</span></span></label>
       <input type="number" id="tl-c" value="8" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span>
     </div>
     <span class="rv" id="tl-total" style="color:var(--accent)">= 18 meses</span>
@@ -436,18 +436,18 @@ canvas{max-height:250px!important}
 <!-- ═══ ANÁLISE DE INVESTIMENTO ═══ -->
 <div class="inv-section" style="margin-top:16px">
   <div class="inv-header">Análise de investimento <span class="tag">Framework</span></div>
-  <div class="cs-sub tip tip-l" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon">?</span></div>
+  <div class="cs-sub tip tip-l">VPL, TIR e custo de oportunidade — calculados automaticamente a partir do fluxo da timeline combinada. <span class="tip-icon" data-tip="Esta seção calcula automaticamente se vale a pena investir na squad comercial comparado a deixar o dinheiro rendendo no CDI. Usa o fluxo de caixa da timeline combinada (cenários A+B+C). Os 3 cards mostram: VPL (valor gerado acima do custo de capital), TIR (retorno real da operação) e Necessidade de Caixa (quanto precisa ter no bolso).">?</span></div>
 
   <div style="display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap">
-    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip" data-tip="Taxa Selic / CDI anualizada. É o retorno que você teria deixando o dinheiro parado em renda fixa sem risco. Serve como base para calcular se a squad vale mais a pena que o investimento seguro.">Taxa CDI a.a.<span class="tip-icon">?</span></label><input type="range" id="cdi" min="5" max="20" value="14" step="0.5" style="width:100px"><span class="rv" id="cdi-v">14%</span></div>
-    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip" data-tip="Percentual extra que você exige acima do CDI para compensar o risco de investir na operação comercial. Quanto mais arriscado o projeto, maior deve ser esse prêmio. Exemplo: 10% significa que você só aceita se render pelo menos CDI + 10%.">Prêmio risco<span class="tip-icon">?</span></label><input type="range" id="riskp" min="0" max="30" value="10" step="1" style="width:100px"><span class="rv" id="riskp-v">10%</span></div>
-    <div class="rv tip tip-r" id="hurdle-v" style="color:var(--warn);font-weight:600" data-tip="Hurdle Rate = CDI + Prêmio de Risco. É a taxa mínima de retorno que o projeto precisa superar para justificar o investimento. Se a TIR for maior que o Hurdle, vale investir na squad.">Hurdle: 24% a.a.<span class="tip-icon">?</span></div>
+    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip">Taxa CDI a.a.<span class="tip-icon" data-tip="Taxa Selic / CDI anualizada. É o retorno que você teria deixando o dinheiro parado em renda fixa sem risco. Serve como base para calcular se a squad vale mais a pena que o investimento seguro.">?</span></label><input type="range" id="cdi" min="5" max="20" value="14" step="0.5" style="width:100px"><span class="rv" id="cdi-v">14%</span></div>
+    <div class="row" style="margin:0"><label style="width:auto;white-space:nowrap" class="tip">Prêmio risco<span class="tip-icon" data-tip="Percentual extra que você exige acima do CDI para compensar o risco de investir na operação comercial. Quanto mais arriscado o projeto, maior deve ser esse prêmio. Exemplo: 10% significa que você só aceita se render pelo menos CDI + 10%.">?</span></label><input type="range" id="riskp" min="0" max="30" value="10" step="1" style="width:100px"><span class="rv" id="riskp-v">10%</span></div>
+    <div class="rv tip tip-r" id="hurdle-v" style="color:var(--warn);font-weight:600">Hurdle: 24% a.a.<span class="tip-icon" data-tip="Hurdle Rate = CDI + Prêmio de Risco. É a taxa mínima de retorno que o projeto precisa superar para justificar o investimento. Se a TIR for maior que o Hurdle, vale investir na squad.">?</span></div>
   </div>
 
   <div class="inv-grid" id="inv-grid"></div>
 
   <div style="margin-top:14px">
-    <div class="cs-t tip tip-l" data-tip="Compara investir na squad vs aplicar o mesmo dinheiro no CDI. O fluxo é espelhado: cada mês que a squad precisa de dinheiro, o mesmo valor é aplicado no CDI. Quando a squad para de precisar de aporte, o CDI também para de receber. Assim a comparação é justa — mesmo dinheiro, mesmo timing.">Custo de oportunidade — comparativo <span class="tip-icon">?</span></div>
+    <div class="cs-t tip tip-l">Custo de oportunidade — comparativo <span class="tip-icon" data-tip="Compara investir na squad vs aplicar o mesmo dinheiro no CDI. O fluxo é espelhado: cada mês que a squad precisa de dinheiro, o mesmo valor é aplicado no CDI. Quando a squad para de precisar de aporte, o CDI também para de receber. Assim a comparação é justa — mesmo dinheiro, mesmo timing.">?</span></div>
     <table class="opp-table" id="opp-table"></table>
   </div>
 </div>
@@ -457,12 +457,12 @@ canvas{max-height:250px!important}
   <div class="inv-header">Scorecard GO / NO-GO <span class="tag">Qualitativo</span></div>
   <div class="cs-sub">Pontue cada critério de 1 a 10. Peso ponderado conforme framework.</div>
   <div class="score-grid" id="score-grid">
-    <div class="score-row"><label class="tip tip-l" data-tip="O quanto essa squad se encaixa na estratégia atual da M3A. Pontuação alta = crescimento comercial é prioridade agora. Baixa = existem outras prioridades mais urgentes.">Alinhamento estratégico <span class="tip-icon">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
-    <div class="score-row"><label class="tip tip-l" data-tip="Avaliação subjetiva do retorno financeiro baseado no VPL e TIR calculados acima. 10 = VPL muito positivo e TIR muito acima do hurdle. 1 = VPL negativo ou TIR abaixo do CDI.">Retorno financeiro (VPL/TIR) <span class="tip-icon">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="7" data-w="25" class="sc-input"><span class="sv">7</span></div>
-    <div class="score-row"><label class="tip tip-l" data-tip="Risco de a execução dar errado: não conseguir contratar, SDR não performar, closer não converter, turnover alto. 10 = baixo risco (time experiente, processo validado). 1 = alto risco (tudo novo).">Risco de execução <span class="tip-icon">?</span></label><span class="sw">20%</span><input type="range" min="1" max="10" value="6" data-w="20" class="sc-input"><span class="sv">6</span></div>
-    <div class="score-row"><label class="tip tip-l" data-tip="O que você deixa de fazer ao investir nessa squad? 10 = não tem nada melhor pra investir esse dinheiro. 1 = tem outra iniciativa muito mais rentável esperando.">Custo de oportunidade <span class="tip-icon">?</span></label><span class="sw">15%</span><input type="range" min="1" max="10" value="7" data-w="15" class="sc-input"><span class="sv">7</span></div>
-    <div class="score-row"><label class="tip tip-l" data-tip="Facilidade de desfazer a decisão se der errado. 10 = pode desmontar a squad em 30 dias sem grandes perdas. 1 = contratos longos, investimento irrecuperável.">Reversibilidade <span class="tip-icon">?</span></label><span class="sw">10%</span><input type="range" min="1" max="10" value="8" data-w="10" class="sc-input"><span class="sv">8</span></div>
-    <div class="score-row"><label class="tip tip-l" data-tip="A squad se encaixa na cultura e na operação atual da M3A? 10 = time comercial já existe, processos claros. 1 = cultura técnica, nunca tiveram vendedores.">Fit cultural / operacional <span class="tip-icon">?</span></label><span class="sw">5%</span><input type="range" min="1" max="10" value="9" data-w="5" class="sc-input"><span class="sv">9</span></div>
+    <div class="score-row"><label class="tip tip-l">Alinhamento estratégico <span class="tip-icon" data-tip="O quanto essa squad se encaixa na estratégia atual da M3A. Pontuação alta = crescimento comercial é prioridade agora. Baixa = existem outras prioridades mais urgentes.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="8" data-w="25" class="sc-input"><span class="sv">8</span></div>
+    <div class="score-row"><label class="tip tip-l">Retorno financeiro (VPL/TIR) <span class="tip-icon" data-tip="Avaliação subjetiva do retorno financeiro baseado no VPL e TIR calculados acima. 10 = VPL muito positivo e TIR muito acima do hurdle. 1 = VPL negativo ou TIR abaixo do CDI.">?</span></label><span class="sw">25%</span><input type="range" min="1" max="10" value="7" data-w="25" class="sc-input"><span class="sv">7</span></div>
+    <div class="score-row"><label class="tip tip-l">Risco de execução <span class="tip-icon" data-tip="Risco de a execução dar errado: não conseguir contratar, SDR não performar, closer não converter, turnover alto. 10 = baixo risco (time experiente, processo validado). 1 = alto risco (tudo novo).">?</span></label><span class="sw">20%</span><input type="range" min="1" max="10" value="6" data-w="20" class="sc-input"><span class="sv">6</span></div>
+    <div class="score-row"><label class="tip tip-l">Custo de oportunidade <span class="tip-icon" data-tip="O que você deixa de fazer ao investir nessa squad? 10 = não tem nada melhor pra investir esse dinheiro. 1 = tem outra iniciativa muito mais rentável esperando.">?</span></label><span class="sw">15%</span><input type="range" min="1" max="10" value="7" data-w="15" class="sc-input"><span class="sv">7</span></div>
+    <div class="score-row"><label class="tip tip-l">Reversibilidade <span class="tip-icon" data-tip="Facilidade de desfazer a decisão se der errado. 10 = pode desmontar a squad em 30 dias sem grandes perdas. 1 = contratos longos, investimento irrecuperável.">?</span></label><span class="sw">10%</span><input type="range" min="1" max="10" value="8" data-w="10" class="sc-input"><span class="sv">8</span></div>
+    <div class="score-row"><label class="tip tip-l">Fit cultural / operacional <span class="tip-icon" data-tip="A squad se encaixa na cultura e na operação atual da M3A? 10 = time comercial já existe, processos claros. 1 = cultura técnica, nunca tiveram vendedores.">?</span></label><span class="sw">5%</span><input type="range" min="1" max="10" value="9" data-w="5" class="sc-input"><span class="sv">9</span></div>
   </div>
   <div class="score-total" id="score-total"></div>
 </div>
@@ -772,13 +772,13 @@ function render() {
   var pbClsK = cls==='ac'?'green hl':cls==='wn'?'yellow wn':'red dg';
   var ltvCacCls = r.ltvMarginCac >= 3 ? 'green hl' : r.ltvMarginCac >= 2 ? 'yellow wn' : 'red dg';
   el('kpis').innerHTML =
-    mkKpi('Clientes/mês', r.cl, r.au+' reun. × '+Math.round(p.conv*100)+'%', '') +
-    mkKpi('CAC', 'R$ '+fmt(r.cac), 'máx. recomendado: R$'+fmt(r.cacMax), r.cac>r.cacMax?'red dg':'') +
-    mkKpi('Payback real', fmtPB(r.pb), r.pb<=6?'excelente (<6m)':r.pb<=10?'aceitável':'alto', pbClsK) +
-    mkKpi('MRR gerado', 'R$ '+fmt(r.mrr), 'margem: R$'+fmt(r.margemContrib*r.cl)+'/mês', '') +
-    mkKpi('LTV c/ margem', 'R$ '+fmt(r.ltvMargin), 'bruto: R$'+fmt(r.ltv)+' · vida: '+r.avgLife.toFixed(1)+'m', 'blue') +
-    mkKpi('LTV:CAC', r.ltvMarginCac.toFixed(1)+'×', r.ltvMarginCac>=3?'saudável (≥3×)':r.ltvMarginCac>=2?'atenção':'crítico (<2×)', ltvCacCls) +
-    mkKpi('Margem líq./mês', 'R$ '+fmt(r.net*r.cl), 'R$'+fmt(r.net)+' × '+r.cl+' cl.', 'purple');
+    mkKpi('Clientes/mês <span class=\"tip-icon\" data-tip=\"Novos clientes/mês. Calculado: reuniões totais × taxa de conversão.\">?</span>', r.cl, r.au+' reun. × '+Math.round(p.conv*100)+'%', '') +
+    mkKpi('CAC <span class=\"tip-icon\" data-tip=\"Custo de Aquisição de Cliente. Custos totais da squad ÷ clientes/mês.\">?</span>', 'R$ '+fmt(r.cac), 'máx. recomendado: R$'+fmt(r.cacMax), r.cac>r.cacMax?'red dg':'') +
+    mkKpi('Payback real <span class=\"tip-icon\" data-tip=\"Meses até recuperar o CAC com a margem do cliente. Quanto menor, melhor.\">?</span>', fmtPB(r.pb), r.pb<=6?'excelente (<6m)':r.pb<=10?'aceitável':'alto', pbClsK) +
+    mkKpi('MRR gerado <span class=\"tip-icon\" data-tip=\"Receita Recorrente Mensal: novos clientes × ticket médio.\">?</span>', 'R$ '+fmt(r.mrr), 'margem: R$'+fmt(r.margemContrib*r.cl)+'/mês', '') +
+    mkKpi('LTV c/ margem <span class=\"tip-icon\" data-tip=\"LTV descontando margem e impostos. Lucro real por cliente ao longo da vida.\">?</span>', 'R$ '+fmt(r.ltvMargin), 'bruto: R$'+fmt(r.ltv)+' · vida: '+r.avgLife.toFixed(1)+'m', 'blue') +
+    mkKpi('LTV:CAC <span class=\"tip-icon\" data-tip=\"Proporção valor do cliente ÷ custo de aquisição. Acima de 3× é saudável.\">?</span>', r.ltvMarginCac.toFixed(1)+'×', r.ltvMarginCac>=3?'saudável (≥3×)':r.ltvMarginCac>=2?'atenção':'crítico (<2×)', ltvCacCls) +
+    mkKpi('Margem líq./mês <span class=\"tip-icon\" data-tip=\"Margem líquida mensal por cliente após descontar custos e impostos.\">?</span>', 'R$ '+fmt(r.net*r.cl), 'R$'+fmt(r.net)+' × '+r.cl+' cl.', 'purple');
 
   // Payback badge
   el('pbadge').className = 'pbadge '+cls;
@@ -1411,9 +1411,9 @@ function renderInvestment() {
   var cashCls = squadWins ? 'pos' : 'neg';
 
   el('inv-grid').innerHTML =
-    '<div class="inv-card '+vplCls+' tip tip-l" data-tip="Valor Presente Líquido: traz todos os fluxos de caixa futuros da squad a valor de hoje, descontados pela taxa Hurdle ('+(hurdleAa*100).toFixed(0)+'% a.a.). VPL positivo = o projeto gera mais valor do que custaria investir esse dinheiro a '+(hurdleAa*100).toFixed(0)+'%. Quanto maior, melhor."><div class="inv-card-l">VPL <span class="tip-icon">?</span></div><div class="inv-card-v">'+(vpl>=0?'+':'')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
-    '<div class="inv-card '+tirCls+' tip" data-tip="Taxa Interna de Retorno: é o retorno anualizado real que a squad gera. Calculada a partir do fluxo de caixa mês a mês. Se a TIR for maior que o Hurdle Rate ('+(hurdleAa*100).toFixed(0)+'%), o investimento se justifica. TIR de '+tirAa+'% significa que cada real investido rende '+tirAa+'% ao ano."><div class="inv-card-l">TIR <span class="tip-icon">?</span></div><div class="inv-card-v">'+tirAa+'% a.a.</div><div class="inv-card-s">Hurdle rate: '+(hurdleAa*100).toFixed(0)+'% · CDI: '+(cdiAa*100).toFixed(1)+'%<br>'+(tirAa>hurdleAa*100?'TIR > Hurdle → aceitar':'TIR < Hurdle → reavaliar')+'</div></div>'+
-    '<div class="inv-card tip tip-r" data-tip="O máximo de dinheiro que você precisa ter disponível para bancar a operação até ela se pagar. No mês '+peakMonth+' o caixa acumulado atinge o ponto mais negativo (R$'+fmt(cashNeed)+'). Após isso, a receita dos clientes começa a cobrir os custos. Total aportado ao longo de toda a operação: R$'+fmt(totalAported)+'."><div class="inv-card-l">NECESSIDADE DE CAIXA <span class="tip-icon">?</span></div><div class="inv-card-v" style="color:var(--warn)">R$ '+fmt(cashNeed)+'</div><div class="inv-card-s">Pico no mês '+peakMonth+' · Total aportado: R$'+fmt(totalAported)+'<br>Capital máximo necessário para bancar a operação</div></div>';
+    '<div class="inv-card '+vplCls+' tip tip-l"><div class="inv-card-l">VPL <span class="tip-icon" data-tip="Valor Presente Líquido: traz todos os fluxos de caixa futuros da squad a valor de hoje, descontados pela taxa Hurdle ('+(hurdleAa*100).toFixed(0)+'% a.a.). VPL positivo = o projeto gera mais valor do que custaria investir esse dinheiro a '+(hurdleAa*100).toFixed(0)+'%. Quanto maior, melhor.">?</span></div><div class="inv-card-v">'+(vpl>=0?'+':'')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
+    '<div class="inv-card '+tirCls+' tip"><div class="inv-card-l">TIR <span class="tip-icon" data-tip="Taxa Interna de Retorno: é o retorno anualizado real que a squad gera. Calculada a partir do fluxo de caixa mês a mês. Se a TIR for maior que o Hurdle Rate ('+(hurdleAa*100).toFixed(0)+'%), o investimento se justifica. TIR de '+tirAa+'% significa que cada real investido rende '+tirAa+'% ao ano.">?</span></div><div class="inv-card-v">'+tirAa+'% a.a.</div><div class="inv-card-s">Hurdle rate: '+(hurdleAa*100).toFixed(0)+'% · CDI: '+(cdiAa*100).toFixed(1)+'%<br>'+(tirAa>hurdleAa*100?'TIR > Hurdle → aceitar':'TIR < Hurdle → reavaliar')+'</div></div>'+
+    '<div class="inv-card tip tip-r"><div class="inv-card-l">NECESSIDADE DE CAIXA <span class="tip-icon" data-tip="O máximo de dinheiro que você precisa ter disponível para bancar a operação até ela se pagar. No mês '+peakMonth+' o caixa acumulado atinge o ponto mais negativo (R$'+fmt(cashNeed)+'). Após isso, a receita dos clientes começa a cobrir os custos. Total aportado ao longo de toda a operação: R$'+fmt(totalAported)+'.">?</span></div><div class="inv-card-v" style="color:var(--warn)">R$ '+fmt(cashNeed)+'</div><div class="inv-card-s">Pico no mês '+peakMonth+' · Total aportado: R$'+fmt(totalAported)+'<br>Capital máximo necessário para bancar a operação</div></div>';
 
   // Opportunity cost table: squad vs CDI with same cash flow
   el('opp-table').innerHTML =
@@ -1499,11 +1499,9 @@ renderPs();
 renderScorecard();
 render();
 </script>
+
 <script>
-(function(){document.addEventListener("click",function(e){var i=e.target.closest(".tip-icon");if(i){e.preventDefault();e.stopPropagation();var t=i.closest(".tip");if(t){document.querySelectorAll(".tip.tip-active").forEach(function(x){if(x!==t)x.classList.remove("tip-active")});t.classList.toggle("tip-active")}}else{document.querySelectorAll(".tip.tip-active").forEach(function(x){x.classList.remove("tip-active")})}})})();
-</script>
-<script>
-(function(){document.addEventListener("click",function(e){var i=e.target.closest(".tip-icon");if(i){e.preventDefault();e.stopPropagation();var t=i.closest(".tip");if(t){document.querySelectorAll(".tip.tip-active").forEach(function(x){if(x!==t)x.classList.remove("tip-active")});t.classList.toggle("tip-active")}}else{document.querySelectorAll(".tip.tip-active").forEach(function(x){x.classList.remove("tip-active")})}})})();
+(function(){document.addEventListener("click",function(e){var icon=e.target.closest(".tip-icon");if(icon){e.preventDefault();e.stopPropagation();document.querySelectorAll(".tip-icon.tip-active").forEach(function(x){if(x!==icon)x.classList.remove("tip-active")});icon.classList.toggle("tip-active")}else{document.querySelectorAll(".tip-icon.tip-active").forEach(function(x){x.classList.remove("tip-active")})}})})();
 </script>
 </body>
 </html>
