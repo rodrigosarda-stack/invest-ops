@@ -242,10 +242,9 @@ canvas{max-height:250px!important}
 
 /* Tooltips */
 .tip{position:relative}
-.tip-icon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:0;transform:none;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);color:#f0f0f0;font-family:'Syne',sans-serif;font-size:11px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:10px;white-space:normal;width:280px;max-width:calc(100vw - 24px);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:200;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.45);text-transform:none;letter-spacing:0}
-.tip-icon:hover::after,.tip-icon.tip-active::after{opacity:1;visibility:visible}
 .tip-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);font-size:11px;color:var(--accent);margin-left:6px;vertical-align:middle;flex-shrink:0;font-weight:700;transition:background .2s,color .2s;position:relative;cursor:help}
-.tip-icon:hover,.tip-icon.tip-active{background:var(--accent);color:var(--bg)}.tip-icon.tip-r::after{left:auto;right:0;transform:none}.tip-icon.tip-l::after{left:0;transform:none}
+.tip-icon:hover,.tip-icon.tip-active{background:var(--accent);color:var(--bg)}
+#tip-popup{position:fixed;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);color:#f0f0f0;font-family:'Syne',sans-serif;font-size:11px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:10px;white-space:normal;width:280px;max-width:calc(100vw - 16px);z-index:9999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.45);text-transform:none;letter-spacing:0;display:none}
 </style>
 </head>
 <body class="phase-colors">
@@ -1617,7 +1616,42 @@ render();
 </script>
 
 <script>
-(function(){document.addEventListener("click",function(e){var icon=e.target.closest(".tip-icon");if(icon){e.preventDefault();e.stopPropagation();document.querySelectorAll(".tip-icon.tip-active").forEach(function(x){if(x!==icon)x.classList.remove("tip-active")});icon.classList.toggle("tip-active")}else{document.querySelectorAll(".tip-icon.tip-active").forEach(function(x){x.classList.remove("tip-active")})}})})();
+(function(){
+var tp=document.createElement('div');tp.id='tip-popup';document.body.appendChild(tp);
+var cur=null;
+function show(icon){
+  var txt=icon.getAttribute('data-tip');if(!txt)return;
+  tp.textContent=txt;tp.style.display='block';
+  var r=icon.getBoundingClientRect();
+  var tw=tp.offsetWidth,th=tp.offsetHeight;
+  var top=r.top-th-8;
+  var left=r.left+r.width/2-tw/2;
+  if(top<4){top=r.bottom+8}
+  if(left<8)left=8;
+  if(left+tw>window.innerWidth-8)left=window.innerWidth-8-tw;
+  tp.style.top=top+'px';tp.style.left=left+'px';
+  cur=icon;icon.classList.add('tip-active');
+}
+function hide(){
+  tp.style.display='none';
+  if(cur){cur.classList.remove('tip-active');cur=null}
+}
+document.addEventListener('mouseover',function(e){
+  var icon=e.target.closest('.tip-icon');
+  if(icon){show(icon)}
+});
+document.addEventListener('mouseout',function(e){
+  var icon=e.target.closest('.tip-icon');
+  if(icon&&!icon.classList.contains('tip-clicked')){hide()}
+});
+document.addEventListener('click',function(e){
+  var icon=e.target.closest('.tip-icon');
+  if(icon){e.preventDefault();e.stopPropagation();
+    if(icon.classList.contains('tip-clicked')){icon.classList.remove('tip-clicked');hide()}
+    else{hide();icon.classList.add('tip-clicked');show(icon)}
+  }else{document.querySelectorAll('.tip-clicked').forEach(function(x){x.classList.remove('tip-clicked')});hide()}
+});
+})();
 </script>
 </body>
 </html>
