@@ -245,6 +245,36 @@ canvas{max-height:250px!important}
 .tip-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);font-size:11px;color:var(--accent);margin-left:6px;vertical-align:middle;flex-shrink:0;font-weight:700;transition:background .2s,color .2s;position:relative;cursor:help}
 .tip-icon:hover,.tip-icon.tip-active{background:var(--accent);color:var(--bg)}
 #tip-popup{position:fixed;background:#1a1a2e;border:1px solid rgba(255,255,255,.15);color:#f0f0f0;font-family:'Syne',sans-serif;font-size:11px;font-weight:400;line-height:1.5;padding:10px 14px;border-radius:10px;white-space:normal;width:280px;max-width:calc(100vw - 16px);z-index:9999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.45);text-transform:none;letter-spacing:0;display:none}
+
+/* Arena */
+.arena-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:10px}
+.arena-grid .ah{background:var(--card2);padding:8px 10px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:500}
+.arena-grid .ac{background:var(--card);padding:8px 10px;font-size:12px}
+.arena-grid .ac.best{background:var(--accent-dim);color:var(--accent);font-weight:700}
+.arena-grid .ac.worst{background:var(--danger-dim);color:var(--danger)}
+.arena-verdict{margin-top:14px;padding:14px;border-radius:var(--radius);text-align:center;font-weight:600;font-size:13px}
+.arena-verdict.pos{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,200,117,.2)}
+.arena-verdict.neg{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(226,75,74,.15)}
+/* Stress Test */
+.stress-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-top:10px}
+.stress-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.stress-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stress-card.base{border-color:var(--accent);background:var(--accent-dim2)}
+.stress-card.pess{border-color:var(--danger);background:var(--danger-dim)}
+.stress-card.otim{border-color:var(--blue);background:var(--blue-dim)}
+.stress-card .sv{font-size:18px;font-weight:700;margin:4px 0}
+.stress-card .sl{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.stress-card .ss{font-size:10px;color:var(--dim);margin-top:2px}
+/* Optimizer */
+.opt-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-top:10px}
+.opt-constraints{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.opt-constraints label{font-size:10px;color:var(--muted);display:block;margin-bottom:3px}
+.opt-constraints input{width:100%;background:var(--input-bg);border:1px solid var(--input-b);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:6px 8px;text-align:center}
+.opt-results{margin-top:12px}
+.opt-rank{display:grid;grid-template-columns:40px 1fr repeat(5,auto);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:8px}
+.opt-rank .oh{background:var(--card2);padding:6px 8px;font-family:'DM Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:500}
+.opt-rank .oc{background:var(--card);padding:6px 8px;font-size:11px}
+.opt-rank .oc.gold{background:var(--accent-dim);color:var(--accent);font-weight:700}
 </style>
 </head>
 <body class="phase-colors">
@@ -275,6 +305,19 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
+<!-- Arena: Comparison -->
+<div class="overlay" id="modal-arena">
+  <div class="modal" style="max-width:900px;width:95vw">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3>⚔️ Arena de Comparação</h3>
+      <button class="btn sm" onclick="closeArena()">✕ Fechar</button>
+    </div>
+    <div id="arena-content" style="font-size:12px">
+      <p style="color:var(--muted)">Salve pelo menos 2 perfis para comparar.</p>
+    </div>
+  </div>
+</div>
+
 <!-- Header -->
 <div class="hdr">
   <div>
@@ -282,6 +325,9 @@ canvas{max-height:250px!important}
     <div class="sub">M3A Médico · v11 · CAC · Payback · Fluxo de Caixa · Cenários dinâmicos</div>
   </div>
   <div class="hdr-r">
+    <button class="btn sm" onclick="newProfile()">🆕 Novo</button>
+    <button class="btn sm" onclick="duplicateP()">📑 Duplicar</button>
+    <button class="btn sm" onclick="openArena()">⚔️ Comparar</button>
     <button class="btn sm" onclick="window.print()" title="Exportar PDF">🖨 PDF</button>
     <button class="btn sm" onclick="openPresetM()" title="Salvar cenário atual como preset reutilizável">📋 Preset</button>
     <button class="btn sm" onclick="openM()">💾 Salvar</button>
@@ -473,6 +519,32 @@ canvas{max-height:250px!important}
   <div class="cs-sub">Capital liberado por fases. Cada gate é validado pelas métricas do simulador.</div>
   <div class="gates" id="gates"></div>
   <div class="cbox" id="gate-notes" style="margin-top:10px"></div>
+</div>
+
+<!-- Stress Test -->
+<div class="stress-panel" style="margin-bottom:10px">
+  <div class="cs-t" style="display:flex;align-items:center;justify-content:space-between">
+    <span>Stress Test — cenário atual sob pressão <span class="tip-icon" data-tip="Testa o cenário atual em 3 condições: pessimista (churn +50%, conversão -30%, ticket -15%), base (valores atuais) e otimista (churn -30%, conversão +20%, ticket +10%).">?</span></span>
+    <button class="btn sm primary" onclick="runStress()">▶ Rodar Stress Test</button>
+  </div>
+  <div id="stress-results" style="margin-top:8px">
+    <p style="color:var(--dim);font-size:11px">Clique para testar o cenário atual sob condições pessimistas e otimistas.</p>
+  </div>
+</div>
+
+<!-- Optimizer -->
+<div class="opt-panel" style="margin-bottom:10px">
+  <div class="cs-t">Otimizador — encontre a melhor configuração <span class="tip-icon" data-tip="Define restrições (orçamento, headcount, payback máximo) e o objetivo (menor payback, maior VPL, etc). A IA varre centenas de combinações e retorna as top 5.">?</span></div>
+  <div class="opt-constraints">
+    <div><label>Orçamento máx./mês (R$)</label><input type="number" id="opt-budget" value="80000" step="5000"></div>
+    <div><label>Headcount máximo</label><input type="number" id="opt-head" value="8" step="1" min="2" max="15"></div>
+    <div><label>Payback máximo (meses)</label><input type="number" id="opt-pb" value="10" step="1" min="1" max="24"></div>
+    <div><label>Objetivo</label><select id="opt-obj"><option value="payback">Menor payback</option><option value="vpl">Maior VPL</option><option value="tir">Maior TIR</option><option value="margem">Maior margem</option></select></div>
+  </div>
+  <div style="text-align:center"><button class="btn sm primary" onclick="runOptimizer()">🔍 Otimizar</button></div>
+  <div id="opt-results" style="margin-top:8px">
+    <p style="color:var(--dim);font-size:11px">Defina as restrições e clique para encontrar a configuração ideal.</p>
+  </div>
 </div>
 
 <script>
@@ -770,6 +842,55 @@ function sync(sid,nid){
   });
 }
 sync('ssal','ssal-n');sync('csal','csal-n');sync('gsal','gsal-n');sync('tkm','tkm-n');sync('perm','perm-n');
+
+// ─── SIMULATE ENGINE (pure, no DOM) ─────────────────────────
+function parseRaw(raw) {
+  return {
+    sdrs:parseInt(raw.sdrs)||4, clos:parseInt(raw.clos)||1,
+    rsdr:parseInt(raw.rsdr)||6, rclo:parseInt(raw.rclo)||6,
+    ssal:Math.max(100,parseInt(raw.ssal)||4500),
+    csal:Math.max(100,parseInt(raw.csal)||4500),
+    gsal:Math.max(100,parseInt(raw.gsal)||6000),
+    sded:parseFloat(raw.sded)||8, cded:parseFloat(raw.cded)||8, gded:parseFloat(raw.gded)||8,
+    scom:parseInt(raw.scom)||60, ccom:parseInt(raw.ccom)||500, gcom:parseInt(raw.gcom)||0,
+    gon:raw.gon!==false&&raw.gon!=='false',
+    conv:(parseInt(raw.conv)||35)/100,
+    tkm:Math.max(100,parseInt(raw.tkm)||800),
+    perm:Math.max(1,parseInt(raw.perm)||16),
+    mprod:parseInt(raw.mprod)||45, fisc:parseFloat(raw.fisc)||8,
+    churn:(parseFloat(raw.churn)||3)/100,
+    ramp:parseInt(raw.ramp)||2
+  };
+}
+function simulate(raw) {
+  var p = parseRaw(raw);
+  var r = calcFromP(p);
+  // Add VPL/TIR for single scenario (12 months)
+  var H=12, chr=p.churn, N=r.cl;
+  var flows=[], cohorts2=[];
+  for(var m=1;m<=H;m++){
+    cohorts2.push({month:m,N:N,tkm:p.tkm,prod:r.prod,fisc:r.fisc,churn:chr,perm:p.perm});
+    var tRec=0,tCost=0;
+    for(var ci=0;ci<cohorts2.length;ci++){
+      var co=cohorts2[ci],age=m-co.month;
+      if(age>=co.perm)continue;
+      var surv=co.N*Math.pow(1-co.churn,age);
+      tRec+=surv*co.tkm;
+      if(age>=1)tCost+=surv*(co.prod+co.fisc);
+    }
+    tCost+=r.tot;
+    if(m>=2&&cohorts2.length>=2){var pCo=cohorts2[cohorts2.length-2];tCost+=pCo.N*r.cac;}
+    flows.push(Math.round(tRec)-Math.round(tCost));
+  }
+  var hurdleMo=Math.pow(1.14,1/12)-1; // default 14% CDI
+  r.vpl12=Math.round(calcVPL(flows,hurdleMo));
+  var tirMo=calcTIR(flows);
+  r.tir12=Math.round((Math.pow(1+tirMo,12)-1)*100);
+  r.squadCost=r.tot;
+  r.headcount=p.sdrs+p.clos+(p.gon?1:0);
+  r.params=p;
+  return r;
+}
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────
 ['sdrs','clos','rsdr','rclo','sded','cded','gded','scom','ccom','gcom','conv','mprod','fisc','churn','ramp'].forEach(function(id){
@@ -1604,6 +1725,219 @@ el('riskp').addEventListener('input', function() { renderInvestment(); });
 document.querySelectorAll('.sc-input').forEach(function(inp) {
   inp.addEventListener('input', function() { renderScorecard(); renderInvestment(); });
 });
+
+// ─── PROFILE MANAGEMENT ─────────────────────────────────────
+function newProfile(){
+  if(!confirm('Limpar tudo e começar do zero?'))return;
+  SCENARIOS=[null];SC_DURATIONS=[6];CUR_SC=0;LOADED_P=null;
+  // Reset all inputs to defaults
+  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,ccom:500,gcom:0,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,ramp:2,gon:true,fundador:false};
+  applyRaw(defs);el('gon').checked=true;
+  SCENARIOS[0]=getRaw();
+  renderTabs();renderTimelineConfig();renderPs();render();
+}
+function duplicateP(){
+  SCENARIOS[CUR_SC]=getRaw();
+  var ps=getPs();
+  var baseName=LOADED_P!==null&&ps[LOADED_P]?ps[LOADED_P].n:'Perfil';
+  var n=prompt('Nome para o perfil duplicado:',baseName+' (cópia)');
+  if(!n)return;
+  ps.push({n:n,sc:SCENARIOS.slice(),dur:SC_DURATIONS.slice(),cur:CUR_SC});setPs(ps);
+  LOADED_P=ps.length-1;renderPs();
+}
+
+// ─── ARENA DE COMPARAÇÃO ────────────────────────────────────
+function openArena(){el('modal-arena').classList.add('open');renderArena();}
+function closeArena(){el('modal-arena').classList.remove('open');}
+function renderArena(){
+  var ps=getPs();
+  if(ps.length<2){el('arena-content').innerHTML='<p style="color:var(--muted)">Salve pelo menos 2 perfis para comparar. Use o botão 💾 Salvar.</p>';return;}
+  // Simulate each profile
+  var results=ps.map(function(p,idx){
+    var sc0=p.sc&&p.sc[0]?p.sc[0]:(p.sc||{});
+    var r=simulate(sc0);
+    r.name=p.n;r.idx=idx;r.nSc=p.sc?p.sc.length:1;
+    return r;
+  });
+  var metrics=[
+    {key:'cl',label:'Clientes/mês',fmt:function(v){return v;},better:'max'},
+    {key:'cac',label:'CAC',fmt:function(v){return 'R$ '+fmt(v);},better:'min'},
+    {key:'pb',label:'Payback',fmt:function(v){return fmtPB(v);},better:'min'},
+    {key:'mrr',label:'MRR',fmt:function(v){return 'R$ '+fmt(v);},better:'max'},
+    {key:'ltvMargin',label:'LTV c/ margem',fmt:function(v){return 'R$ '+fmt(v);},better:'max'},
+    {key:'ltvMarginCac',label:'LTV:CAC',fmt:function(v){return v.toFixed(1)+'×';},better:'max'},
+    {key:'net',label:'Margem líq./cl',fmt:function(v){return 'R$ '+fmt(v);},better:'max'},
+    {key:'squadCost',label:'Custo squad/mês',fmt:function(v){return 'R$ '+fmt(v);},better:'min'},
+    {key:'headcount',label:'Headcount',fmt:function(v){return v;},better:'info'},
+    {key:'vpl12',label:'VPL (12m)',fmt:function(v){return (v>=0?'+':'')+' R$ '+fmt(Math.abs(v));},better:'max'},
+    {key:'tir12',label:'TIR (a.a.)',fmt:function(v){return v+'%';},better:'max'}
+  ];
+  var cols=results.length+1;
+  var html='<div class="arena-grid" style="grid-template-columns:160px repeat('+results.length+',1fr)">';
+  // Header row
+  html+='<div class="ah">Métrica</div>';
+  results.forEach(function(r){html+='<div class="ah" style="text-align:center">'+r.name+'<br><span style="font-size:7px;opacity:.6">'+r.nSc+' cenário(s)</span></div>';});
+  // Data rows
+  metrics.forEach(function(m){
+    html+='<div class="ac" style="font-weight:500;color:var(--muted)">'+m.label+'</div>';
+    var vals=results.map(function(r){return r[m.key];});
+    var best=m.better==='max'?Math.max.apply(null,vals):m.better==='min'?Math.min.apply(null,vals):null;
+    var worst=m.better==='max'?Math.min.apply(null,vals):m.better==='min'?Math.max.apply(null,vals):null;
+    results.forEach(function(r){
+      var v=r[m.key];
+      var cls=best!==null&&v===best?'best':worst!==null&&v===worst&&results.length>2?'worst':'';
+      html+='<div class="ac '+cls+'" style="text-align:center">'+m.fmt(v)+'</div>';
+    });
+  });
+  html+='</div>';
+  // Verdict: count wins
+  var wins={};results.forEach(function(r){wins[r.idx]=0;});
+  metrics.forEach(function(m){
+    if(m.better==='info')return;
+    var vals=results.map(function(r){return r[m.key];});
+    var best=m.better==='max'?Math.max.apply(null,vals):Math.min.apply(null,vals);
+    results.forEach(function(r){if(r[m.key]===best)wins[r.idx]++;});
+  });
+  var maxWins=0,winner=null;
+  results.forEach(function(r){if(wins[r.idx]>maxWins){maxWins=wins[r.idx];winner=r;}});
+  if(winner){
+    html+='<div class="arena-verdict pos">🏆 <strong>'+winner.name+'</strong> vence em '+maxWins+' de '+metrics.filter(function(m){return m.better!=='info';}).length+' métricas</div>';
+  }
+  el('arena-content').innerHTML=html;
+}
+
+// ─── STRESS TEST ────────────────────────────────────────────
+function runStress(){
+  SCENARIOS[CUR_SC]=getRaw();
+  var base=getRaw();
+  var baseR=simulate(base);
+  // Pessimistic: churn +50%, conv -30%, tkm -15%
+  var pess=JSON.parse(JSON.stringify(base));
+  pess.churn=Math.min(15,Math.round(parseFloat(pess.churn)*1.5*10)/10);
+  pess.conv=Math.max(10,Math.round(parseInt(pess.conv)*0.7));
+  pess.tkm=Math.round(parseInt(pess.tkm)*0.85);
+  var pessR=simulate(pess);
+  // Optimistic: churn -30%, conv +20%, tkm +10%
+  var otim=JSON.parse(JSON.stringify(base));
+  otim.churn=Math.max(1,Math.round(parseFloat(otim.churn)*0.7*10)/10);
+  otim.conv=Math.min(80,Math.round(parseInt(otim.conv)*1.2));
+  otim.tkm=Math.round(parseInt(otim.tkm)*1.1);
+  var otimR=simulate(otim);
+
+  var rows=[
+    {l:'Clientes/mês',p:pessR.cl,b:baseR.cl,o:otimR.cl},
+    {l:'CAC',p:'R$ '+fmt(pessR.cac),b:'R$ '+fmt(baseR.cac),o:'R$ '+fmt(otimR.cac)},
+    {l:'Payback',p:fmtPB(pessR.pb),b:fmtPB(baseR.pb),o:fmtPB(otimR.pb)},
+    {l:'LTV:CAC',p:pessR.ltvMarginCac.toFixed(1)+'×',b:baseR.ltvMarginCac.toFixed(1)+'×',o:otimR.ltvMarginCac.toFixed(1)+'×'},
+    {l:'Margem líq./mês',p:'R$ '+fmt(pessR.net*pessR.cl),b:'R$ '+fmt(baseR.net*baseR.cl),o:'R$ '+fmt(otimR.net*otimR.cl)},
+    {l:'VPL (12m)',p:(pessR.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(pessR.vpl12)),b:(baseR.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(baseR.vpl12)),o:(otimR.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(otimR.vpl12))},
+    {l:'TIR (a.a.)',p:pessR.tir12+'%',b:baseR.tir12+'%',o:otimR.tir12+'%'}
+  ];
+  var html='<div class="stress-grid">';
+  html+='<div class="stress-card pess"><div class="sl">Pessimista</div><div class="sv" style="color:var(--danger)">'+fmtPB(pessR.pb)+'</div><div class="ss">payback</div><div class="ss" style="margin-top:6px;font-size:9px">Churn '+pess.churn+'% · Conv '+pess.conv+'% · TKM R$'+pess.tkm+'</div></div>';
+  html+='<div class="stress-card base"><div class="sl">Base (atual)</div><div class="sv" style="color:var(--accent)">'+fmtPB(baseR.pb)+'</div><div class="ss">payback</div><div class="ss" style="margin-top:6px;font-size:9px">Churn '+base.churn+'% · Conv '+base.conv+'% · TKM R$'+fmt(parseInt(base.tkm))+'</div></div>';
+  html+='<div class="stress-card otim"><div class="sl">Otimista</div><div class="sv" style="color:var(--blue)">'+fmtPB(otimR.pb)+'</div><div class="ss">payback</div><div class="ss" style="margin-top:6px;font-size:9px">Churn '+otim.churn+'% · Conv '+otim.conv+'% · TKM R$'+otim.tkm+'</div></div>';
+  html+='</div>';
+  // Detail table
+  html+='<table style="width:100%;font-size:11px;margin-top:8px"><tr><th style="text-align:left">Métrica</th><th style="color:var(--danger)">Pessimista</th><th style="color:var(--accent)">Base</th><th style="color:var(--blue)">Otimista</th></tr>';
+  rows.forEach(function(r){
+    html+='<tr><td>'+r.l+'</td><td style="text-align:center">'+r.p+'</td><td style="text-align:center;font-weight:600">'+r.b+'</td><td style="text-align:center">'+r.o+'</td></tr>';
+  });
+  html+='</table>';
+  // Verdict
+  var safe=pessR.pb<=12&&pessR.ltvMarginCac>=1.5;
+  html+='<div class="arena-verdict '+(safe?'pos':'neg')+'" style="margin-top:12px">'+(safe?'✅ Mesmo no pior cenário realista, a operação se sustenta (payback '+fmtPB(pessR.pb)+', LTV:CAC '+pessR.ltvMarginCac.toFixed(1)+'×)':'⚠️ No cenário pessimista, a operação fica arriscada (payback '+fmtPB(pessR.pb)+', LTV:CAC '+pessR.ltvMarginCac.toFixed(1)+'×). Considere reduzir custos ou validar premissas.')+'</div>';
+  el('stress-results').innerHTML=html;
+}
+
+// ─── OPTIMIZER ──────────────────────────────────────────────
+function runOptimizer(){
+  var maxBudget=parseInt(el('opt-budget').value)||999999;
+  var maxHead=parseInt(el('opt-head').value)||10;
+  var maxPb=parseFloat(el('opt-pb').value)||12;
+  var objetivo=el('opt-obj').value;
+
+  var base=getRaw();
+  var results=[];
+  // Grid search over key parameters
+  var sdrsRange=[1,2,3,4,5,6,7,8];
+  var closRange=[1,2,3];
+  var convRange=[25,30,35,40,45,50];
+  var tkmRange=[Math.round(parseInt(base.tkm)*0.8),parseInt(base.tkm),Math.round(parseInt(base.tkm)*1.2)];
+
+  sdrsRange.forEach(function(s){
+    closRange.forEach(function(c){
+      var raw=JSON.parse(JSON.stringify(base));
+      raw.sdrs=s;raw.clos=c;
+      var r=simulate(raw);
+      if(r.squadCost>maxBudget)return;
+      if(r.headcount>maxHead)return;
+      if(r.pb>maxPb)return;
+      results.push({sdrs:s,clos:c,conv:parseInt(raw.conv),tkm:parseInt(raw.tkm),r:r,raw:raw});
+    });
+  });
+  // Also vary conv and tkm for best SDR/closer combos
+  var topCombos=results.slice(0,10);
+  topCombos.forEach(function(combo){
+    convRange.forEach(function(cv){
+      tkmRange.forEach(function(tk){
+        if(cv===parseInt(base.conv)&&tk===parseInt(base.tkm))return;
+        var raw2=JSON.parse(JSON.stringify(combo.raw));
+        raw2.conv=cv;raw2.tkm=tk;
+        var r2=simulate(raw2);
+        if(r2.squadCost>maxBudget||r2.headcount>maxHead||r2.pb>maxPb)return;
+        results.push({sdrs:combo.sdrs,clos:combo.clos,conv:cv,tkm:tk,r:r2,raw:raw2});
+      });
+    });
+  });
+
+  // Sort by objective
+  results.sort(function(a,b){
+    if(objetivo==='payback')return a.r.pb-b.r.pb;
+    if(objetivo==='vpl')return b.r.vpl12-a.r.vpl12;
+    if(objetivo==='tir')return b.r.tir12-a.r.tir12;
+    if(objetivo==='margem')return (b.r.net*b.r.cl)-(a.r.net*a.r.cl);
+    return a.r.pb-b.r.pb;
+  });
+
+  var top=results.slice(0,5);
+  if(!top.length){el('opt-results').innerHTML='<p style="color:var(--danger);font-size:12px">Nenhuma combinação viável encontrada com essas restrições. Tente relaxar os limites.</p>';return;}
+
+  var html='<div class="opt-rank" style="grid-template-columns:40px 1fr repeat(6,auto)">';
+  html+='<div class="oh">#</div><div class="oh">Config</div><div class="oh">Custo/mês</div><div class="oh">Clientes</div><div class="oh">CAC</div><div class="oh">Payback</div><div class="oh">VPL 12m</div><div class="oh">TIR</div>';
+  top.forEach(function(t,i){
+    var gold=i===0?' gold':'';
+    html+='<div class="oc'+gold+'" style="text-align:center;font-weight:700">'+(i+1)+'</div>';
+    html+='<div class="oc'+gold+'">'+t.sdrs+' SDR + '+t.clos+' Closer · Conv '+t.conv+'% · TKM R$'+fmt(t.tkm)+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">R$ '+fmt(t.r.squadCost)+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">'+t.r.cl+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">R$ '+fmt(t.r.cac)+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">'+fmtPB(t.r.pb)+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">'+(t.r.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(t.r.vpl12))+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">'+t.r.tir12+'%</div>';
+  });
+  html+='</div>';
+
+  // Auto-save top result as profile option
+  var best=top[0];
+  html+='<div style="margin-top:12px;text-align:center"><button class="btn sm primary" onclick="applyOptResult()">🎯 Aplicar #1 no simulador</button> <button class="btn sm" onclick="saveOptTop()">💾 Salvar top 3 como perfis</button></div>';
+  // Store for apply
+  window._optTop=top;
+  el('opt-results').innerHTML=html;
+}
+function applyOptResult(){
+  if(!window._optTop||!window._optTop[0])return;
+  applyRaw(window._optTop[0].raw);SCENARIOS[CUR_SC]=getRaw();render();
+}
+function saveOptTop(){
+  if(!window._optTop)return;
+  var ps=getPs();
+  window._optTop.slice(0,3).forEach(function(t,i){
+    ps.push({n:'Otimizado #'+(i+1)+' ('+t.sdrs+'SDR+'+t.clos+'CL)',sc:[t.raw],dur:[6],cur:0});
+  });
+  setPs(ps);renderPs();
+  alert('Top 3 salvos como perfis!');
+}
 
 // ─── INIT ────────────────────────────────────────────────────
 SCENARIOS[0] = getRaw();
