@@ -408,35 +408,64 @@ canvas{max-height:250px!important}
 }
 
 .sb-content-block .row {
-  margin-bottom: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
-.sb-content-block label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
+.sb-content-block .row:last-child {
+  margin-bottom: 0;
+}
+
+.sb-content-block .row label {
+  font-size: 10px;
   font-weight: 500;
-  color: var(--dim);
+  color: var(--muted);
+  width: 80px;
+  flex-shrink: 0;
+  line-height: 1.2;
 }
 
-.sb-content-block input[type="range"] {
-  width: 100%;
+.sb-content-block .row input[type="range"] {
+  flex: 1;
+  min-width: 60px;
   height: 4px;
   cursor: pointer;
 }
 
-.sb-content-block input[type="number"] {
-  width: 100%;
-  padding: 4px 6px;
-  font-size: 12px;
+.sb-content-block .row .rv {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 46px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sb-content-block .row input[type="number"] {
+  width: 64px;
+  flex-shrink: 0;
+  padding: 2px 4px;
+  font-size: 11px;
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--bg);
   color: var(--text);
+  font-family: 'DM Mono', monospace;
+}
+
+.sb-content-block .row input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+}
+
+.sb-content-block .btn.sm {
+  font-size: 10px;
+  padding: 3px 8px;
 }
 
 .sb-tab {
@@ -455,7 +484,7 @@ canvas{max-height:250px!important}
   justify-content: center;
   cursor: pointer;
   z-index: 1001;
-  transition: all 150ms ease;
+  transition: left 250ms cubic-bezier(0.4, 0, 0.2, 1), background 150ms ease, border-color 150ms ease;
   font-size: 18px;
   color: var(--text);
 }
@@ -463,6 +492,11 @@ canvas{max-height:250px!important}
 .sb-tab:hover {
   background: rgba(0, 200, 136, 0.1);
   border-color: var(--accent, #0c8);
+}
+
+.sidebar.open ~ .sb-tab,
+.sidebar.hover-open ~ .sb-tab {
+  left: 360px;
 }
 
 .wrap {
@@ -525,24 +559,6 @@ canvas{max-height:250px!important}
     <div id="arena-content" style="font-size:12px">
       <p style="color:var(--muted)">Salve pelo menos 2 perfis para comparar.</p>
     </div>
-  </div>
-</div>
-
-<!-- Header -->
-<div class="hdr">
-  <div>
-    <h1>Simulador de Squad Comercial</h1>
-    <div class="sub">M3A Médico · v11 · CAC · Payback · Fluxo de Caixa · Cenários dinâmicos</div>
-  </div>
-  <div class="hdr-r">
-    <button class="btn sm" onclick="newProfile()" data-tip="Limpar tudo e começar uma simulação do zero">🆕 Novo</button>
-    <button class="btn sm" onclick="duplicateP()" data-tip="Duplicar o perfil atual com outro nome para comparar variações">📑 Duplicar</button>
-    <button class="btn sm" onclick="openArena()" data-tip="Comparar perfis salvos lado a lado com semáforo de métricas">⚔️ Comparar</button>
-    <button class="btn sm" onclick="window.print()" data-tip="Exportar a página atual como PDF para impressão ou envio">🖨 PDF</button>
-    <button class="btn sm" onclick="openPresetM()" data-tip="Salvar apenas o cenário ativo como preset reutilizável em outros perfis">📋 Preset</button>
-    <button class="btn sm" onclick="openM()" data-tip="Salvar todos os cenários e configurações como perfil nomeado no navegador">💾 Salvar</button>
-    <button class="btn sm" onclick="openLayoutSettings()" data-tip="Organizar layout: mostrar/esconder e reordenar seções">⚙ Layout</button>
-    <button class="btn rnd" id="tbtn" onclick="toggleTheme()" data-tip="Alternar tema claro/escuro">🌙</button>
   </div>
 </div>
 
@@ -652,6 +668,23 @@ canvas{max-height:250px!important}
 
 <!-- Main content wrapper -->
 <div class="wrap">
+<!-- Header -->
+<div class="hdr">
+  <div>
+    <h1>Simulador de Squad Comercial</h1>
+    <div class="sub">M3A Médico · v11 · CAC · Payback · Fluxo de Caixa · Cenários dinâmicos</div>
+  </div>
+  <div class="hdr-r">
+    <button class="btn sm" onclick="newProfile()" data-tip="Limpar tudo e começar uma simulação do zero">🆕 Novo</button>
+    <button class="btn sm" onclick="duplicateP()" data-tip="Duplicar o perfil atual com outro nome para comparar variações">📑 Duplicar</button>
+    <button class="btn sm" onclick="openArena()" data-tip="Comparar perfis salvos lado a lado com semáforo de métricas">⚔️ Comparar</button>
+    <button class="btn sm" onclick="window.print()" data-tip="Exportar a página atual como PDF para impressão ou envio">🖨 PDF</button>
+    <button class="btn sm" onclick="openPresetM()" data-tip="Salvar apenas o cenário ativo como preset reutilizável em outros perfis">📋 Preset</button>
+    <button class="btn sm" onclick="openM()" data-tip="Salvar todos os cenários e configurações como perfil nomeado no navegador">💾 Salvar</button>
+    <button class="btn sm" onclick="openLayoutSettings()" data-tip="Organizar layout: mostrar/esconder e reordenar seções">⚙ Layout</button>
+    <button class="btn rnd" id="tbtn" onclick="toggleTheme()" data-tip="Alternar tema claro/escuro">🌙</button>
+  </div>
+</div>
 <!-- Profiles -->
 <div class="profiles">
   <span class="plbl">Perfis</span>
