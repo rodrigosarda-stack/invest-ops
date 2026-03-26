@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador de Squad Comercial v10 — M3A Médico</title>
+<title>Simulador de Squad Comercial v11 — M3A Médico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap');
@@ -67,6 +67,15 @@ select:focus{border-color:var(--accent)}
 .sc-tab:hover{background:var(--surface)}
 .sc-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .sc-tab .sc-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+.sc-tab .sc-close{position:absolute;top:2px;right:4px;font-size:9px;opacity:0;color:var(--muted);cursor:pointer;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all .15s}
+.sc-tab:hover .sc-close{opacity:.6}
+.sc-tab .sc-close:hover{opacity:1;color:var(--danger);background:var(--danger-dim)}
+.sc-tab-add{min-width:40px!important;flex:0!important;font-size:16px;color:var(--muted);border:1px dashed var(--border-s)!important;background:transparent!important}
+.sc-tab-add:hover{color:var(--accent);border-color:var(--accent)!important}
+.sc-tab.dragging{opacity:.4}
+.sc-tab.drag-over{border-color:var(--accent)!important;background:var(--accent-dim)!important}
+.sc-presets{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;padding:0 2px}
+.sc-presets .chip{font-size:9px;padding:2px 7px}
 
 /* KPI Cards row */
 .kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
@@ -139,8 +148,8 @@ select:focus{border-color:var(--accent)}
 .tl-config{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .tl-config label{font-size:11px;color:var(--muted)}
 .tl-config input[type=number]{width:50px}
-.phase-colors{--p1:#00c875;--p2:#e2a200;--p3:#4da6ff}
-[data-theme="light"] .phase-colors{--p1:#008f53;--p2:#a87600;--p3:#0070c0}
+.phase-colors{--p1:#00c875;--p2:#e2a200;--p3:#4da6ff;--p4:#8b5cf6;--p5:#f472b6;--p6:#22d3ee;--p7:#f97316;--p8:#84cc16}
+[data-theme="light"] .phase-colors{--p1:#008f53;--p2:#a87600;--p3:#0070c0;--p4:#7c3aed;--p5:#db2777;--p6:#0891b2;--p7:#ea580c;--p8:#65a30d}
 
 /* Sensitivity table */
 .sens{margin-top:10px}
@@ -254,14 +263,28 @@ canvas{max-height:250px!important}
   </div>
 </div>
 
+<!-- Modal: Save scenario preset -->
+<div class="overlay" id="modal-preset">
+  <div class="modal">
+    <h3>Salvar cenário como preset</h3>
+    <p>Nome para este preset (salvo no navegador).</p>
+    <input class="pinp" id="preset-name" placeholder="Ex: Squad enxuta, Fase agressiva...">
+    <div class="ma">
+      <button class="btn sm" onclick="closePresetM()">Cancelar</button>
+      <button class="btn sm primary" onclick="savePreset()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Header -->
 <div class="hdr">
   <div>
     <h1>Simulador de Squad Comercial</h1>
-    <div class="sub">M3A Médico · v10 · CAC · Payback · Fluxo de Caixa · Cenários</div>
+    <div class="sub">M3A Médico · v11 · CAC · Payback · Fluxo de Caixa · Cenários dinâmicos</div>
   </div>
   <div class="hdr-r">
     <button class="btn sm" onclick="window.print()" title="Exportar PDF">🖨 PDF</button>
+    <button class="btn sm" onclick="openPresetM()" title="Salvar cenário atual como preset reutilizável">📋 Preset</button>
     <button class="btn sm" onclick="openM()">💾 Salvar</button>
     <button class="btn rnd" id="tbtn" onclick="toggleTheme()">🌙</button>
   </div>
@@ -273,12 +296,9 @@ canvas{max-height:250px!important}
   <div class="plist" id="plist"><span class="no-p">Nenhum perfil salvo.</span></div>
 </div>
 
-<!-- Scenario tabs -->
-<div class="sc-tabs" id="sc-tabs">
-  <div class="sc-tab active" onclick="switchSc(0)"><span class="sc-dot" style="background:var(--p1)"></span>Cenário A</div>
-  <div class="sc-tab" onclick="switchSc(1)"><span class="sc-dot" style="background:var(--p2)"></span>Cenário B</div>
-  <div class="sc-tab" onclick="switchSc(2)"><span class="sc-dot" style="background:var(--p3)"></span>Cenário C</div>
-</div>
+<!-- Scenario tabs (rendered by JS) -->
+<div class="sc-presets" id="sc-presets"></div>
+<div class="sc-tabs" id="sc-tabs"></div>
 
 <!-- KPI Cards -->
 <div class="kpis" id="kpis"></div>
@@ -405,24 +425,7 @@ canvas{max-height:250px!important}
       <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
     </div>
   </div>
-  <div class="tl-config" id="tl-config">
-    <div style="display:flex;align-items:center;gap:6px">
-      <span class="sc-dot" style="background:var(--p1);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-      <label><span class="tip" style="display:inline-flex;align-items:center;">Cenário A:<span class="tip-icon" data-tip="Quantos meses o cenário A fica ativo antes de passar para o próximo.">?</span></span></label>
-      <input type="number" id="tl-a" value="4" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <span class="sc-dot" style="background:var(--p2);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-      <label><span class="tip" style="display:inline-flex;align-items:center;">Cenário B:<span class="tip-icon" data-tip="Quantos meses o cenário B fica ativo antes de passar para o próximo.">?</span></span></label>
-      <input type="number" id="tl-b" value="6" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <span class="sc-dot" style="background:var(--p3);width:8px;height:8px;border-radius:50%;display:inline-block"></span>
-      <label><span class="tip" style="display:inline-flex;align-items:center;">Cenário C:<span class="tip-icon" data-tip="Quantos meses o cenário C fica ativo antes de passar para o próximo.">?</span></span></label>
-      <input type="number" id="tl-c" value="8" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span>
-    </div>
-    <span class="rv" id="tl-total" style="color:var(--accent)">= 18 meses</span>
-  </div>
+  <div class="tl-config" id="tl-config"></div>
   <div class="tl-bar" id="tl-bar"></div>
   <div class="leg" id="tl-leg"></div>
   <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
@@ -475,16 +478,19 @@ canvas{max-height:250px!important}
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// M3A MÉDICO — SIMULADOR v10
+// M3A MÉDICO — SIMULADOR v11 — CENÁRIOS DINÂMICOS
 // ═══════════════════════════════════════════════════════════════
 
 var WEEKS = 4.33, FD = 8, BASE_CONV = 0.35;
 var VIEW = 'ind', LOADED_P = null;
 var C1 = null, C2 = null, C3 = null;
-var CUR_SC = 0; // current scenario index (0=A, 1=B, 2=C)
+var CUR_SC = 0;
+var MAX_SCENARIOS = 8;
+var SC_LETTERS = ['A','B','C','D','E','F','G','H'];
 
-// Scenario storage: 3 slots, each holds full params
-var SCENARIOS = [null, null, null];
+// Dynamic scenario storage
+var SCENARIOS = [null];
+var SC_DURATIONS = [6];
 
 // ─── UTILS ───────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
@@ -520,9 +526,16 @@ function gc(n) {
     r1: d?'#E24B4A':'#c73432', r2: d?'#F09595':'#e88', r3: d?'#A32D2D':'#a32d2d', r4: d?'#993C1D':'#993c1d',
     pu: d?'#8b5cf6':'#7c3aed',
     p1: d?'#00c875':'#008f53', p2: d?'#e2a200':'#a87600', p3: d?'#4da6ff':'#0070c0',
+    p4: d?'#8b5cf6':'#7c3aed', p5: d?'#f472b6':'#db2777', p6: d?'#22d3ee':'#0891b2',
+    p7: d?'#f97316':'#ea580c', p8: d?'#84cc16':'#65a30d',
     p1d: d?'rgba(0,200,117,.25)':'rgba(0,143,83,.2)',
     p2d: d?'rgba(226,162,0,.25)':'rgba(168,118,0,.2)',
     p3d: d?'rgba(77,166,255,.25)':'rgba(0,112,192,.2)',
+    p4d: d?'rgba(139,92,246,.25)':'rgba(124,58,237,.2)',
+    p5d: d?'rgba(244,114,182,.25)':'rgba(219,39,119,.2)',
+    p6d: d?'rgba(34,211,238,.25)':'rgba(8,145,178,.2)',
+    p7d: d?'rgba(249,115,22,.25)':'rgba(234,88,12,.2)',
+    p8d: d?'rgba(132,204,22,.25)':'rgba(101,163,13,.2)',
     grid: d?'rgba(255,255,255,.04)':'rgba(0,0,0,.05)',
     tick: '#888780',
     zero: d?'rgba(255,255,255,.15)':'rgba(0,0,0,.12)'
@@ -542,16 +555,103 @@ function setView(v) {
 
 // ─── SCENARIO MANAGEMENT ─────────────────────────────────────
 function switchSc(idx) {
-  // Save current to slot
   SCENARIOS[CUR_SC] = getRaw();
   CUR_SC = idx;
-  // Load target
   if (SCENARIOS[idx]) applyRaw(SCENARIOS[idx]);
-  // Update tabs
-  var tabs = document.querySelectorAll('.sc-tab');
+  var tabs = document.querySelectorAll('.sc-tab:not(.sc-tab-add)');
   tabs.forEach(function(t,i){ t.classList.toggle('active',i===idx); });
   render();
 }
+
+function addScenario() {
+  if (SCENARIOS.length >= MAX_SCENARIOS) return;
+  SCENARIOS[CUR_SC] = getRaw();
+  SCENARIOS.push(getRaw()); // clone current params
+  SC_DURATIONS.push(6);
+  CUR_SC = SCENARIOS.length - 1;
+  renderTabs();
+  renderTimelineConfig();
+  render();
+}
+
+function removeScenario(idx) {
+  if (SCENARIOS.length <= 1) return;
+  SCENARIOS.splice(idx, 1);
+  SC_DURATIONS.splice(idx, 1);
+  if (CUR_SC >= SCENARIOS.length) CUR_SC = SCENARIOS.length - 1;
+  else if (CUR_SC > idx) CUR_SC--;
+  else if (CUR_SC === idx) { CUR_SC = Math.min(idx, SCENARIOS.length - 1); if (SCENARIOS[CUR_SC]) applyRaw(SCENARIOS[CUR_SC]); }
+  renderTabs();
+  renderTimelineConfig();
+  render();
+}
+
+function renderTabs() {
+  var container = el('sc-tabs');
+  var html = '';
+  for (var i = 0; i < SCENARIOS.length; i++) {
+    var colorIdx = (i % 8) + 1;
+    html += '<div class="sc-tab'+(i===CUR_SC?' active':'')+'" draggable="true" data-idx="'+i+'" onclick="switchSc('+i+')">'+
+      '<span class="sc-dot" style="background:'+gc('p'+colorIdx)+'"></span>Cenário '+SC_LETTERS[i]+
+      (SCENARIOS.length > 1 ? '<span class="sc-close" onclick="event.stopPropagation();removeScenario('+i+')">×</span>' : '')+
+      '</div>';
+  }
+  if (SCENARIOS.length < MAX_SCENARIOS) {
+    html += '<div class="sc-tab sc-tab-add" onclick="addScenario()">+</div>';
+  }
+  container.innerHTML = html;
+  // Attach drag handlers
+  var tabs = container.querySelectorAll('.sc-tab:not(.sc-tab-add)');
+  tabs.forEach(function(tab) {
+    tab.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text/plain', tab.getAttribute('data-idx')); tab.classList.add('dragging'); });
+    tab.addEventListener('dragend', function() { tab.classList.remove('dragging'); });
+    tab.addEventListener('dragover', function(e) { e.preventDefault(); tab.classList.add('drag-over'); });
+    tab.addEventListener('dragleave', function() { tab.classList.remove('drag-over'); });
+    tab.addEventListener('drop', function(e) {
+      e.preventDefault();
+      tab.classList.remove('drag-over');
+      var from = parseInt(e.dataTransfer.getData('text/plain'));
+      var to = parseInt(tab.getAttribute('data-idx'));
+      if (from === to) return;
+      // Swap in arrays
+      var tmpSc = SCENARIOS[from]; SCENARIOS[from] = SCENARIOS[to]; SCENARIOS[to] = tmpSc;
+      var tmpDur = SC_DURATIONS[from]; SC_DURATIONS[from] = SC_DURATIONS[to]; SC_DURATIONS[to] = tmpDur;
+      if (CUR_SC === from) CUR_SC = to; else if (CUR_SC === to) CUR_SC = from;
+      renderTabs();
+      renderTimelineConfig();
+      render();
+    });
+  });
+}
+
+function renderTimelineConfig() {
+  var container = el('tl-config');
+  var html = '';
+  for (var i = 0; i < SCENARIOS.length; i++) {
+    var colorIdx = (i % 8) + 1;
+    var dur = SC_DURATIONS[i] || 6;
+    html += '<div style="display:flex;align-items:center;gap:6px">'+
+      '<span class="sc-dot" style="background:'+gc('p'+colorIdx)+';width:8px;height:8px;border-radius:50%;display:inline-block"></span>'+
+      '<label><span class="tip" style="display:inline-flex;align-items:center;">Cenário '+SC_LETTERS[i]+':<span class="tip-icon" data-tip="Quantos meses o cenário '+SC_LETTERS[i]+' fica ativo antes de passar para o próximo.">?</span></span></label>'+
+      '<input type="number" id="tl-'+i+'" value="'+dur+'" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span></div>';
+  }
+  html += '<span class="rv" id="tl-total" style="color:var(--accent)"></span>';
+  container.innerHTML = html;
+  // Attach change listeners
+  for (var j = 0; j < SCENARIOS.length; j++) {
+    (function(idx){
+      el('tl-'+idx).addEventListener('change', function() {
+        SC_DURATIONS[idx] = parseInt(this.value) || 0;
+        renderTimeline(); renderInvestment();
+      });
+    })(j);
+  }
+  updateTlTotal();
+}
+
+function getDurations() { return SC_DURATIONS.slice(0, SCENARIOS.length); }
+function getTotalDuration() { return getDurations().reduce(function(a,b){return a+b;},0); }
+function updateTlTotal() { var te = el('tl-total'); if(te) te.textContent = '= '+getTotalDuration()+' meses'; }
 
 // ─── SEGMENT PRESETS & FUNDADOR ──────────────────────────────
 function setSegmento(tkm, perm) {
@@ -571,14 +671,15 @@ function toggleFundador() {
   render();
 }
 
-// ─── PROFILES ────────────────────────────────────────────────
-function getPs() { try{return JSON.parse(localStorage.getItem('m3a-p10')||'[]');}catch(e){return [];} }
-function setPs(p) { try{localStorage.setItem('m3a-p10',JSON.stringify(p));}catch(e){} }
+// ─── PROFILES (COLLECTION SAVE) ──────────────────────────────
+function getPs() { try{return JSON.parse(localStorage.getItem('m3a-p11')||'[]');}catch(e){return [];} }
+function setPs(p) { try{localStorage.setItem('m3a-p11',JSON.stringify(p));}catch(e){} }
 function renderPs() {
   var ps = getPs(), el2 = el('plist');
   if (!ps.length) { el2.innerHTML='<span class="no-p">Nenhum perfil salvo.</span>'; return; }
   el2.innerHTML = ps.map(function(p,i){
-    return '<span class="chip'+(LOADED_P===i?' sel':'')+'" onclick="loadP('+i+')">'+p.n+'<span class="x" onclick="delP(event,'+i+')">×</span></span>';
+    var cnt = p.sc ? p.sc.length : '?';
+    return '<span class="chip'+(LOADED_P===i?' sel':'')+'" onclick="loadP('+i+')">'+p.n+' <span style="opacity:.5;font-size:8px">('+cnt+')</span><span class="x" onclick="delP(event,'+i+')">×</span></span>';
   }).join('');
 }
 function openM(){el('modal').classList.add('open');el('pname').value='';setTimeout(function(){el('pname').focus();},100);}
@@ -587,17 +688,50 @@ el('pname').addEventListener('keydown',function(e){if(e.key==='Enter')saveP();if
 function saveP(){
   var n=el('pname').value.trim();if(!n)return;
   SCENARIOS[CUR_SC]=getRaw();
-  var ps=getPs();ps.push({n:n,sc:SCENARIOS.slice(),cur:CUR_SC});setPs(ps);
+  var ps=getPs();ps.push({n:n,sc:SCENARIOS.slice(),dur:SC_DURATIONS.slice(),cur:CUR_SC});setPs(ps);
   LOADED_P=ps.length-1;renderPs();closeM();
 }
 function loadP(i){
   var ps=getPs();if(!ps[i])return;LOADED_P=i;
-  SCENARIOS=ps[i].sc.slice();CUR_SC=ps[i].cur||0;
+  SCENARIOS=ps[i].sc.slice();
+  SC_DURATIONS=ps[i].dur?ps[i].dur.slice():[6];
+  // Ensure SC_DURATIONS matches SCENARIOS length
+  while(SC_DURATIONS.length<SCENARIOS.length) SC_DURATIONS.push(6);
+  CUR_SC=ps[i].cur||0;
+  if(CUR_SC>=SCENARIOS.length)CUR_SC=0;
   if(SCENARIOS[CUR_SC])applyRaw(SCENARIOS[CUR_SC]);
-  var tabs=document.querySelectorAll('.sc-tab');tabs.forEach(function(t,j){t.classList.toggle('active',j===CUR_SC);});
+  renderTabs();
+  renderTimelineConfig();
   renderPs();render();
 }
 function delP(e,i){e.stopPropagation();var ps=getPs();ps.splice(i,1);setPs(ps);if(LOADED_P===i)LOADED_P=null;else if(LOADED_P>i)LOADED_P--;renderPs();}
+
+// ─── SCENARIO PRESETS (INDIVIDUAL SAVE) ──────────────────────
+function getPresets() { try{return JSON.parse(localStorage.getItem('m3a-sc-presets')||'[]');}catch(e){return [];} }
+function setPresets(p) { try{localStorage.setItem('m3a-sc-presets',JSON.stringify(p));}catch(e){} }
+function renderPresets() {
+  var ps = getPresets(), container = el('sc-presets');
+  if (!ps.length) { container.innerHTML=''; return; }
+  container.innerHTML = '<span style="font-family:\'DM Mono\',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-right:4px">Presets:</span>'+
+    ps.map(function(p,i){
+      return '<span class="chip" onclick="loadPreset('+i+')" title="Carregar no cenário '+SC_LETTERS[CUR_SC]+'">'+p.n+'<span class="x" onclick="delPreset(event,'+i+')">×</span></span>';
+    }).join('');
+}
+function openPresetM(){el('modal-preset').classList.add('open');el('preset-name').value='';setTimeout(function(){el('preset-name').focus();},100);}
+function closePresetM(){el('modal-preset').classList.remove('open');}
+el('preset-name').addEventListener('keydown',function(e){if(e.key==='Enter')savePreset();if(e.key==='Escape')closePresetM();});
+function savePreset(){
+  var n=el('preset-name').value.trim();if(!n)return;
+  var ps=getPresets();ps.push({n:n,data:getRaw()});setPresets(ps);
+  renderPresets();closePresetM();
+}
+function loadPreset(i){
+  var ps=getPresets();if(!ps[i])return;
+  SCENARIOS[CUR_SC]=ps[i].data;
+  applyRaw(ps[i].data);
+  render();
+}
+function delPreset(e,i){e.stopPropagation();var ps=getPresets();ps.splice(i,1);setPresets(ps);renderPresets();}
 
 // ─── GET / SET RAW PARAMS ────────────────────────────────────
 function getRaw() {
@@ -644,7 +778,7 @@ sync('ssal','ssal-n');sync('csal','csal-n');sync('gsal','gsal-n');sync('tkm','tk
 });
 el('gon').addEventListener('change',render);
 el('hor').addEventListener('input',function(){el('hor-v').textContent=el('hor').value+' meses';render();});
-['tl-a','tl-b','tl-c'].forEach(function(id){el(id).addEventListener('change',function(){renderTimeline();renderInvestment();});});
+// Timeline listeners are set in renderTimelineConfig()
 
 // ─── PARAMS & CALC ───────────────────────────────────────────
 function getP() {
@@ -813,7 +947,7 @@ function render() {
   } else {
     msg = 'Caixa da operação com cohorts + churn. Breakeven = caixa acumulado cruza zero.';
   }
-  el('cbox').innerHTML = '<strong>Fluxo de caixa (cenário '+'ABC'[CUR_SC]+'):</strong> '+msg;
+  el('cbox').innerHTML = '<strong>Fluxo de caixa (cenário '+SC_LETTERS[CUR_SC]+'):</strong> '+msg;
 
   // Timeline
   renderTimeline();
@@ -1068,107 +1202,92 @@ function getScParams(idx) {
 }
 
 function renderTimeline() {
-  var a = parseInt(el('tl-a').value)||0;
-  var b = parseInt(el('tl-b').value)||0;
-  var c = parseInt(el('tl-c').value)||0;
-  var total = a + b + c;
-  el('tl-total').textContent = '= '+total+' meses';
+  var durations = getDurations();
+  var nSc = durations.length;
+  var total = getTotalDuration();
+  updateTlTotal();
 
   // Timeline bar
   var bar = el('tl-bar');
   var segs = '';
-  var colors = [gc('p1'), gc('p2'), gc('p3')];
-  var dimColors = [gc('p1d'), gc('p2d'), gc('p3d')];
-  var names = ['A','B','C'];
-  var durations = [a, b, c];
   var mCount = 0;
-  for (var s = 0; s < 3; s++) {
+  for (var s = 0; s < nSc; s++) {
     if (durations[s] <= 0) continue;
+    var ci = (s % 8) + 1;
     var pct = (durations[s] / total * 100).toFixed(1);
-    segs += '<div class="tl-seg" style="width:'+pct+'%;background:'+dimColors[s]+';color:'+colors[s]+';border-right:1px solid var(--border)">'+
-      names[s]+' · '+durations[s]+'m'+
+    segs += '<div class="tl-seg" style="width:'+pct+'%;background:'+gc('p'+ci+'d')+';color:'+gc('p'+ci)+';border-right:1px solid var(--border)">'+
+      SC_LETTERS[s]+' · '+durations[s]+'m'+
       '<span class="tl-m">M'+(mCount+1)+'–M'+(mCount+durations[s])+'</span></div>';
     mCount += durations[s];
   }
   bar.innerHTML = segs;
 
-  // Legend
-  el('tl-leg').innerHTML = [
-    {c:gc('p1'),l:'Cenário A: receita',t:'d'},{c:gc('p1d'),l:'Cenário A: custos',t:'d'},
-    {c:gc('p2'),l:'Cenário B: receita',t:'d'},{c:gc('p2d'),l:'Cenário B: custos',t:'d'},
-    {c:gc('p3'),l:'Cenário C: receita',t:'d'},{c:gc('p3d'),l:'Cenário C: custos',t:'d'},
-    {c:gc('lnAc'),l:'Caixa acumulado',t:'l'}
-  ].map(function(it){
+  // Legend (dynamic)
+  var legItems = [];
+  for (var li = 0; li < nSc; li++) {
+    var ci2 = (li % 8) + 1;
+    legItems.push({c:gc('p'+ci2),l:'Cenário '+SC_LETTERS[li]+': receita',t:'d'});
+    legItems.push({c:gc('p'+ci2+'d'),l:'Cenário '+SC_LETTERS[li]+': custos',t:'d'});
+  }
+  legItems.push({c:gc('lnAc'),l:'Caixa acumulado',t:'l'});
+  el('tl-leg').innerHTML = legItems.map(function(it){
     var dot = it.t==='l'?'<span class="ll2" style="background:'+it.c+'"></span>':'<span class="ld" style="background:'+it.c+'"></span>';
     return '<span class="li">'+dot+it.l+'</span>';
   }).join('');
 
-  // Combined cash flow calculation
   if (total <= 0) { el('tl-summary').textContent = 'Configure as durações acima.'; return; }
 
-  // Ensure all scenarios have data
   SCENARIOS[CUR_SC] = getRaw();
-  var scParams = [getScParams(0), getScParams(1), getScParams(2)];
-  // Fill missing scenarios with current
-  for (var si = 0; si < 3; si++) { if (!scParams[si]) scParams[si] = getScParams(CUR_SC) || getP(); }
+  var scParams = [];
+  for (var si = 0; si < nSc; si++) {
+    var sp2 = getScParams(si);
+    scParams.push(sp2 || getScParams(CUR_SC) || getP());
+  }
   var scCalc = scParams.map(function(sp) { return calcFromP(sp); });
 
-  // Build monthly data
-  // For each month, determine which scenario is active
-  // Track cohorts: each month produces N new clients based on active scenario
-  // Each cohort has its own TKM, prod, fisc, churn from the scenario that created it
-  var cohorts = []; // {month, N, tkm, prod, fisc, churn, perm, ramp, scIdx}
-  var rec_arr = [], cost_arr = [], acum_arr = [], scIdx_arr = [];
+  // Build scIdx_arr: which scenario is active each month
+  var scIdx_arr = [];
+  var cumDur = 0;
+  for (var sd = 0; sd < nSc; sd++) {
+    for (var dd = 0; dd < durations[sd]; dd++) { scIdx_arr.push(sd); }
+    cumDur += durations[sd];
+  }
+
+  // Build scStart for ramp-up
+  var scStarts = [];
+  var startM = 1;
+  for (var ss = 0; ss < nSc; ss++) { scStarts.push(startM); startM += durations[ss]; }
+
+  var cohorts = [];
+  var rec_arr = [], cost_arr = [], acum_arr = [];
   var acum = 0;
   var labels = [];
 
   for (var m = 1; m <= total; m++) {
     labels.push('M' + m);
-    // Determine active scenario
-    var sc;
-    if (m <= a) sc = 0;
-    else if (m <= a + b) sc = 1;
-    else sc = 2;
-    scIdx_arr.push(sc);
-
+    var sc = scIdx_arr[m - 1];
     var sp = scParams[sc];
     var sr = scCalc[sc];
-
-    // Ramp-up: if scenario just started, reduce client acquisition
-    var scStart = sc === 0 ? 1 : sc === 1 ? a + 1 : a + b + 1;
-    var monthsInSc = m - scStart + 1;
-    var rampFactor = 1;
-    if (sp.ramp > 0 && monthsInSc <= sp.ramp) {
-      rampFactor = monthsInSc / (sp.ramp + 1);
-    }
-
+    var monthsInSc = m - scStarts[sc] + 1;
+    var rampFactor = sp.ramp > 0 && monthsInSc <= sp.ramp ? monthsInSc / (sp.ramp + 1) : 1;
     var newClients = Math.round(sr.cl * rampFactor);
     cohorts.push({ month: m, N: newClients, tkm: sp.tkm, prod: sr.prod, fisc: sr.fisc, churn: sp.churn, perm: sp.perm, scIdx: sc });
 
-    // Calculate revenue from all surviving cohorts
     var totalRec = 0, totalCost = 0;
-    for (var ci = 0; ci < cohorts.length; ci++) {
-      var co = cohorts[ci];
+    for (var ci3 = 0; ci3 < cohorts.length; ci3++) {
+      var co = cohorts[ci3];
       var age = m - co.month;
       if (age >= co.perm) continue;
       var surviving = co.N * Math.pow(1 - co.churn, age);
       totalRec += surviving * co.tkm;
-
-      // Production cost (starts M2 of cohort)
       if (age >= 1) totalCost += surviving * co.prod;
-      // Fiscal (on previous month's revenue, simplified)
       if (age >= 1) totalCost += surviving * co.fisc;
     }
-
-    // Squad cost (from active scenario)
     totalCost += sr.tot;
-    // CAC for new clients
     if (m >= 2 && cohorts.length >= 2) {
       var prevCo = cohorts[cohorts.length - 2];
-      var prevSc = scCalc[prevCo.scIdx];
-      totalCost += prevCo.N * prevSc.cac;
+      totalCost += prevCo.N * scCalc[prevCo.scIdx].cac;
     }
-
     totalRec = Math.round(totalRec);
     totalCost = Math.round(totalCost);
     acum += totalRec - totalCost;
@@ -1177,72 +1296,56 @@ function renderTimeline() {
     acum_arr.push(Math.round(acum));
   }
 
-  // Find breakeven
   var be = -1;
   for (var bi = 0; bi < acum_arr.length; bi++) {
     if (acum_arr[bi] >= 0 && be === -1) be = bi + 1;
   }
 
-  // Build chart datasets
-  // Split rec and cost by scenario for visual distinction
-  var rec_a=[], rec_b=[], rec_c=[], cost_a=[], cost_b=[], cost_c=[];
-  for (var mi = 0; mi < total; mi++) {
-    var si2 = scIdx_arr[mi];
-    rec_a.push(si2===0 ? rec_arr[mi] : null);
-    rec_b.push(si2===1 ? rec_arr[mi] : null);
-    rec_c.push(si2===2 ? rec_arr[mi] : null);
-    cost_a.push(si2===0 ? -cost_arr[mi] : null);
-    cost_b.push(si2===1 ? -cost_arr[mi] : null);
-    cost_c.push(si2===2 ? -cost_arr[mi] : null);
+  // Build chart datasets dynamically for N scenarios
+  var datasets = [];
+  for (var ds = 0; ds < nSc; ds++) {
+    var ci4 = (ds % 8) + 1;
+    var recDs = [], costDs = [];
+    for (var mi = 0; mi < total; mi++) {
+      recDs.push(scIdx_arr[mi] === ds ? rec_arr[mi] : null);
+      costDs.push(scIdx_arr[mi] === ds ? -cost_arr[mi] : null);
+    }
+    datasets.push({ label:'Receita '+SC_LETTERS[ds], data:recDs, backgroundColor:gc('p'+ci4), stack:'e', maxBarThickness:28 });
+    datasets.push({ label:'Custos '+SC_LETTERS[ds], data:costDs, backgroundColor:gc('p'+ci4+'d'), stack:'s', maxBarThickness:28 });
   }
+  datasets.push({ label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
+    borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===total-1?5:1.5;}),
+    pointBackgroundColor:acum_arr.map(function(v){return v>=0?gc('bAct'):gc('r1');}),
+    tension:.3, yAxisID:'y2', order:-1, fill:false });
 
-  // Summary
   var totalRecSum = rec_arr.reduce(function(a2,b2){return a2+b2;},0);
   var totalCostSum = cost_arr.reduce(function(a2,b2){return a2+b2;},0);
   el('tl-summary').innerHTML = 'Receita total: <strong>R$ '+fmt(totalRecSum)+'</strong> · Custos: <strong>R$ '+fmt(totalCostSum)+'</strong> · '+
     'Resultado: <strong style="color:'+(acum>=0?gc('bAct'):gc('r1'))+'">R$ '+fmt(acum)+'</strong> · '+
     'Breakeven: <strong>'+(be>0?'M'+be:'além')+'</strong>';
 
-  // Draw chart
   if (C3) C3.destroy();
   C3 = new Chart(el('ch3'), {
     type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        { label:'Receita A', data:rec_a, backgroundColor:gc('p1'), stack:'e', maxBarThickness:28 },
-        { label:'Receita B', data:rec_b, backgroundColor:gc('p2'), stack:'e', maxBarThickness:28 },
-        { label:'Receita C', data:rec_c, backgroundColor:gc('p3'), stack:'e', maxBarThickness:28 },
-        { label:'Custos A', data:cost_a, backgroundColor:gc('p1d'), stack:'s', maxBarThickness:28 },
-        { label:'Custos B', data:cost_b, backgroundColor:gc('p2d'), stack:'s', maxBarThickness:28 },
-        { label:'Custos C', data:cost_c, backgroundColor:gc('p3d'), stack:'s', maxBarThickness:28 },
-        { label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
-          borderWidth:2.5,
-          pointRadius:acum_arr.map(function(_,i){return i===0||i===total-1?5:1.5;}),
-          pointBackgroundColor:acum_arr.map(function(v){return v>=0?gc('bAct'):gc('r1');}),
-          tension:.3, yAxisID:'y2', order:-1, fill:false }
-      ]
-    },
+    data: { labels: labels, datasets: datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: { mode: 'index', callbacks: {
           title: function(items) {
-            var i = items[0].dataIndex;
-            var sc2 = scIdx_arr[i];
-            return items[0].label + ' — Cenário ' + 'ABC'[sc2];
+            var i2 = items[0].dataIndex;
+            return items[0].label + ' — Cenário ' + SC_LETTERS[scIdx_arr[i2]];
           },
           label: function(ctx) {
             if (ctx.raw === null) return null;
             if (ctx.dataset.label === 'Acumulado') return 'Caixa acum: R$ ' + fmt(ctx.raw);
             var v = Math.abs(ctx.raw);
-            var prefix = ctx.raw >= 0 ? '+' : '−';
-            return ctx.dataset.label + ': ' + prefix + ' R$ ' + fmt(v);
+            return ctx.dataset.label + ': ' + (ctx.raw >= 0 ? '+' : '−') + ' R$ ' + fmt(v);
           },
           footer: function(items) {
-            var i = items[0].dataIndex;
-            return ['Receita: R$ '+fmt(rec_arr[i]), 'Custos: R$ '+fmt(cost_arr[i]), 'Saldo: '+(rec_arr[i]-cost_arr[i]>=0?'+':'')+' R$ '+fmt(rec_arr[i]-cost_arr[i])];
+            var i2 = items[0].dataIndex;
+            return ['Receita: R$ '+fmt(rec_arr[i2]), 'Custos: R$ '+fmt(cost_arr[i2]), 'Saldo: '+(rec_arr[i2]-cost_arr[i2]>=0?'+':'')+' R$ '+fmt(rec_arr[i2]-cost_arr[i2])];
           }
         }}
       },
@@ -1255,9 +1358,15 @@ function renderTimeline() {
         onComplete: function(anim) {
           var chart = anim.chart;
           drawZeroLine(chart);
-          // Draw phase transition lines
-          if (a > 0 && b > 0) drawPhaseVLine(chart, a, 'A→B', gc('p2'));
-          if (b > 0 && c > 0) drawPhaseVLine(chart, a+b, 'B→C', gc('p3'));
+          // Draw phase transition lines dynamically
+          var cumD = 0;
+          for (var pt = 0; pt < nSc - 1; pt++) {
+            cumD += durations[pt];
+            if (durations[pt] > 0 && durations[pt+1] > 0) {
+              var ci5 = ((pt+1) % 8) + 1;
+              drawPhaseVLine(chart, cumD, SC_LETTERS[pt]+'→'+SC_LETTERS[pt+1], gc('p'+ci5));
+            }
+          }
           if (be > 0) drawVLine(chart, be, 'BREAKEVEN');
           drawLastLbl(chart, acum_arr, 'y2');
         }
@@ -1321,30 +1430,36 @@ function renderInvestment() {
 
   // Build cashflows from combined timeline
   SCENARIOS[CUR_SC] = getRaw();
-  var a = parseInt(el('tl-a').value) || 0;
-  var b = parseInt(el('tl-b').value) || 0;
-  var c = parseInt(el('tl-c').value) || 0;
-  var total = a + b + c;
+  var durations = getDurations();
+  var nSc = durations.length;
+  var total = getTotalDuration();
   if (total <= 0) {
     el('inv-grid').innerHTML = '<div style="font-size:11px;color:var(--dim);grid-column:1/-1">Configure a timeline combinada acima para calcular VPL e TIR.</div>';
     return;
   }
 
-  var scParams = [getScParams(0), getScParams(1), getScParams(2)];
-  for (var si = 0; si < 3; si++) { if (!scParams[si]) scParams[si] = getScParams(CUR_SC) || getP(); }
+  var scParams = [];
+  for (var si = 0; si < nSc; si++) {
+    var sp2 = getScParams(si);
+    scParams.push(sp2 || getScParams(CUR_SC) || getP());
+  }
   var scCalc = scParams.map(function(sp) { return calcFromP(sp); });
 
-  // Rebuild monthly net cashflows
+  // Build scIdx_arr and scStarts
+  var scIdx_arr = [];
+  var scStarts = [];
+  var startM2 = 1;
+  for (var sd = 0; sd < nSc; sd++) { scStarts.push(startM2); for (var dd = 0; dd < durations[sd]; dd++) scIdx_arr.push(sd); startM2 += durations[sd]; }
+
   var cohorts = [];
   var netFlows = [];
   var totalInvested = 0;
 
   for (var m = 1; m <= total; m++) {
-    var sc = m <= a ? 0 : m <= a + b ? 1 : 2;
+    var sc = scIdx_arr[m - 1];
     var sp = scParams[sc];
     var sr = scCalc[sc];
-    var scStart = sc === 0 ? 1 : sc === 1 ? a + 1 : a + b + 1;
-    var monthsInSc = m - scStart + 1;
+    var monthsInSc = m - scStarts[sc] + 1;
     var rampFactor = sp.ramp > 0 && monthsInSc <= sp.ramp ? monthsInSc / (sp.ramp + 1) : 1;
     var newCl = Math.round(sr.cl * rampFactor);
     cohorts.push({ month:m, N:newCl, tkm:sp.tkm, prod:sr.prod, fisc:sr.fisc, churn:sp.churn, perm:sp.perm, scIdx:sc });
@@ -1492,8 +1607,11 @@ document.querySelectorAll('.sc-input').forEach(function(inp) {
 });
 
 // ─── INIT ────────────────────────────────────────────────────
-SCENARIOS[0] = getRaw(); // Initialize scenario A with current values
+SCENARIOS[0] = getRaw();
+renderTabs();
+renderTimelineConfig();
 renderPs();
+renderPresets();
 renderScorecard();
 render();
 </script>
