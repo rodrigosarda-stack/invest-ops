@@ -580,25 +580,6 @@ canvas{max-height:250px!important}
       </div>
     </div>
     
-    <!-- LTV Block -->
-    <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>LTV</span></div>
-      <div class="sb-content-block">
-        <div class="ltv-hl">
-          <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
-          <div class="lv" id="ltv-v">R$ 11.600</div>
-          <div class="ls" id="ltv-s">R$580 × 20 meses</div>
-          <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
-            <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
-            <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
-            <div class="ls" id="ltvm-s">margem líq. × vida média</div>
-          </div>
-          <div style="margin-top:6px">
-            <div class="ls" id="cac-max" style="opacity:.8">CAC máx. (3:1): R$ 1.933</div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -641,6 +622,28 @@ canvas{max-height:250px!important}
 <div class="grid-stack-item" gs-id="kpis" gs-x="0" gs-y="0" gs-w="12" gs-h="3">
   <div class="grid-stack-item-content">
     <div class="kpis" id="kpis"></div>
+  </div>
+</div>
+
+<!-- LTV Panel -->
+<div class="grid-stack-item" gs-id="ltv" gs-x="0" gs-y="3" gs-w="6" gs-h="4">
+  <div class="grid-stack-item-content">
+    <div class="panel">
+      <div class="panel-t gs-drag">LTV</div>
+      <div class="ltv-hl">
+        <div class="ll">LTV bruto <span class="tip-icon" data-tip="Valor total que um cliente gera durante toda sua permanência (ticket × meses).">?</span></div>
+        <div class="lv" id="ltv-v">R$ 11.600</div>
+        <div class="ls" id="ltv-s">R$580 × 20 meses</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,200,117,.15)">
+          <div class="ll">LTV com margem <span class="tip-icon" data-tip="LTV descontando margem e impostos. É o lucro real que cada cliente gera.">?</span></div>
+          <div class="lv" id="ltvm-v" style="font-size:19px">R$ 5.800</div>
+          <div class="ls" id="ltvm-s">margem líq. × vida média</div>
+        </div>
+        <div style="margin-top:6px">
+          <div class="ls" id="cac-max" style="opacity:.8">CAC máx. (3:1): R$ 1.933</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
