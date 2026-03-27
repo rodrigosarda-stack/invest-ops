@@ -385,22 +385,12 @@ canvas{max-height:250px!important}
   border-radius: var(--radius);
   overflow: visible;
   flex-shrink: 0;
-  cursor: grab;
   transition: all 150ms ease;
 }
 
-.sb-block:active {
-  cursor: grabbing;
-}
-
-.sb-block.dragging {
+.sb-block.moving {
   opacity: 0.5;
   transform: scale(0.98);
-}
-
-.sb-block.drag-over {
-  border-color: var(--accent, #0c8);
-  background-color: rgba(0, 200, 136, 0.05);
 }
 
 .sb-header-block {
@@ -414,16 +404,26 @@ canvas{max-height:250px!important}
   font-size: 13px;
 }
 
-.sb-handle {
-  cursor: grab;
-  flex-shrink: 0;
-  opacity: 0.6;
-  transition: opacity 150ms;
-  font-size: 16px;
+.sb-arrows {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
 }
-
-.sb-block:hover .sb-handle {
-  opacity: 1;
+.sb-arrow {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 5px;
+  transition: all 120ms ease;
+}
+.sb-arrow:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 .sb-content-block {
@@ -532,7 +532,7 @@ canvas{max-height:250px!important}
   <div class="sb-content">
     <!-- SDR Block -->
     <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>SDR</span></div>
+      <div class="sb-header-block"><span>SDR</span></div>
       <div class="sb-content-block">
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de SDRs (pré-vendedores) na squad. Cada SDR prospecta leads e agenda reuniões para os closers.">?</span></span></label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
@@ -547,7 +547,7 @@ canvas{max-height:250px!important}
     
     <!-- Closer Block -->
     <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>Closer</span></div>
+      <div class="sb-header-block"><span>Closer</span></div>
       <div class="sb-content-block">
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de closers (vendedores) na squad. Closers recebem as reuniões dos SDRs e fecham contratos.">?</span></span></label><input type="range" id="clos" min="1" max="5" value="1" step="1"><span class="rv" id="clos-v">1</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada closer.">?</span></span></label><input type="range" id="csal" min="1000" max="15000" value="4500" step="100"><input type="number" id="csal-n" value="4500" min="100" max="50000" step="100"></div>
@@ -559,7 +559,7 @@ canvas{max-height:250px!important}
     
     <!-- Gestor Block -->
     <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>Op. Comercial</span></div>
+      <div class="sb-header-block"><span>Op. Comercial</span></div>
       <div class="sb-content-block">
         <div class="row"><label><input type="checkbox" id="gon" checked> <span>Gabriel ativo</span></label></div>
         <div id="gctrl">
@@ -573,7 +573,7 @@ canvas{max-height:250px!important}
     
     <!-- Produto Block -->
     <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>Produto</span></div>
+      <div class="sb-header-block"><span>Produto</span></div>
       <div class="sb-content-block">
         <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
           <button class="btn sm" onclick="setSegmento(580,20)">Anual R$580</button>
@@ -589,7 +589,7 @@ canvas{max-height:250px!important}
     
     <!-- Margens Block -->
     <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>Margens e Fiscal</span></div>
+      <div class="sb-header-block"><span>Margens e Fiscal</span></div>
       <div class="sb-content-block">
         <div class="row"><label><span class="tip" style="display:inline-flex;align-items:center;">Margem contrib.<span class="tip-icon" data-tip="Percentual da receita que sobra após custos diretos de entrega (fulfillment). Ex: 50% = metade cobre o serviço.">?</span></span></label><input type="range" id="mprod" min="1" max="99" value="50" step="1"><span class="rv" id="mprod-v">50%</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Carga fiscal<span class="tip-icon" data-tip="Percentual de impostos diretos sobre a receita (ISS, impostos médicos, etc). É deduzido do lucro bruto.">?</span></span></label><input type="range" id="fisc" min="0" max="30" value="8" step="0.5"><span class="rv" id="fisc-v">8%</span></div>
@@ -598,7 +598,7 @@ canvas{max-height:250px!important}
     
     <!-- Funil Block -->
     <div class="sb-block">
-      <div class="sb-header-block"><span class="sb-handle">≡</span> <span>Funil e Churn</span></div>
+      <div class="sb-header-block"><span>Funil e Churn</span></div>
       <div class="sb-content-block">
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Conversão<span class="tip-icon" data-tip="Percentual de reuniões que viram clientes. Taxa de fechamento do closer.">?</span></span></label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Churn mensal<span class="tip-icon" data-tip="Taxa mensal de cancelamento: percentual de clientes que cancelam por mês. Se 5%, a cada 100 clientes, 5 saem.">?</span></span></label><input type="range" id="churn" min="0" max="15" value="5" step="0.5"><span class="rv" id="churn-v">5%</span></div>
@@ -2404,78 +2404,65 @@ document.addEventListener('click',function(e){
     }
   }
   
-  // HTML5 Drag and Drop for reordering blocks
-  var draggedBlock = null;
-  
-  sbBlocks.forEach(function(block) {
-    block.draggable = true;
-    
-    block.addEventListener('dragstart', function(e) {
-      draggedBlock = block;
-      block.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    
-    block.addEventListener('dragend', function(e) {
-      block.classList.remove('dragging');
-      sbBlocks.forEach(function(b) {
-        b.classList.remove('drag-over');
+  // Arrow-based reordering for sidebar blocks
+  function moveBlock(block, dir) {
+    var parent = block.parentNode;
+    if (dir === -1 && block.previousElementSibling) {
+      block.classList.add('moving');
+      parent.insertBefore(block, block.previousElementSibling);
+    } else if (dir === 1 && block.nextElementSibling) {
+      block.classList.add('moving');
+      parent.insertBefore(block.nextElementSibling, block);
+    }
+    setTimeout(function() { block.classList.remove('moving'); }, 160);
+    saveBlockOrder();
+  }
+
+  sbBlocks.forEach(function(block, i) {
+    // Give each block an ID for persistence
+    if (!block.dataset.blockId) {
+      var label = block.querySelector('.sb-header-block span');
+      block.dataset.blockId = label ? label.textContent.trim().toLowerCase().replace(/\s+/g,'-') : 'block-' + i;
+    }
+    // Inject arrow buttons into the header
+    var hdr = block.querySelector('.sb-header-block');
+    if (hdr && !hdr.querySelector('.sb-arrows')) {
+      var arrows = document.createElement('span');
+      arrows.className = 'sb-arrows';
+      arrows.innerHTML = '<button class="sb-arrow" data-dir="-1" title="Mover para cima">▲</button><button class="sb-arrow" data-dir="1" title="Mover para baixo">▼</button>';
+      hdr.appendChild(arrows);
+      arrows.querySelectorAll('.sb-arrow').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          moveBlock(block, parseInt(btn.dataset.dir));
+        });
       });
-      saveBlockOrder();
-    });
-    
-    block.addEventListener('dragover', function(e) {
-      if (draggedBlock && draggedBlock !== block) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        block.classList.add('drag-over');
-      }
-    });
-    
-    block.addEventListener('dragleave', function(e) {
-      block.classList.remove('drag-over');
-    });
-    
-    block.addEventListener('drop', function(e) {
-      e.preventDefault();
-      if (draggedBlock && draggedBlock !== block) {
-        var sbContent = sidebar.querySelector('.sb-content');
-        var blocks = Array.from(sbContent.querySelectorAll('.sb-block'));
-        var draggedIndex = blocks.indexOf(draggedBlock);
-        var targetIndex = blocks.indexOf(block);
-        
-        if (draggedIndex < targetIndex) {
-          block.parentNode.insertBefore(draggedBlock, block.nextSibling);
-        } else {
-          block.parentNode.insertBefore(draggedBlock, block);
-        }
-      }
-      block.classList.remove('drag-over');
-    });
+    }
   });
-  
+
   // Save block order to localStorage
   function saveBlockOrder() {
     var sbContent = sidebar.querySelector('.sb-content');
     var order = Array.from(sbContent.querySelectorAll('.sb-block')).map(function(b) {
-      return b.getAttribute('data-block-id') || b.getAttribute('class');
+      return b.dataset.blockId;
     });
-    localStorage.setItem('sidebarBlockOrder', JSON.stringify(order));
+    localStorage.setItem('m3a-sidebar-order', JSON.stringify(order));
   }
-  
+
   // Restore block order from localStorage
   function restoreBlockOrder() {
-    var saved = localStorage.getItem('sidebarBlockOrder');
-    if (saved) {
-      try {
-        var order = JSON.parse(saved);
-        // Implementation depends on how blocks are identified
-      } catch(e) {
-        console.log('Could not restore block order');
-      }
-    }
+    var saved = localStorage.getItem('m3a-sidebar-order');
+    if (!saved) return;
+    try {
+      var order = JSON.parse(saved);
+      var sbContent = sidebar.querySelector('.sb-content');
+      order.forEach(function(id) {
+        var block = sbContent.querySelector('[data-block-id="' + id + '"]');
+        if (block) sbContent.appendChild(block);
+      });
+    } catch(e) { /* ignore */ }
   }
-  
+
   // Initialize
   updateWrapMargin();
   restoreBlockOrder();
