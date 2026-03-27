@@ -960,14 +960,17 @@ function removeWave(idx) {
   render();
 }
 
+function wName(i) { return wName(i) || ('Leva '+(i+1)); }
 function renderWaveCards() {
+  // Ensure WAVE_NAMES is always in sync with WAVES length
+  while (WAVE_NAMES.length < WAVES.length) WAVE_NAMES.push('Leva '+(WAVE_NAMES.length+1));
   var container = el('sc-tabs');
   var html = '';
   for (var i = 0; i < WAVES.length; i++) {
     var wave = WAVES[i];
     var color = WAVE_COLORS[i % WAVE_COLORS.length];
     html += '<div class="sc-tab'+(i===CUR_WAVE?' active':'')+'" data-idx="'+i+'" onclick="switchWave('+i+')">'+
-      '<span class="sc-dot" style="background:'+color+'"></span>'+WAVE_NAMES[i]+
+      '<span class="sc-dot" style="background:'+color+'"></span>'+wName(i)+
       ' <span style="opacity:.6;font-size:9px">(M'+(wave.startMonth||1)+' · '+(wave.sdrs||el('sdrs').value)+'SDR+'+(wave.clos||el('clos').value)+'CL)</span>'+
       (WAVES.length > 1 ? '<span class="sc-close" onclick="event.stopPropagation();removeWave('+i+')">×</span>' : '')+
       '</div>';
@@ -986,7 +989,7 @@ function renderWaveConfig() {
     var color = WAVE_COLORS[i % WAVE_COLORS.length];
     html += '<div style="display:flex;align-items:center;gap:6px">'+
       '<span class="sc-dot" style="background:'+color+';width:8px;height:8px;border-radius:50%;display:inline-block"></span>'+
-      '<label><span class="tip" style="display:inline-flex;align-items:center;">'+WAVE_NAMES[i]+' começa em:<span class="tip-icon" data-tip="Mês em que essa leva de contratação começa.">?</span></span></label>'+
+      '<label><span class="tip" style="display:inline-flex;align-items:center;">'+wName(i)+' começa em:<span class="tip-icon" data-tip="Mês em que essa leva de contratação começa.">?</span></span></label>'+
       '<input type="number" id="tl-'+i+'" value="'+wave.startMonth+'" min="1" max="36" style="width:42px"> <span class="rv dim">mês</span></div>';
   }
   html += '<span class="rv" id="tl-total" style="color:var(--accent)">Duração total de operação</span>';
@@ -1115,7 +1118,8 @@ function loadP(i){
   var ps=getPs();if(!ps[i])return;LOADED_P=i;
   var profile = ps[i];
   // Load v2 format (waves + globalParams)
-  WAVES = profile.waves ? profile.waves.slice() : [{startMonth: 1, sdrs: 4, clos: 1}];
+  WAVES = profile.waves ? profile.waves.slice() : [{startMonth: 1}];
+  WAVE_NAMES = WAVES.map(function(_,i){ return 'Leva ' + (i+1); });
   CUR_WAVE = profile.cur || 0;
   if(CUR_WAVE >= WAVES.length) CUR_WAVE = 0;
   // Apply global params as defaults
@@ -1136,7 +1140,7 @@ function renderPresets() {
   if (!ps.length) { container.innerHTML=''; return; }
   container.innerHTML = '<span style="font-family:\'DM Mono\',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-right:4px">Presets:</span>'+
     ps.map(function(p,i){
-      return '<span class="chip" onclick="loadPreset('+i+')" title="Carregar no '+WAVE_NAMES[CUR_WAVE]+'">'+p.n+'<span class="x" onclick="delPreset(event,'+i+')">×</span></span>';
+      return '<span class="chip" onclick="loadPreset('+i+')" title="Carregar no '+wName(CUR_WAVE)+'">'+p.n+'<span class="x" onclick="delPreset(event,'+i+')">×</span></span>';
     }).join('');
 }
 function openPresetM(){el('modal-preset').classList.add('open');el('preset-name').value='';setTimeout(function(){el('preset-name').focus();},100);}
@@ -1487,7 +1491,7 @@ function render() {
   } else {
     msg = 'Caixa da operação com cohorts + churn. Breakeven = caixa acumulado cruza zero.';
   }
-  el('cbox').innerHTML = '<strong>Fluxo de caixa ('+WAVE_NAMES[CUR_WAVE]+'):</strong> '+msg;
+  el('cbox').innerHTML = '<strong>Fluxo de caixa ('+wName(CUR_WAVE)+'):</strong> '+msg;
 
   // Timeline
   renderTimeline();
@@ -1871,7 +1875,7 @@ function renderTimeline() {
     var wPct = (wRange / total * 100).toFixed(1);
     var wStartPct = (wStart / total * 100).toFixed(1);
     segs += '<div class="tl-seg" style="margin-left:'+wStartPct+'%;width:'+wPct+'%;background:'+color+';">'+
-      WAVE_NAMES[w]+' (M'+wave.startMonth+')</div>';
+      wName(w)+' (M'+wave.startMonth+')</div>';
   }
   bar.innerHTML = segs;
 
@@ -1879,8 +1883,8 @@ function renderTimeline() {
   var legItems = [];
   for (var lw = 0; lw < WAVES.length; lw++) {
     var lcol = WAVE_COLORS[lw % WAVE_COLORS.length];
-    legItems.push({c:lcol,l:WAVE_NAMES[lw]+': receita',t:'d'});
-    legItems.push({c:lcol,l:WAVE_NAMES[lw]+': custos',t:'d'});
+    legItems.push({c:lcol,l:wName(lw)+': receita',t:'d'});
+    legItems.push({c:lcol,l:wName(lw)+': custos',t:'d'});
   }
   legItems.push({c:gc('lnAc'),l:'Caixa acumulado',t:'l'});
   el('tl-leg').innerHTML = legItems.map(function(it){
@@ -1977,8 +1981,8 @@ function renderTimeline() {
       var wc = mi2 < wCost[ds].length ? wCost[ds][mi2] : 0;
       costDs.push(-Math.round(wc));
     }
-    datasets.push({ label:'Receita '+WAVE_NAMES[ds], data:recDs, backgroundColor:dscolor, stack:'e', maxBarThickness:28 });
-    datasets.push({ label:'Custos '+WAVE_NAMES[ds], data:costDs, backgroundColor:dscolor+'88', stack:'s', maxBarThickness:28 });
+    datasets.push({ label:'Receita '+wName(ds), data:recDs, backgroundColor:dscolor, stack:'e', maxBarThickness:28 });
+    datasets.push({ label:'Custos '+wName(ds), data:costDs, backgroundColor:dscolor+'88', stack:'s', maxBarThickness:28 });
   }
   datasets.push({ label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
     borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===total-1?5:1.5;}),
@@ -2025,7 +2029,7 @@ function renderTimeline() {
           // Draw wave start lines
           for (var dwl = 0; dwl < WAVES.length; dwl++) {
             if (WAVES[dwl].startMonth > 1) {
-              drawPhaseVLine(chart, WAVES[dwl].startMonth - 1, WAVE_NAMES[dwl]+' inicia', WAVE_COLORS[dwl % WAVE_COLORS.length]);
+              drawPhaseVLine(chart, WAVES[dwl].startMonth - 1, wName(dwl)+' inicia', WAVE_COLORS[dwl % WAVE_COLORS.length]);
             }
           }
           if (be > 0) drawVLine(chart, be, 'BREAKEVEN');
