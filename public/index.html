@@ -1117,7 +1117,7 @@ function applyRaw(r) {
   sv('sded',r.sded);sv('cded',r.cded);sv('gded',r.gded);
   sv('scom',r.scom);sv('scomv',r.scomv||'0');sv('ccom',r.ccom);sv('gcom',r.gcom);
   sv('show',r.show||'80');sv('conv',r.conv);sv('tkm',r.tkm);sv('tkm-n',r.tkm);sv('perm',r.perm);sv('perm-n',r.perm);
-  sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('train',r.train||'1');sv('accel',r.accel||'2');
+  sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('train',r.train!=null?r.train:'1');sv('accel',r.accel!=null?r.accel:'2');
   el('gon').checked=r.gon!==false&&r.gon!=='false';
   el('fundador').checked=r.fundador===true;
 }
@@ -1151,8 +1151,8 @@ function parseRaw(raw) {
     perm:Math.max(1,parseInt(raw.perm)||16),
     mprod:parseInt(raw.mprod)||45, fisc:parseFloat(raw.fisc)||8,
     churn:(parseFloat(raw.churn)||3)/100,
-    train:parseFloat(raw.train)||1,
-    accel:parseInt(raw.accel)||2
+    train:raw.train!=null?parseFloat(raw.train):1,
+    accel:raw.accel!=null?parseInt(raw.accel):2
   };
 }
 function simulate(raw) {
@@ -1210,8 +1210,8 @@ function getP() {
     perm:Math.max(1,parseInt(el('perm-n').value)||16),
     mprod:parseInt(el('mprod').value), fisc:parseFloat(el('fisc').value),
     churn:parseFloat(el('churn').value)/100,
-    train:parseFloat(el('train').value)||1,
-    accel:parseInt(el('accel').value)||2
+    train:parseFloat(el('train').value),
+    accel:parseInt(el('accel').value)
   };
 }
 
@@ -1756,8 +1756,8 @@ function getScParams(idx) {
     perm:Math.max(1,parseInt(raw.perm)||16),
     mprod:parseInt(raw.mprod)||45, fisc:parseFloat(raw.fisc)||8,
     churn:(parseFloat(raw.churn)||3)/100,
-    train:parseFloat(raw.train)||1,
-    accel:parseInt(raw.accel)||2
+    train:raw.train!=null?parseFloat(raw.train):1,
+    accel:raw.accel!=null?parseInt(raw.accel):2
   };
 }
 
