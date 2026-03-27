@@ -748,8 +748,8 @@ canvas{max-height:250px!important}
   <div class="timeline-section">
     <div class="cs-h">
       <div>
-        <div class="cs-t">Timeline combinada — sequência de cenários <span class="tip-icon" data-tip="Sequência dos cenários A, B e C no tempo. Permite simular crescimento gradual da squad.">?</span></div>
-        <div class="cs-sub">Configure cada cenário acima, depois defina a duração de cada fase abaixo.</div>
+        <div class="cs-t">Timeline combinada — levas de recrutamento <span class="tip-icon" data-tip="Levas de contratação empilhadas no tempo. Cada leva tem seu mês de início e time próprio. Os resultados se acumulam.">?</span></div>
+        <div class="cs-sub">Adicione levas de contratação e defina quando cada uma começa.</div>
       </div>
     </div>
     <div class="tl-config" id="tl-config"></div>
@@ -1855,6 +1855,8 @@ function setLeg(items){
 // ─── TIMELINE ────────────────────────────────────────────────
 function renderTimeline() {
   var total = getTotalDuration();
+  var tlTotal = el('tl-total');
+  if (tlTotal) tlTotal.textContent = 'Duração total: ' + total + ' meses';
 
   // Timeline bar - show active waves
   var bar = el('tl-bar');
