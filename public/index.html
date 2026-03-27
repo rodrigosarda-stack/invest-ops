@@ -1523,15 +1523,15 @@ function drawFunnel(p, r) {
     data: {
       labels: labels,
       datasets: [
-        { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
-        { label: 'Reuniões', data: auArr, backgroundColor: gc('ln'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
-        { label: 'Vendas', data: clArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
+        { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y', order: 3 },
+        { label: 'Reuniões', data: auArr, backgroundColor: gc('ln'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y', order: 2 },
+        { label: 'Vendas', data: clArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y', order: 1 },
         { label: 'Acumulado', data: acumBruto, type: 'line', borderColor: gc('pu'), backgroundColor: 'transparent',
           borderWidth: 2, borderDash: [5, 3], tension: .3, pointRadius: 1.5,
-          pointBackgroundColor: gc('pu'), yAxisID: 'y2', order: -1 },
+          pointBackgroundColor: gc('pu'), yAxisID: 'y2', order: 0 },
         { label: 'Ativos', data: acumAtivo, type: 'line', borderColor: gc('lnAc'), backgroundColor: 'transparent',
           borderWidth: 2.5, tension: .3, pointRadius: acumAtivo.map(function(_, i) { return i === H - 1 ? 5 : 2; }),
-          pointBackgroundColor: gc('lnAc'), yAxisID: 'y2', order: -2 }
+          pointBackgroundColor: gc('lnAc'), yAxisID: 'y2', order: 0 }
       ]
     },
     options: {
@@ -1545,13 +1545,16 @@ function drawFunnel(p, r) {
             return ctx.dataset.label + ': ' + ctx.raw;
           },
           footer: function(items) {
-            var ag = items[0] ? items[0].raw : 0;
-            var au = items[1] ? items[1].raw : 0;
-            var cl = items[2] ? items[2].raw : 0;
+            var ag = 0, au = 0, cl = 0;
+            items.forEach(function(it) {
+              if (it.dataset.label === 'Agendamentos') ag = it.raw;
+              else if (it.dataset.label === 'Reuniões') au = it.raw;
+              else if (it.dataset.label === 'Vendas') cl = it.raw;
+            });
             if (ag === 0) return ['Squad em treinamento'];
+            var showR = ag > 0 ? Math.round(au / ag * 100) : 0;
             var convR = au > 0 ? Math.round(cl / au * 100) : 0;
-            var capR = ag > 0 ? Math.round(au / ag * 100) : 0;
-            return ['Show: ' + capR + '% · Conv: ' + convR + '%'];
+            return ['Show: ' + showR + '% · Conv: ' + convR + '%'];
           }
         }}
       },
