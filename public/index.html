@@ -1460,8 +1460,10 @@ function drawFunnel(p, r) {
   // r.ag, r.au, r.cl já vêm de calcFromP (steady-state, sem ramp)
   // getRampedN aplica ramp sobre r.cl → usamos o mesmo fator para ag e au
 
-  var acumArr = [];  // clientes ativos acumulados (com churn)
+  var acumBruto = [];  // clientes acumulados SEM churn (somatório puro)
+  var acumAtivo = [];  // clientes acumulados COM churn (base ativa real)
   var cohorts = [];
+  var totalBruto = 0;
 
   for (var m = 1; m <= H; m++) {
     labels.push('M' + m);
@@ -1475,7 +1477,10 @@ function drawFunnel(p, r) {
     var ag_m = Math.round(r.ag * rampF);
     var au_m = Math.round(r.au * rampF);
 
-    // Acumular clientes ativos com churn (mesma lógica de cohorts do modelo)
+    // Acumulado bruto (sem churn)
+    totalBruto += cl_m;
+
+    // Acumulado ativo com churn (mesma lógica de cohorts do modelo)
     cohorts.push({ month: m, N: cl_m });
     var ativos = 0;
     for (var i = 0; i < cohorts.length; i++) {
@@ -1486,7 +1491,8 @@ function drawFunnel(p, r) {
     agArr.push(ag_m);
     auArr.push(au_m);
     clArr.push(cl_m);
-    acumArr.push(Math.round(ativos));
+    acumBruto.push(totalBruto);
+    acumAtivo.push(Math.round(ativos));
   }
 
   var totalRamp = (p.train || 0) + (p.accel || 0);
@@ -1497,7 +1503,8 @@ function drawFunnel(p, r) {
     {c: gc('blue'), l: 'Agendamentos', t: 'd'},
     {c: gc('ln'), l: 'Reuniões', t: 'd'},
     {c: gc('bAct'), l: 'Vendas', t: 'd'},
-    {c: gc('lnAc'), l: 'Clientes ativos', t: 'l'}
+    {c: gc('pu'), l: 'Acumulado (sem churn)', t: 'l'},
+    {c: gc('lnAc'), l: 'Ativos (com churn)', t: 'l'}
   ].map(function(it) {
     var dot = it.t === 'l' ? '<span class="ll2" style="background:' + it.c + '"></span>' : '<span class="ld" style="background:' + it.c + '"></span>';
     return '<span class="li">' + dot + it.l + '</span>';
@@ -1519,9 +1526,12 @@ function drawFunnel(p, r) {
         { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
         { label: 'Reuniões', data: auArr, backgroundColor: gc('ln'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
         { label: 'Vendas', data: clArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
-        { label: 'Clientes ativos', data: acumArr, type: 'line', borderColor: gc('lnAc'), backgroundColor: 'transparent',
-          borderWidth: 2.5, tension: .3, pointRadius: acumArr.map(function(_, i) { return i === H - 1 ? 5 : 2; }),
-          pointBackgroundColor: gc('lnAc'), yAxisID: 'y2', order: -1 }
+        { label: 'Acumulado', data: acumBruto, type: 'line', borderColor: gc('pu'), backgroundColor: 'transparent',
+          borderWidth: 2, borderDash: [5, 3], tension: .3, pointRadius: 1.5,
+          pointBackgroundColor: gc('pu'), yAxisID: 'y2', order: -1 },
+        { label: 'Ativos', data: acumAtivo, type: 'line', borderColor: gc('lnAc'), backgroundColor: 'transparent',
+          borderWidth: 2.5, tension: .3, pointRadius: acumAtivo.map(function(_, i) { return i === H - 1 ? 5 : 2; }),
+          pointBackgroundColor: gc('lnAc'), yAxisID: 'y2', order: -2 }
       ]
     },
     options: {
@@ -1530,7 +1540,8 @@ function drawFunnel(p, r) {
         legend: { display: false },
         tooltip: { mode: 'index', callbacks: {
           label: function(ctx) {
-            if (ctx.dataset.label === 'Clientes ativos') return 'Clientes ativos: ' + ctx.raw;
+            if (ctx.dataset.label === 'Acumulado') return 'Acumulado (s/ churn): ' + ctx.raw;
+            if (ctx.dataset.label === 'Ativos') return 'Ativos (c/ churn): ' + ctx.raw;
             return ctx.dataset.label + ': ' + ctx.raw;
           },
           footer: function(items) {
