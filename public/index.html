@@ -1451,35 +1451,60 @@ function drawSensChurn(p, r) {
 function drawFunnel(p, r) {
   var H = 12;
   var agArr = [], auArr = [], clArr = [], labels = [];
+  var totalRamp = (p.train || 0) + (p.accel || 0);
+
+  // Capacidades brutas (steady-state)
+  var agBase = p.sdrs * p.rsdr * WEEKS;          // agendamentos/mês sem ramp
+  var capBase = p.clos * p.rclo * 5 * WEEKS;     // capacidade closer/mês
+
   for (var m = 1; m <= H; m++) {
     labels.push('M' + m);
-    // ramp applies to closers → affects au and cl; SDR output is constant post-hire
-    var totalRamp = (p.train || 0) + (p.accel || 0);
-    var rampFactor = 1;
+
+    // Ramp afeta toda a squad (SDR + Closer juntos entram em treinamento/aceleração)
+    var ramp = 1;
     if (totalRamp > 0 && m <= totalRamp) {
-      if (m <= (p.train || 0)) { rampFactor = 0; }
-      else { rampFactor = (m - (p.train || 0)) / ((p.accel || 0) + 1); }
+      if (m <= (p.train || 0)) { ramp = 0; }
+      else { ramp = (m - (p.train || 0)) / ((p.accel || 0) + 1); }
     }
-    var ag_m = Math.round(p.sdrs * p.rsdr * WEEKS);
-    var cap_m = Math.round(p.clos * p.rclo * 5 * WEEKS);
-    var au_m = Math.round(Math.min(ag_m, cap_m) * rampFactor);
+
+    // Agendamentos = output SDR × ramp (squad em treinamento → 0)
+    var ag_m = Math.round(agBase * ramp);
+
+    // Reuniões = min(agendamentos, capacidade closer × ramp)
+    // Closer também está em ramp, então sua capacidade cresce junto
+    var cap_m = Math.round(capBase * ramp);
+    var au_m = Math.min(ag_m, cap_m);
+
+    // Vendas = reuniões × conversão
     var cl_m = Math.round(au_m * p.conv);
+
     agArr.push(ag_m);
     auArr.push(au_m);
     clArr.push(cl_m);
   }
+
+  // Steady-state values para o subtitle
+  var agFull = Math.round(agBase);
+  var auFull = Math.round(Math.min(agBase, capBase));
+  var clFull = Math.round(auFull * p.conv);
+
   // legend
   var legEl = el('funnel-leg');
   if (legEl) legEl.innerHTML = [
     {c: gc('blue'), l: 'Agendamentos'},
-    {c: gc('bAct'), l: 'Reuniões'},
-    {c: gc('p1'), l: 'Vendas'}
+    {c: gc('ln'), l: 'Reuniões'},
+    {c: gc('bAct'), l: 'Vendas'}
   ].map(function(it) {
     return '<span class="li"><span class="ld" style="background:' + it.c + '"></span>' + it.l + '</span>';
   }).join('');
+
   // subtitle
   var subEl = el('funnel-sub');
-  if (subEl) subEl.textContent = '12 meses · ' + p.sdrs + ' SDR' + (p.sdrs > 1 ? 's' : '') + ' · ' + p.clos + ' Closer' + (p.clos > 1 ? 's' : '') + ' · conv ' + Math.round(p.conv * 100) + '%';
+  if (subEl) {
+    var rampTxt = totalRamp > 0 ? ' · ramp ' + totalRamp + 'm' : '';
+    subEl.textContent = 'Steady-state: ' + agFull + ' agend → ' + auFull + ' reun → ' + clFull + ' vendas/mês' + rampTxt;
+  }
+
   if (CF) CF.destroy();
   CF = new Chart(el('ch-funnel'), {
     type: 'bar',
@@ -1487,8 +1512,8 @@ function drawFunnel(p, r) {
       labels: labels,
       datasets: [
         { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Reuniões', data: auArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Vendas', data: clArr, backgroundColor: gc('p1'), borderRadius: 4, maxBarThickness: 32 }
+        { label: 'Reuniões', data: auArr, backgroundColor: gc('ln'), borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Vendas', data: clArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32 }
       ]
     },
     options: {
@@ -1496,13 +1521,22 @@ function drawFunnel(p, r) {
       plugins: {
         legend: { display: false },
         tooltip: { mode: 'index', callbacks: {
-          label: function(ctx) { return ctx.dataset.label + ': ' + ctx.raw; }
+          label: function(ctx) { return ctx.dataset.label + ': ' + ctx.raw; },
+          footer: function(items) {
+            var ag = items[0] ? items[0].raw : 0;
+            var au = items[1] ? items[1].raw : 0;
+            var cl = items[2] ? items[2].raw : 0;
+            if (ag === 0) return ['Squad em treinamento'];
+            var showRate = au > 0 ? Math.round(cl / au * 100) : 0;
+            var capRate = ag > 0 ? Math.round(au / ag * 100) : 0;
+            return ['Aprov. closer: ' + capRate + '% · Conv: ' + showRate + '%'];
+          }
         }}
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' } } },
-        y: { grid: { color: gc('grid') }, ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' }, callback: function(v) { return v; } },
-          beginAtZero: true }
+        y: { grid: { color: gc('grid') }, beginAtZero: true,
+          ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' } } }
       }
     }
   });
