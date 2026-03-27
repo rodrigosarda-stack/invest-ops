@@ -1448,45 +1448,32 @@ function drawSensChurn(p, r) {
 }
 
 // ─── CHART FUNNEL: Agendamentos × Reuniões × Vendas ─────────
+// Usa EXATAMENTE calcFromP + getRampedN — mesma fonte de verdade do modelo inteiro.
 function drawFunnel(p, r) {
   var H = 12;
   var agArr = [], auArr = [], clArr = [], labels = [];
-  var totalRamp = (p.train || 0) + (p.accel || 0);
 
-  // Capacidades brutas (steady-state)
-  var agBase = p.sdrs * p.rsdr * WEEKS;          // agendamentos/mês sem ramp
-  var capBase = p.clos * p.rclo * 5 * WEEKS;     // capacidade closer/mês
+  // r.ag, r.au, r.cl já vêm de calcFromP (steady-state, sem ramp)
+  // getRampedN aplica ramp sobre r.cl → usamos o mesmo fator para ag e au
 
   for (var m = 1; m <= H; m++) {
     labels.push('M' + m);
 
-    // Ramp afeta toda a squad (SDR + Closer juntos entram em treinamento/aceleração)
-    var ramp = 1;
-    if (totalRamp > 0 && m <= totalRamp) {
-      if (m <= (p.train || 0)) { ramp = 0; }
-      else { ramp = (m - (p.train || 0)) / ((p.accel || 0) + 1); }
-    }
+    // Vendas com ramp = mesma função que drawMRR/drawInd usam
+    var cl_m = getRampedN(p, r, m);
 
-    // Agendamentos = output SDR × ramp (squad em treinamento → 0)
-    var ag_m = Math.round(agBase * ramp);
-
-    // Reuniões = min(agendamentos, capacidade closer × ramp)
-    // Closer também está em ramp, então sua capacidade cresce junto
-    var cap_m = Math.round(capBase * ramp);
-    var au_m = Math.min(ag_m, cap_m);
-
-    // Vendas = reuniões × conversão
-    var cl_m = Math.round(au_m * p.conv);
+    // Fator de ramp implícito: cl_m / r.cl (quando r.cl > 0)
+    // Aplicamos o mesmo fator para ag e au → coerência total
+    var rampF = r.cl > 0 ? cl_m / r.cl : 0;
+    var ag_m = Math.round(r.ag * rampF);
+    var au_m = Math.round(r.au * rampF);
 
     agArr.push(ag_m);
     auArr.push(au_m);
     clArr.push(cl_m);
   }
 
-  // Steady-state values para o subtitle
-  var agFull = Math.round(agBase);
-  var auFull = Math.round(Math.min(agBase, capBase));
-  var clFull = Math.round(auFull * p.conv);
+  var totalRamp = (p.train || 0) + (p.accel || 0);
 
   // legend
   var legEl = el('funnel-leg');
@@ -1498,11 +1485,11 @@ function drawFunnel(p, r) {
     return '<span class="li"><span class="ld" style="background:' + it.c + '"></span>' + it.l + '</span>';
   }).join('');
 
-  // subtitle
+  // subtitle com valores steady-state direto de calcFromP
   var subEl = el('funnel-sub');
   if (subEl) {
     var rampTxt = totalRamp > 0 ? ' · ramp ' + totalRamp + 'm' : '';
-    subEl.textContent = 'Steady-state: ' + agFull + ' agend → ' + auFull + ' reun → ' + clFull + ' vendas/mês' + rampTxt;
+    subEl.textContent = 'Steady-state: ' + r.ag + ' agend → ' + r.au + ' reun → ' + r.cl + ' vendas/mês' + rampTxt;
   }
 
   if (CF) CF.destroy();
@@ -1527,9 +1514,9 @@ function drawFunnel(p, r) {
             var au = items[1] ? items[1].raw : 0;
             var cl = items[2] ? items[2].raw : 0;
             if (ag === 0) return ['Squad em treinamento'];
-            var showRate = au > 0 ? Math.round(cl / au * 100) : 0;
-            var capRate = ag > 0 ? Math.round(au / ag * 100) : 0;
-            return ['Aprov. closer: ' + capRate + '% · Conv: ' + showRate + '%'];
+            var convR = au > 0 ? Math.round(cl / au * 100) : 0;
+            var capR = ag > 0 ? Math.round(au / ag * 100) : 0;
+            return ['Aprov. closer: ' + capR + '% · Conv: ' + convR + '%'];
           }
         }}
       },
