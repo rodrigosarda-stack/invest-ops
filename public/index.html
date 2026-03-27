@@ -1202,7 +1202,7 @@ function removeWave(idx) {
   render();
 }
 
-function wName(i) { return wName(i) || ('Leva '+(i+1)); }
+function wName(i) { return WAVE_NAMES[i] || ('Leva '+(i+1)); }
 function renderWaveCards() {
   // Ensure WAVE_NAMES is always in sync with WAVES length
   while (WAVE_NAMES.length < WAVES.length) WAVE_NAMES.push('Leva '+(WAVE_NAMES.length+1));
