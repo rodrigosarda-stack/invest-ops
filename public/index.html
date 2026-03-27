@@ -600,7 +600,8 @@ canvas{max-height:250px!important}
     <div class="sb-block">
       <div class="sb-header-block"><span>Funil e Churn</span></div>
       <div class="sb-content-block">
-        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Conversão<span class="tip-icon" data-tip="Percentual de reuniões que viram clientes. Taxa de fechamento do closer.">?</span></span></label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comparecimento<span class="tip-icon" data-tip="Taxa de show-rate: percentual de agendamentos que realmente viram reuniões realizadas. Desconta no-shows, cancelamentos e remarcações.">?</span></span></label><input type="range" id="show" min="30" max="100" value="80" step="5"><span class="rv" id="show-v">80%</span></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Conversão<span class="tip-icon" data-tip="Percentual de reuniões realizadas que viram clientes. Taxa de fechamento do closer.">?</span></span></label><input type="range" id="conv" min="10" max="80" value="35" step="1"><span class="rv" id="conv-v">35%</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Churn mensal<span class="tip-icon" data-tip="Taxa mensal de cancelamento: percentual de clientes que cancelam por mês. Se 5%, a cada 100 clientes, 5 saem.">?</span></span></label><input type="range" id="churn" min="0" max="15" value="5" step="0.5"><span class="rv" id="churn-v">5%</span></div>
       </div>
     </div>
@@ -1101,7 +1102,7 @@ function getRaw() {
     ssal:el('ssal-n').value,csal:el('csal-n').value,gsal:el('gsal-n').value,
     sded:el('sded').value,cded:el('cded').value,gded:el('gded').value,
     scom:el('scom').value,scomv:el('scomv').value,ccom:el('ccom').value,gcom:el('gcom').value,
-    gon:el('gon').checked,conv:el('conv').value,
+    gon:el('gon').checked,show:el('show').value,conv:el('conv').value,
     tkm:el('tkm-n').value,perm:el('perm-n').value,
     mprod:el('mprod').value,fisc:el('fisc').value,
     churn:el('churn').value,train:el('train').value,accel:el('accel').value,
@@ -1115,7 +1116,7 @@ function applyRaw(r) {
   sv('gsal',r.gsal);sv('gsal-n',r.gsal);
   sv('sded',r.sded);sv('cded',r.cded);sv('gded',r.gded);
   sv('scom',r.scom);sv('scomv',r.scomv||'0');sv('ccom',r.ccom);sv('gcom',r.gcom);
-  sv('conv',r.conv);sv('tkm',r.tkm);sv('tkm-n',r.tkm);sv('perm',r.perm);sv('perm-n',r.perm);
+  sv('show',r.show||'80');sv('conv',r.conv);sv('tkm',r.tkm);sv('tkm-n',r.tkm);sv('perm',r.perm);sv('perm-n',r.perm);
   sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('train',r.train||'1');sv('accel',r.accel||'2');
   el('gon').checked=r.gon!==false&&r.gon!=='false';
   el('fundador').checked=r.fundador===true;
@@ -1202,6 +1203,7 @@ function getP() {
     sded:parseFloat(el('sded').value), cded:parseFloat(el('cded').value), gded:parseFloat(el('gded').value),
     scom:parseInt(el('scom').value), scomv:parseInt(el('scomv').value)||0, ccom:parseInt(el('ccom').value), gcom:parseInt(el('gcom').value),
     gon:el('gon').checked,
+    show:parseInt(el('show').value)/100,
     conv:parseInt(el('conv').value)/100,
     tkm:Math.max(100,parseInt(el('tkm-n').value)||800),
     perm:Math.max(1,parseInt(el('perm-n').value)||16),
@@ -1215,7 +1217,7 @@ function getP() {
 function calcFromP(p) {
   var ag = p.sdrs * p.rsdr * WEEKS;
   var cap = p.clos * p.rclo * 5 * WEEKS;
-  var au = Math.min(ag, cap);
+  var au = Math.round(Math.min(ag, cap) * (p.show || 1));
   var cl = Math.round(au * p.conv);
   var se = salE(p.ssal, p.sded) * p.sdrs;
   var ce = salE(p.csal, p.cded) * p.clos;
@@ -1296,6 +1298,7 @@ function render() {
   el('scomv-v').textContent = 'R$'+(p.scomv||0);
   el('ccom-v').textContent = 'R$'+p.ccom;
   el('gcom-v').textContent = 'R$'+p.gcom;
+  el('show-v').textContent = Math.round(p.show*100)+'%';
   el('conv-v').textContent = Math.round(p.conv*100)+'%';
   el('mprod-v').textContent = p.mprod+'%';
   el('fisc-v').textContent = p.fisc+'%';
@@ -1319,7 +1322,7 @@ function render() {
   var pbClsK = cls==='ac'?'green hl':cls==='wn'?'yellow wn':'red dg';
   var ltvCacCls = r.ltvMarginCac >= 3 ? 'green hl' : r.ltvMarginCac >= 2 ? 'yellow wn' : 'red dg';
   el('kpis').innerHTML =
-    mkKpi('Clientes/mês <span class=\"tip-icon\" data-tip=\"Novos clientes/mês. Calculado: reuniões totais × taxa de conversão.\">?</span>', r.cl, r.au+' reun. × '+Math.round(p.conv*100)+'%', '') +
+    mkKpi('Clientes/mês <span class=\"tip-icon\" data-tip=\"Novos clientes/mês. Calculado: reuniões realizadas × taxa de conversão. Reuniões = agendamentos × comparecimento.\">?</span>', r.cl, r.ag+' agend × '+Math.round(p.show*100)+'% show → '+r.au+' reun × '+Math.round(p.conv*100)+'% conv', '') +
     mkKpi('CAC <span class=\"tip-icon\" data-tip=\"Custo de Aquisição de Cliente. Custos totais da squad ÷ clientes/mês.\">?</span>', 'R$ '+fmt(r.cac), 'máx. recomendado: R$'+fmt(r.cacMax), r.cac>r.cacMax?'red dg':'') +
     mkKpi('Payback real <span class=\"tip-icon\" data-tip=\"Meses até recuperar o CAC com a margem do cliente. Quanto menor, melhor.\">?</span>', fmtPB(r.pb), r.pb<=6?'excelente (<6m)':r.pb<=10?'aceitável':'alto', pbClsK) +
     mkKpi('MRR gerado <span class=\"tip-icon\" data-tip=\"Receita Recorrente Mensal: novos clientes × ticket médio.\">?</span>', 'R$ '+fmt(r.mrr), 'margem: R$'+fmt(r.margemContrib*r.cl)+'/mês', '') +
@@ -2168,7 +2171,7 @@ function newProfile(){
   if(!confirm('Limpar tudo e começar do zero?'))return;
   SCENARIOS=[null];SC_DURATIONS=[6];CUR_SC=0;LOADED_P=null;
   // Reset all inputs to defaults
-  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,scomv:0,ccom:500,gcom:0,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
+  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,scomv:0,ccom:500,gcom:0,show:80,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
   applyRaw(defs);el('gon').checked=true;
   SCENARIOS[0]=getRaw();
   renderTabs();renderTimelineConfig();renderPs();render();
