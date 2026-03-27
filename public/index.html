@@ -1460,6 +1460,9 @@ function drawFunnel(p, r) {
   // r.ag, r.au, r.cl já vêm de calcFromP (steady-state, sem ramp)
   // getRampedN aplica ramp sobre r.cl → usamos o mesmo fator para ag e au
 
+  var acumArr = [];  // clientes ativos acumulados (com churn)
+  var cohorts = [];
+
   for (var m = 1; m <= H; m++) {
     labels.push('M' + m);
 
@@ -1472,9 +1475,18 @@ function drawFunnel(p, r) {
     var ag_m = Math.round(r.ag * rampF);
     var au_m = Math.round(r.au * rampF);
 
+    // Acumular clientes ativos com churn (mesma lógica de cohorts do modelo)
+    cohorts.push({ month: m, N: cl_m });
+    var ativos = 0;
+    for (var i = 0; i < cohorts.length; i++) {
+      var age = m - cohorts[i].month;
+      if (age < p.perm) ativos += cohorts[i].N * Math.pow(1 - p.churn, age);
+    }
+
     agArr.push(ag_m);
     auArr.push(au_m);
     clArr.push(cl_m);
+    acumArr.push(Math.round(ativos));
   }
 
   var totalRamp = (p.train || 0) + (p.accel || 0);
@@ -1482,11 +1494,13 @@ function drawFunnel(p, r) {
   // legend
   var legEl = el('funnel-leg');
   if (legEl) legEl.innerHTML = [
-    {c: gc('blue'), l: 'Agendamentos'},
-    {c: gc('ln'), l: 'Reuniões'},
-    {c: gc('bAct'), l: 'Vendas'}
+    {c: gc('blue'), l: 'Agendamentos', t: 'd'},
+    {c: gc('ln'), l: 'Reuniões', t: 'd'},
+    {c: gc('bAct'), l: 'Vendas', t: 'd'},
+    {c: gc('lnAc'), l: 'Clientes ativos', t: 'l'}
   ].map(function(it) {
-    return '<span class="li"><span class="ld" style="background:' + it.c + '"></span>' + it.l + '</span>';
+    var dot = it.t === 'l' ? '<span class="ll2" style="background:' + it.c + '"></span>' : '<span class="ld" style="background:' + it.c + '"></span>';
+    return '<span class="li">' + dot + it.l + '</span>';
   }).join('');
 
   // subtitle com valores steady-state direto de calcFromP
@@ -1502,9 +1516,12 @@ function drawFunnel(p, r) {
     data: {
       labels: labels,
       datasets: [
-        { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Reuniões', data: auArr, backgroundColor: gc('ln'), borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Vendas', data: clArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32 }
+        { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
+        { label: 'Reuniões', data: auArr, backgroundColor: gc('ln'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
+        { label: 'Vendas', data: clArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32, yAxisID: 'y' },
+        { label: 'Clientes ativos', data: acumArr, type: 'line', borderColor: gc('lnAc'), backgroundColor: 'transparent',
+          borderWidth: 2.5, tension: .3, pointRadius: acumArr.map(function(_, i) { return i === H - 1 ? 5 : 2; }),
+          pointBackgroundColor: gc('lnAc'), yAxisID: 'y2', order: -1 }
       ]
     },
     options: {
@@ -1512,7 +1529,10 @@ function drawFunnel(p, r) {
       plugins: {
         legend: { display: false },
         tooltip: { mode: 'index', callbacks: {
-          label: function(ctx) { return ctx.dataset.label + ': ' + ctx.raw; },
+          label: function(ctx) {
+            if (ctx.dataset.label === 'Clientes ativos') return 'Clientes ativos: ' + ctx.raw;
+            return ctx.dataset.label + ': ' + ctx.raw;
+          },
           footer: function(items) {
             var ag = items[0] ? items[0].raw : 0;
             var au = items[1] ? items[1].raw : 0;
@@ -1520,14 +1540,16 @@ function drawFunnel(p, r) {
             if (ag === 0) return ['Squad em treinamento'];
             var convR = au > 0 ? Math.round(cl / au * 100) : 0;
             var capR = ag > 0 ? Math.round(au / ag * 100) : 0;
-            return ['Aprov. closer: ' + capR + '% · Conv: ' + convR + '%'];
+            return ['Show: ' + capR + '% · Conv: ' + convR + '%'];
           }
         }}
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' } } },
-        y: { grid: { color: gc('grid') }, beginAtZero: true,
-          ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' } } }
+        y: { position: 'left', grid: { color: gc('grid') }, beginAtZero: true,
+          ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' } } },
+        y2: { position: 'right', grid: { display: false }, beginAtZero: true,
+          ticks: { color: gc('lnAc'), font: { size: 10, family: 'Inter' } } }
       }
     }
   });
