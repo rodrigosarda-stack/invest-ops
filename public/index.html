@@ -1791,7 +1791,7 @@ function drawOp(p, r) {
     acum+=rec-Math.round(sp)-Math.round(sc)-Math.round(sf)-sq;
     rec_arr.push(rec);sprod_arr.push(Math.round(sp));sfis_arr.push(Math.round(sf));squad_arr.push(sq);scac_arr.push(Math.round(sc));acum_arr.push(Math.round(acum));
   }
-  var be=-1;for(var bi=0;bi<acum_arr.length;bi++){if(acum_arr[bi]>=0&&be===-1)be=bi+1;}
+  var be=-1,wn2=false;for(var bi=0;bi<acum_arr.length;bi++){if(acum_arr[bi]<0)wn2=true;if(wn2&&acum_arr[bi]>=0&&be===-1)be=bi+1;}
   setLeg([{c:gc('g1'),l:'Receita',t:'d'},{c:gc('r1'),l:'Squad',t:'d'},{c:gc('r2'),l:'Produção',t:'d'},{c:gc('pu'),l:'Fiscal',t:'d'},{c:gc('r3'),l:'CAC cohort',t:'d'},{c:gc('lnAc'),l:'Acumulado',t:'l'}]);
   el('csub').textContent='Operação · '+H+' meses · '+r.cl+' cl/mês (pós-ramp) · churn '+Math.round(chr*100)+'% · breakeven: '+(be>0?'M'+be:'além');
   if(C2)C2.destroy();
@@ -1961,9 +1961,10 @@ function renderTimeline() {
     acum_arr.push(Math.round(acum));
   }
 
-  var be = -1;
+  var be = -1, wentNeg = false;
   for (var bi = 0; bi < acum_arr.length; bi++) {
-    if (acum_arr[bi] >= 0 && be === -1) be = bi + 1;
+    if (acum_arr[bi] < 0) wentNeg = true;
+    if (wentNeg && acum_arr[bi] >= 0 && be === -1) be = bi + 1;
   }
 
   // Build chart datasets — stacked per-wave bars
