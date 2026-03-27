@@ -1192,12 +1192,13 @@ function getWaveFromSidebar() {
   };
 }
 // Apply wave-specific overrides to sidebar (keep global defaults for other params)
+var _applyingWave = false;
 function applyWaveToSidebar(wave) {
   if(!wave) return;
-  if(wave.sdrs !== undefined) { el('sdrs').value = wave.sdrs; el('sdrs').dispatchEvent(new Event('input')); }
-  if(wave.clos !== undefined) { el('clos').value = wave.clos; el('clos').dispatchEvent(new Event('input')); }
-  if(wave.train !== undefined) { el('train').value = wave.train; }
-  if(wave.accel !== undefined) { el('accel').value = wave.accel; }
+  _applyingWave = true;
+  if(wave.sdrs !== undefined) { el('sdrs').value = wave.sdrs; el('sdrs-v').textContent = wave.sdrs; }
+  if(wave.clos !== undefined) { el('clos').value = wave.clos; el('clos-v').textContent = wave.clos; }
+  _applyingWave = false;
 }
 
 // ─── SYNC SLIDER + NUMBER ────────────────────────────────────
@@ -1887,20 +1888,17 @@ function renderTimeline() {
 
   if (total <= 0 || WAVES.length === 0) { el('tl-summary').textContent = 'Configure as ondas acima.'; return; }
 
-  // Save current wave before mutating sidebar
+  // Build per-wave params: merge wave SDRs/Closers with sidebar globals (no sidebar mutation)
   WAVES[CUR_WAVE] = getWaveFromSidebar();
-  var savedSdrs = el('sdrs').value, savedClos = el('clos').value;
-
-  // Build per-wave params: merge wave's SDRs/Closers with sidebar globals
+  var globalP = getP();
   var waveParams = [], waveCalc = [];
   for (var wi = 0; wi < WAVES.length; wi++) {
-    applyWaveToSidebar(WAVES[wi]);
-    var wp = getP();
+    var wp = JSON.parse(JSON.stringify(globalP));
+    if (WAVES[wi].sdrs !== undefined) wp.sdrs = WAVES[wi].sdrs;
+    if (WAVES[wi].clos !== undefined) wp.clos = WAVES[wi].clos;
     waveParams.push(wp);
     waveCalc.push(calcFromP(wp));
   }
-  // Restore sidebar to current wave
-  el('sdrs').value = savedSdrs; el('clos').value = savedClos;
 
   // Per-wave revenue/cost tracking for stacked chart
   var wRec = [], wCost = [];
@@ -2096,16 +2094,16 @@ function renderInvestment() {
     return;
   }
 
-  // Build per-wave params (same pattern as renderTimeline)
-  var savedSdrs2 = el('sdrs').value, savedClos2 = el('clos').value;
+  // Build per-wave params: merge wave SDRs/Closers with sidebar globals (no sidebar mutation)
+  var globalP2 = getP();
   var waveParams = [], waveCalc = [];
   for (var wi = 0; wi < WAVES.length; wi++) {
-    applyWaveToSidebar(WAVES[wi]);
-    var wp = getP();
+    var wp = JSON.parse(JSON.stringify(globalP2));
+    if (WAVES[wi].sdrs !== undefined) wp.sdrs = WAVES[wi].sdrs;
+    if (WAVES[wi].clos !== undefined) wp.clos = WAVES[wi].clos;
     waveParams.push(wp);
     waveCalc.push(calcFromP(wp));
   }
-  el('sdrs').value = savedSdrs2; el('clos').value = savedClos2;
 
   var cohorts = [];
   var netFlows = [];
