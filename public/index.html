@@ -846,13 +846,14 @@ canvas{max-height:250px!important}
 var WEEKS = 4.33, FD = 8, BASE_CONV = 0.35;
 var VIEW = 'ind', LOADED_P = null;
 var C1 = null, C2 = null, C3 = null, CF = null;
-var CUR_SC = 0;
-var MAX_SCENARIOS = 8;
-var SC_LETTERS = ['A','B','C','D','E','F','G','H'];
+var CUR_WAVE = 0;
+var MAX_WAVES = 8;
+var WAVE_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2'];
 
-// Dynamic scenario storage
-var SCENARIOS = [null];
-var SC_DURATIONS = [6];
+// Wave storage: each wave contains {startMonth, sdrs, clos, train?, accel?}
+// Global defaults (sidebar params) apply to all waves
+var WAVES = [{ startMonth: 1 }];
+var WAVE_NAMES = ['Leva 1'];
 
 // ─── UTILS ───────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
@@ -915,105 +916,101 @@ function setView(v) {
   render();
 }
 
-// ─── SCENARIO MANAGEMENT ─────────────────────────────────────
-function switchSc(idx) {
-  SCENARIOS[CUR_SC] = getRaw();
-  CUR_SC = idx;
-  if (SCENARIOS[idx]) applyRaw(SCENARIOS[idx]);
-  var tabs = document.querySelectorAll('.sc-tab:not(.sc-tab-add)');
-  tabs.forEach(function(t,i){ t.classList.toggle('active',i===idx); });
+// ─── WAVE MANAGEMENT ────────────────────────────────────────
+function switchWave(idx) {
+  // Save current wave's SDR/closer overrides
+  WAVES[CUR_WAVE] = getWaveFromSidebar();
+  CUR_WAVE = idx;
+  // Apply wave-specific overrides
+  if (WAVES[idx]) applyWaveToSidebar(WAVES[idx]);
+  var tabs = document.querySelectorAll('.wave-card');
+  tabs.forEach(function(t,i){ t.classList.toggle('active', i===idx); });
   render();
 }
 
-function addScenario() {
-  if (SCENARIOS.length >= MAX_SCENARIOS) return;
-  SCENARIOS[CUR_SC] = getRaw();
-  SCENARIOS.push(getRaw()); // clone current params
-  SC_DURATIONS.push(6);
-  CUR_SC = SCENARIOS.length - 1;
-  renderTabs();
-  renderTimelineConfig();
+function addWave() {
+  if (WAVES.length >= MAX_WAVES) return;
+  // Calculate startMonth for new wave (after last wave's start)
+  var lastStartMonth = WAVES[WAVES.length - 1] ? WAVES[WAVES.length - 1].startMonth : 1;
+  var newWave = {
+    startMonth: lastStartMonth + 3,
+    sdrs: parseInt(el('sdrs').value),
+    clos: parseInt(el('clos').value)
+  };
+  WAVES.push(newWave);
+  WAVE_NAMES.push('Leva ' + WAVES.length);
+  CUR_WAVE = WAVES.length - 1;
+  renderWaveCards();
+  renderWaveConfig();
   render();
 }
 
-function removeScenario(idx) {
-  if (SCENARIOS.length <= 1) return;
-  SCENARIOS.splice(idx, 1);
-  SC_DURATIONS.splice(idx, 1);
-  if (CUR_SC >= SCENARIOS.length) CUR_SC = SCENARIOS.length - 1;
-  else if (CUR_SC > idx) CUR_SC--;
-  else if (CUR_SC === idx) { CUR_SC = Math.min(idx, SCENARIOS.length - 1); if (SCENARIOS[CUR_SC]) applyRaw(SCENARIOS[CUR_SC]); }
-  renderTabs();
-  renderTimelineConfig();
+function removeWave(idx) {
+  if (WAVES.length <= 1) return;
+  WAVES.splice(idx, 1);
+  WAVE_NAMES.splice(idx, 1);
+  if (CUR_WAVE >= WAVES.length) CUR_WAVE = WAVES.length - 1;
+  else if (CUR_WAVE > idx) CUR_WAVE--;
+  else if (CUR_WAVE === idx) {
+    CUR_WAVE = Math.min(idx, WAVES.length - 1);
+    if (WAVES[CUR_WAVE]) applyWaveToSidebar(WAVES[CUR_WAVE]);
+  }
+  renderWaveCards();
+  renderWaveConfig();
   render();
 }
 
-function renderTabs() {
+function renderWaveCards() {
   var container = el('sc-tabs');
   var html = '';
-  for (var i = 0; i < SCENARIOS.length; i++) {
-    var colorIdx = (i % 8) + 1;
-    html += '<div class="sc-tab'+(i===CUR_SC?' active':'')+'" draggable="true" data-idx="'+i+'" onclick="switchSc('+i+')">'+
-      '<span class="sc-dot" style="background:'+gc('p'+colorIdx)+'"></span>Cenário '+SC_LETTERS[i]+
-      (SCENARIOS.length > 1 ? '<span class="sc-close" onclick="event.stopPropagation();removeScenario('+i+')">×</span>' : '')+
+  for (var i = 0; i < WAVES.length; i++) {
+    var wave = WAVES[i];
+    var color = WAVE_COLORS[i % WAVE_COLORS.length];
+    html += '<div class="sc-tab'+(i===CUR_WAVE?' active':'')+'" data-idx="'+i+'" onclick="switchWave('+i+')">'+
+      '<span class="sc-dot" style="background:'+color+'"></span>'+WAVE_NAMES[i]+
+      ' <span style="opacity:.6;font-size:9px">(M'+(wave.startMonth||1)+' · '+(wave.sdrs||el('sdrs').value)+'SDR+'+(wave.clos||el('clos').value)+'CL)</span>'+
+      (WAVES.length > 1 ? '<span class="sc-close" onclick="event.stopPropagation();removeWave('+i+')">×</span>' : '')+
       '</div>';
   }
-  if (SCENARIOS.length < MAX_SCENARIOS) {
-    html += '<div class="sc-tab sc-tab-add" onclick="addScenario()">+</div>';
+  if (WAVES.length < MAX_WAVES) {
+    html += '<div class="sc-tab sc-tab-add" onclick="addWave()">+</div>';
   }
   container.innerHTML = html;
-  // Attach drag handlers
-  var tabs = container.querySelectorAll('.sc-tab:not(.sc-tab-add)');
-  tabs.forEach(function(tab) {
-    tab.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text/plain', tab.getAttribute('data-idx')); tab.classList.add('dragging'); });
-    tab.addEventListener('dragend', function() { tab.classList.remove('dragging'); });
-    tab.addEventListener('dragover', function(e) { e.preventDefault(); tab.classList.add('drag-over'); });
-    tab.addEventListener('dragleave', function() { tab.classList.remove('drag-over'); });
-    tab.addEventListener('drop', function(e) {
-      e.preventDefault();
-      tab.classList.remove('drag-over');
-      var from = parseInt(e.dataTransfer.getData('text/plain'));
-      var to = parseInt(tab.getAttribute('data-idx'));
-      if (from === to) return;
-      // Swap in arrays
-      var tmpSc = SCENARIOS[from]; SCENARIOS[from] = SCENARIOS[to]; SCENARIOS[to] = tmpSc;
-      var tmpDur = SC_DURATIONS[from]; SC_DURATIONS[from] = SC_DURATIONS[to]; SC_DURATIONS[to] = tmpDur;
-      if (CUR_SC === from) CUR_SC = to; else if (CUR_SC === to) CUR_SC = from;
-      renderTabs();
-      renderTimelineConfig();
-      render();
-    });
-  });
 }
 
-function renderTimelineConfig() {
+function renderWaveConfig() {
   var container = el('tl-config');
   var html = '';
-  for (var i = 0; i < SCENARIOS.length; i++) {
-    var colorIdx = (i % 8) + 1;
-    var dur = SC_DURATIONS[i] || 6;
+  for (var i = 0; i < WAVES.length; i++) {
+    var wave = WAVES[i];
+    var color = WAVE_COLORS[i % WAVE_COLORS.length];
     html += '<div style="display:flex;align-items:center;gap:6px">'+
-      '<span class="sc-dot" style="background:'+gc('p'+colorIdx)+';width:8px;height:8px;border-radius:50%;display:inline-block"></span>'+
-      '<label><span class="tip" style="display:inline-flex;align-items:center;">Cenário '+SC_LETTERS[i]+':<span class="tip-icon" data-tip="Quantos meses o cenário '+SC_LETTERS[i]+' fica ativo antes de passar para o próximo.">?</span></span></label>'+
-      '<input type="number" id="tl-'+i+'" value="'+dur+'" min="0" max="36" style="width:42px"> <span class="rv dim">meses</span></div>';
+      '<span class="sc-dot" style="background:'+color+';width:8px;height:8px;border-radius:50%;display:inline-block"></span>'+
+      '<label><span class="tip" style="display:inline-flex;align-items:center;">'+WAVE_NAMES[i]+' começa em:<span class="tip-icon" data-tip="Mês em que essa leva de contratação começa.">?</span></span></label>'+
+      '<input type="number" id="tl-'+i+'" value="'+wave.startMonth+'" min="1" max="36" style="width:42px"> <span class="rv dim">mês</span></div>';
   }
-  html += '<span class="rv" id="tl-total" style="color:var(--accent)"></span>';
+  html += '<span class="rv" id="tl-total" style="color:var(--accent)">Duração total de operação</span>';
   container.innerHTML = html;
   // Attach change listeners
-  for (var j = 0; j < SCENARIOS.length; j++) {
+  for (var j = 0; j < WAVES.length; j++) {
     (function(idx){
       el('tl-'+idx).addEventListener('change', function() {
-        SC_DURATIONS[idx] = parseInt(this.value) || 0;
+        WAVES[idx].startMonth = Math.max(1, parseInt(this.value) || 1);
         renderTimeline(); renderInvestment();
       });
     })(j);
   }
-  updateTlTotal();
 }
 
-function getDurations() { return SC_DURATIONS.slice(0, SCENARIOS.length); }
-function getTotalDuration() { return getDurations().reduce(function(a,b){return a+b;},0); }
-function updateTlTotal() { var te = el('tl-total'); if(te) te.textContent = '= '+getTotalDuration()+' meses'; }
+function getMaxWaveMonth() {
+  // Last wave's startMonth + 11 (so it gets at least 12 months of operation)
+  var maxStart = 0;
+  for (var i = 0; i < WAVES.length; i++) {
+    maxStart = Math.max(maxStart, WAVES[i].startMonth);
+  }
+  return Math.max(12, maxStart + 11);
+}
+function getTotalDuration() { return getMaxWaveMonth(); }
 
 // ─── SEGMENT PRESETS & FUNDADOR ──────────────────────────────
 function setSegmento(tkm, perm) {
@@ -1034,8 +1031,55 @@ function toggleFundador() {
 }
 
 // ─── PROFILES (COLLECTION SAVE) ──────────────────────────────
-function getPs() { try{return JSON.parse(localStorage.getItem('m3a-p11')||'[]');}catch(e){return [];} }
-function setPs(p) { try{localStorage.setItem('m3a-p11',JSON.stringify(p));}catch(e){} }
+function getPs() {
+  try {
+    var stored = localStorage.getItem('m3a-p11');
+    if (!stored) return [];
+    var data = JSON.parse(stored);
+    // Migrate v1 (sequential scenarios) → v2 (waves)
+    if (data.length > 0 && !data.version) {
+      data = migrateProfilesV1toV2(data);
+      setPs(data); // auto-save migrated format
+    }
+    return data;
+  } catch(e) { return []; }
+}
+function setPs(p) {
+  try {
+    // Ensure version is set
+    if (p && !p.version) { p.version = 2; }
+    localStorage.setItem('m3a-p11', JSON.stringify(p));
+  } catch(e) {}
+}
+// Migrate v1 profiles (sc/dur/cur fields) → v2 (waves field)
+function migrateProfilesV1toV2(v1profiles) {
+  return v1profiles.map(function(p) {
+    if (p.waves) return p; // Already v2
+    // Convert v1 scenario array into v2 wave array
+    var waves = [];
+    if (p.sc && p.sc.length > 0) {
+      var startM = 1;
+      for (var i = 0; i < p.sc.length; i++) {
+        var wave = {
+          startMonth: startM,
+          sdrs: p.sc[i].sdrs,
+          clos: p.sc[i].clos,
+          train: p.sc[i].train,
+          accel: p.sc[i].accel
+        };
+        waves.push(wave);
+        startM += (p.dur && p.dur[i]) || 6; // advance by wave duration
+      }
+    }
+    return {
+      n: p.n,
+      waves: waves.length > 0 ? waves : [{startMonth: 1, sdrs: 4, clos: 1}],
+      globalParams: p.sc && p.sc[0] ? p.sc[0] : {}, // save first scenario's globals as defaults
+      cur: 0,
+      version: 2
+    };
+  });
+}
 function renderPs() {
   var ps = getPs(), el2 = el('plist');
   if (!ps.length) { el2.innerHTML='<span class="no-p">Nenhum perfil salvo.</span>'; return; }
@@ -1049,21 +1093,37 @@ function closeM(){el('modal').classList.remove('open');}
 el('pname').addEventListener('keydown',function(e){if(e.key==='Enter')saveP();if(e.key==='Escape')closeM();});
 function saveP(){
   var n=el('pname').value.trim();if(!n)return;
-  SCENARIOS[CUR_SC]=getRaw();
-  var ps=getPs();ps.push({n:n,sc:SCENARIOS.slice(),dur:SC_DURATIONS.slice(),cur:CUR_SC});setPs(ps);
+  // Save current wave overrides (sdrs, clos, train, accel)
+  if(WAVES[CUR_WAVE]) {
+    WAVES[CUR_WAVE].sdrs = parseInt(el('sdrs').value);
+    WAVES[CUR_WAVE].clos = parseInt(el('clos').value);
+    if(el('train').value) WAVES[CUR_WAVE].train = parseFloat(el('train').value);
+    if(el('accel').value) WAVES[CUR_WAVE].accel = parseInt(el('accel').value);
+  }
+  var ps=getPs();
+  ps.push({
+    n:n,
+    waves:WAVES.slice(),
+    globalParams:getRaw(),
+    cur:CUR_WAVE,
+    version:2
+  });
+  setPs(ps);
   LOADED_P=ps.length-1;renderPs();closeM();
 }
 function loadP(i){
   var ps=getPs();if(!ps[i])return;LOADED_P=i;
-  SCENARIOS=ps[i].sc.slice();
-  SC_DURATIONS=ps[i].dur?ps[i].dur.slice():[6];
-  // Ensure SC_DURATIONS matches SCENARIOS length
-  while(SC_DURATIONS.length<SCENARIOS.length) SC_DURATIONS.push(6);
-  CUR_SC=ps[i].cur||0;
-  if(CUR_SC>=SCENARIOS.length)CUR_SC=0;
-  if(SCENARIOS[CUR_SC])applyRaw(SCENARIOS[CUR_SC]);
-  renderTabs();
-  renderTimelineConfig();
+  var profile = ps[i];
+  // Load v2 format (waves + globalParams)
+  WAVES = profile.waves ? profile.waves.slice() : [{startMonth: 1, sdrs: 4, clos: 1}];
+  CUR_WAVE = profile.cur || 0;
+  if(CUR_WAVE >= WAVES.length) CUR_WAVE = 0;
+  // Apply global params as defaults
+  if(profile.globalParams) applyRaw(profile.globalParams);
+  // Apply wave-specific overrides
+  if(WAVES[CUR_WAVE]) applyWaveToSidebar(WAVES[CUR_WAVE]);
+  renderWaveCards();
+  renderWaveConfig();
   renderPs();render();
 }
 function delP(e,i){e.stopPropagation();var ps=getPs();ps.splice(i,1);setPs(ps);if(LOADED_P===i)LOADED_P=null;else if(LOADED_P>i)LOADED_P--;renderPs();}
@@ -1076,7 +1136,7 @@ function renderPresets() {
   if (!ps.length) { container.innerHTML=''; return; }
   container.innerHTML = '<span style="font-family:\'DM Mono\',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-right:4px">Presets:</span>'+
     ps.map(function(p,i){
-      return '<span class="chip" onclick="loadPreset('+i+')" title="Carregar no cenário '+SC_LETTERS[CUR_SC]+'">'+p.n+'<span class="x" onclick="delPreset(event,'+i+')">×</span></span>';
+      return '<span class="chip" onclick="loadPreset('+i+')" title="Carregar no '+WAVE_NAMES[CUR_WAVE]+'">'+p.n+'<span class="x" onclick="delPreset(event,'+i+')">×</span></span>';
     }).join('');
 }
 function openPresetM(){el('modal-preset').classList.add('open');el('preset-name').value='';setTimeout(function(){el('preset-name').focus();},100);}
@@ -1089,7 +1149,6 @@ function savePreset(){
 }
 function loadPreset(i){
   var ps=getPresets();if(!ps[i])return;
-  SCENARIOS[CUR_SC]=ps[i].data;
   applyRaw(ps[i].data);
   render();
 }
@@ -1120,6 +1179,25 @@ function applyRaw(r) {
   sv('mprod',r.mprod);sv('fisc',r.fisc);sv('churn',r.churn||'5');sv('train',r.train!=null?r.train:'1');sv('accel',r.accel!=null?r.accel:'2');
   el('gon').checked=r.gon!==false&&r.gon!=='false';
   el('fundador').checked=r.fundador===true;
+}
+
+// ─── WAVE-SPECIFIC HELPERS ──────────────────────────────────
+// Extract wave-specific overrides from sidebar (sdrs, clos, train, accel only)
+function getWaveFromSidebar() {
+  var w = WAVES[CUR_WAVE] || {};
+  return {
+    startMonth: w.startMonth || 1,
+    sdrs: parseInt(el('sdrs').value),
+    clos: parseInt(el('clos').value)
+  };
+}
+// Apply wave-specific overrides to sidebar (keep global defaults for other params)
+function applyWaveToSidebar(wave) {
+  if(!wave) return;
+  if(wave.sdrs !== undefined) { el('sdrs').value = wave.sdrs; el('sdrs').dispatchEvent(new Event('input')); }
+  if(wave.clos !== undefined) { el('clos').value = wave.clos; el('clos').dispatchEvent(new Event('input')); }
+  if(wave.train !== undefined) { el('train').value = wave.train; }
+  if(wave.accel !== undefined) { el('accel').value = wave.accel; }
 }
 
 // ─── SYNC SLIDER + NUMBER ────────────────────────────────────
@@ -1284,8 +1362,8 @@ function mkBk(l,v,n){ return '<div class="bk"><div class="bkl">'+l+'</div><div c
 // ─── MAIN RENDER ─────────────────────────────────────────────
 function render() {
   var p = getP();
-  // Save to current scenario
-  SCENARIOS[CUR_SC] = getRaw();
+  // Save to current wave
+  WAVES[CUR_WAVE] = getWaveFromSidebar();
 
   // Display values
   el('sdrs-v').textContent = p.sdrs;
@@ -1408,7 +1486,7 @@ function render() {
   } else {
     msg = 'Caixa da operação com cohorts + churn. Breakeven = caixa acumulado cruza zero.';
   }
-  el('cbox').innerHTML = '<strong>Fluxo de caixa (cenário '+SC_LETTERS[CUR_SC]+'):</strong> '+msg;
+  el('cbox').innerHTML = '<strong>Fluxo de caixa ('+WAVE_NAMES[CUR_WAVE]+'):</strong> '+msg;
 
   // Timeline
   renderTimeline();
@@ -1773,57 +1851,33 @@ function setLeg(items){
   }).join('');
 }
 
-// ─── TIMELINE BUILDER ────────────────────────────────────────
-function getScParams(idx) {
-  var raw = SCENARIOS[idx];
-  if (!raw) return null;
-  return {
-    sdrs:parseInt(raw.sdrs)||4, clos:parseInt(raw.clos)||1,
-    rsdr:parseInt(raw.rsdr)||6, rclo:parseInt(raw.rclo)||6,
-    ssal:Math.max(100,parseInt(raw.ssal)||4500),
-    csal:Math.max(100,parseInt(raw.csal)||4500),
-    gsal:Math.max(100,parseInt(raw.gsal)||6000),
-    sded:parseFloat(raw.sded)||8, cded:parseFloat(raw.cded)||8, gded:parseFloat(raw.gded)||8,
-    scom:parseInt(raw.scom)||60, scomv:parseInt(raw.scomv)||0, ccom:parseInt(raw.ccom)||500, gcom:parseInt(raw.gcom)||0,
-    gon:raw.gon!==false&&raw.gon!=='false',
-    show:(parseInt(raw.show)||80)/100,
-    conv:(parseInt(raw.conv)||35)/100,
-    tkm:Math.max(100,parseInt(raw.tkm)||800),
-    perm:Math.max(1,parseInt(raw.perm)||16),
-    mprod:parseInt(raw.mprod)||45, fisc:parseFloat(raw.fisc)||8,
-    churn:(parseFloat(raw.churn)||3)/100,
-    train:raw.train!=null?parseFloat(raw.train):1,
-    accel:raw.accel!=null?parseInt(raw.accel):2
-  };
-}
-
+// ─── TIMELINE ────────────────────────────────────────────────
 function renderTimeline() {
-  var durations = getDurations();
-  var nSc = durations.length;
   var total = getTotalDuration();
-  updateTlTotal();
 
-  // Timeline bar
+  // Timeline bar - show active waves
   var bar = el('tl-bar');
   var segs = '';
-  var mCount = 0;
-  for (var s = 0; s < nSc; s++) {
-    if (durations[s] <= 0) continue;
-    var ci = (s % 8) + 1;
-    var pct = (durations[s] / total * 100).toFixed(1);
-    segs += '<div class="tl-seg" style="width:'+pct+'%;background:'+gc('p'+ci+'d')+';color:'+gc('p'+ci)+';border-right:1px solid var(--border)">'+
-      SC_LETTERS[s]+' · '+durations[s]+'m'+
-      '<span class="tl-m">M'+(mCount+1)+'–M'+(mCount+durations[s])+'</span></div>';
-    mCount += durations[s];
+  var minStart = Math.min.apply(null, WAVES.map(function(w){ return w.startMonth; }));
+  var maxStart = Math.max.apply(null, WAVES.map(function(w){ return w.startMonth; }));
+  for (var w = 0; w < WAVES.length; w++) {
+    var wave = WAVES[w];
+    var color = WAVE_COLORS[w % WAVE_COLORS.length];
+    var wRange = total - minStart + 1;
+    var wStart = wave.startMonth - minStart;
+    var wPct = (wRange / total * 100).toFixed(1);
+    var wStartPct = (wStart / total * 100).toFixed(1);
+    segs += '<div class="tl-seg" style="margin-left:'+wStartPct+'%;width:'+wPct+'%;background:'+color+';">'+
+      WAVE_NAMES[w]+' (M'+wave.startMonth+')</div>';
   }
   bar.innerHTML = segs;
 
-  // Legend (dynamic)
+  // Legend - show active waves
   var legItems = [];
-  for (var li = 0; li < nSc; li++) {
-    var ci2 = (li % 8) + 1;
-    legItems.push({c:gc('p'+ci2),l:'Cenário '+SC_LETTERS[li]+': receita',t:'d'});
-    legItems.push({c:gc('p'+ci2+'d'),l:'Cenário '+SC_LETTERS[li]+': custos',t:'d'});
+  for (var lw = 0; lw < WAVES.length; lw++) {
+    var lcol = WAVE_COLORS[lw % WAVE_COLORS.length];
+    legItems.push({c:lcol,l:WAVE_NAMES[lw]+': receita',t:'d'});
+    legItems.push({c:lcol,l:WAVE_NAMES[lw]+': custos',t:'d'});
   }
   legItems.push({c:gc('lnAc'),l:'Caixa acumulado',t:'l'});
   el('tl-leg').innerHTML = legItems.map(function(it){
@@ -1831,28 +1885,26 @@ function renderTimeline() {
     return '<span class="li">'+dot+it.l+'</span>';
   }).join('');
 
-  if (total <= 0) { el('tl-summary').textContent = 'Configure as durações acima.'; return; }
+  if (total <= 0 || WAVES.length === 0) { el('tl-summary').textContent = 'Configure as ondas acima.'; return; }
 
-  SCENARIOS[CUR_SC] = getRaw();
-  var scParams = [];
-  for (var si = 0; si < nSc; si++) {
-    var sp2 = getScParams(si);
-    scParams.push(sp2 || getScParams(CUR_SC) || getP());
+  // Save current wave before mutating sidebar
+  WAVES[CUR_WAVE] = getWaveFromSidebar();
+  var savedSdrs = el('sdrs').value, savedClos = el('clos').value;
+
+  // Build per-wave params: merge wave's SDRs/Closers with sidebar globals
+  var waveParams = [], waveCalc = [];
+  for (var wi = 0; wi < WAVES.length; wi++) {
+    applyWaveToSidebar(WAVES[wi]);
+    var wp = getP();
+    waveParams.push(wp);
+    waveCalc.push(calcFromP(wp));
   }
-  var scCalc = scParams.map(function(sp) { return calcFromP(sp); });
+  // Restore sidebar to current wave
+  el('sdrs').value = savedSdrs; el('clos').value = savedClos;
 
-  // Build scIdx_arr: which scenario is active each month
-  var scIdx_arr = [];
-  var cumDur = 0;
-  for (var sd = 0; sd < nSc; sd++) {
-    for (var dd = 0; dd < durations[sd]; dd++) { scIdx_arr.push(sd); }
-    cumDur += durations[sd];
-  }
-
-  // Build scStart for ramp-up
-  var scStarts = [];
-  var startM = 1;
-  for (var ss = 0; ss < nSc; ss++) { scStarts.push(startM); startM += durations[ss]; }
+  // Per-wave revenue/cost tracking for stacked chart
+  var wRec = [], wCost = [];
+  for (var ww = 0; ww < WAVES.length; ww++) { wRec.push([]); wCost.push([]); }
 
   var cohorts = [];
   var rec_arr = [], cost_arr = [], acum_arr = [];
@@ -1861,30 +1913,46 @@ function renderTimeline() {
 
   for (var m = 1; m <= total; m++) {
     labels.push('M' + m);
-    var sc = scIdx_arr[m - 1];
-    var sp = scParams[sc];
-    var sr = scCalc[sc];
-    var monthsInSc = m - scStarts[sc] + 1;
-    var totalRamp = sp.train + sp.accel;
-    var rampFactor = totalRamp > 0 && monthsInSc <= totalRamp ? (monthsInSc <= sp.train ? 0 : sp.accel > 0 ? (monthsInSc - sp.train) / (sp.accel + 1) : 1) : 1;
-    var newClients = Math.round(sr.cl * rampFactor);
-    cohorts.push({ month: m, N: newClients, tkm: sp.tkm, prod: sr.prod, fisc: sr.fisc, churn: sp.churn, perm: sp.perm, scIdx: sc });
-
     var totalRec = 0, totalCost = 0;
+
+    // Each active wave produces new clients every month (ramped)
+    for (var aw = 0; aw < WAVES.length; aw++) {
+      var awave = WAVES[aw];
+      if (m < awave.startMonth) { wRec[aw].push(0); wCost[aw].push(0); continue; }
+      var monthInWave = m - awave.startMonth + 1;
+      var awp = waveParams[aw];
+      var awc = waveCalc[aw];
+
+      // New clients this month for this wave (ramp applied)
+      var cl_m = getRampedN(awp, awc, monthInWave);
+      cohorts.push({ month: m, N: cl_m, tkm: awp.tkm, prod: awc.prod, fisc: awc.fisc, churn: awp.churn, perm: awp.perm, waveIdx: aw });
+
+      // Squad overhead for this wave this month
+      wRec[aw].push(0); // placeholder — will be updated below
+      wCost[aw].push(awc.tot);
+      totalCost += awc.tot;
+    }
+
+    // Revenue & variable costs from all surviving cohorts
+    var perWaveRev = [];
+    for (var pwi = 0; pwi < WAVES.length; pwi++) perWaveRev.push(0);
+
     for (var ci3 = 0; ci3 < cohorts.length; ci3++) {
       var co = cohorts[ci3];
       var age = m - co.month;
-      if (age >= co.perm) continue;
+      if (age < 0 || age >= co.perm) continue;
       var surviving = co.N * Math.pow(1 - co.churn, age);
-      totalRec += surviving * co.tkm;
-      if (age >= 1) totalCost += surviving * co.prod;
-      if (age >= 1) totalCost += surviving * co.fisc;
+      var rev = surviving * co.tkm;
+      totalRec += rev;
+      perWaveRev[co.waveIdx] += rev;
+      if (age >= 1) totalCost += surviving * (co.prod + co.fisc);
     }
-    totalCost += sr.tot;
-    if (m >= 2 && cohorts.length >= 2) {
-      var prevCo = cohorts[cohorts.length - 2];
-      totalCost += prevCo.N * scCalc[prevCo.scIdx].cac;
+
+    // Update per-wave revenue arrays
+    for (var pr = 0; pr < WAVES.length; pr++) {
+      wRec[pr][wRec[pr].length - 1] = perWaveRev[pr];
     }
+
     totalRec = Math.round(totalRec);
     totalCost = Math.round(totalCost);
     acum += totalRec - totalCost;
@@ -1898,17 +1966,18 @@ function renderTimeline() {
     if (acum_arr[bi] >= 0 && be === -1) be = bi + 1;
   }
 
-  // Build chart datasets dynamically for N scenarios
+  // Build chart datasets — stacked per-wave bars
   var datasets = [];
-  for (var ds = 0; ds < nSc; ds++) {
-    var ci4 = (ds % 8) + 1;
-    var recDs = [], costDs = [];
-    for (var mi = 0; mi < total; mi++) {
-      recDs.push(scIdx_arr[mi] === ds ? rec_arr[mi] : null);
-      costDs.push(scIdx_arr[mi] === ds ? -cost_arr[mi] : null);
+  for (var ds = 0; ds < WAVES.length; ds++) {
+    var dscolor = WAVE_COLORS[ds % WAVE_COLORS.length];
+    var recDs = wRec[ds].map(function(v){ return Math.round(v); });
+    var costDs = [];
+    for (var mi2 = 0; mi2 < total; mi2++) {
+      var wc = mi2 < wCost[ds].length ? wCost[ds][mi2] : 0;
+      costDs.push(-Math.round(wc));
     }
-    datasets.push({ label:'Receita '+SC_LETTERS[ds], data:recDs, backgroundColor:gc('p'+ci4), stack:'e', maxBarThickness:28 });
-    datasets.push({ label:'Custos '+SC_LETTERS[ds], data:costDs, backgroundColor:gc('p'+ci4+'d'), stack:'s', maxBarThickness:28 });
+    datasets.push({ label:'Receita '+WAVE_NAMES[ds], data:recDs, backgroundColor:dscolor, stack:'e', maxBarThickness:28 });
+    datasets.push({ label:'Custos '+WAVE_NAMES[ds], data:costDs, backgroundColor:dscolor+'88', stack:'s', maxBarThickness:28 });
   }
   datasets.push({ label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
     borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===total-1?5:1.5;}),
@@ -1930,10 +1999,7 @@ function renderTimeline() {
       plugins: {
         legend: { display: false },
         tooltip: { mode: 'index', callbacks: {
-          title: function(items) {
-            var i2 = items[0].dataIndex;
-            return items[0].label + ' — Cenário ' + SC_LETTERS[scIdx_arr[i2]];
-          },
+          title: function(items) { return items[0].label; },
           label: function(ctx) {
             if (ctx.raw === null) return null;
             if (ctx.dataset.label === 'Acumulado') return 'Caixa acum: R$ ' + fmt(ctx.raw);
@@ -1955,13 +2021,10 @@ function renderTimeline() {
         onComplete: function(anim) {
           var chart = anim.chart;
           drawZeroLine(chart);
-          // Draw phase transition lines dynamically
-          var cumD = 0;
-          for (var pt = 0; pt < nSc - 1; pt++) {
-            cumD += durations[pt];
-            if (durations[pt] > 0 && durations[pt+1] > 0) {
-              var ci5 = ((pt+1) % 8) + 1;
-              drawPhaseVLine(chart, cumD, SC_LETTERS[pt]+'→'+SC_LETTERS[pt+1], gc('p'+ci5));
+          // Draw wave start lines
+          for (var dwl = 0; dwl < WAVES.length; dwl++) {
+            if (WAVES[dwl].startMonth > 1) {
+              drawPhaseVLine(chart, WAVES[dwl].startMonth - 1, WAVE_NAMES[dwl]+' inicia', WAVE_COLORS[dwl % WAVE_COLORS.length]);
             }
           }
           if (be > 0) drawVLine(chart, be, 'BREAKEVEN');
@@ -2025,56 +2088,53 @@ function renderInvestment() {
   el('riskp-v').textContent = (riskP * 100) + '%';
   el('hurdle-v').textContent = 'Hurdle: ' + (hurdleAa * 100).toFixed(0) + '% a.a.';
 
-  // Build cashflows from combined timeline
-  SCENARIOS[CUR_SC] = getRaw();
-  var durations = getDurations();
-  var nSc = durations.length;
+  // Build cashflows from wave stacking
+  WAVES[CUR_WAVE] = getWaveFromSidebar();
   var total = getTotalDuration();
   if (total <= 0) {
     el('inv-grid').innerHTML = '<div style="font-size:11px;color:var(--dim);grid-column:1/-1">Configure a timeline combinada acima para calcular VPL e TIR.</div>';
     return;
   }
 
-  var scParams = [];
-  for (var si = 0; si < nSc; si++) {
-    var sp2 = getScParams(si);
-    scParams.push(sp2 || getScParams(CUR_SC) || getP());
+  // Build per-wave params (same pattern as renderTimeline)
+  var savedSdrs2 = el('sdrs').value, savedClos2 = el('clos').value;
+  var waveParams = [], waveCalc = [];
+  for (var wi = 0; wi < WAVES.length; wi++) {
+    applyWaveToSidebar(WAVES[wi]);
+    var wp = getP();
+    waveParams.push(wp);
+    waveCalc.push(calcFromP(wp));
   }
-  var scCalc = scParams.map(function(sp) { return calcFromP(sp); });
-
-  // Build scIdx_arr and scStarts
-  var scIdx_arr = [];
-  var scStarts = [];
-  var startM2 = 1;
-  for (var sd = 0; sd < nSc; sd++) { scStarts.push(startM2); for (var dd = 0; dd < durations[sd]; dd++) scIdx_arr.push(sd); startM2 += durations[sd]; }
+  el('sdrs').value = savedSdrs2; el('clos').value = savedClos2;
 
   var cohorts = [];
   var netFlows = [];
   var totalInvested = 0;
 
   for (var m = 1; m <= total; m++) {
-    var sc = scIdx_arr[m - 1];
-    var sp = scParams[sc];
-    var sr = scCalc[sc];
-    var monthsInSc = m - scStarts[sc] + 1;
-    var totalRamp = sp.train + sp.accel;
-    var rampFactor = totalRamp > 0 && monthsInSc <= totalRamp ? (monthsInSc <= sp.train ? 0 : sp.accel > 0 ? (monthsInSc - sp.train) / (sp.accel + 1) : 1) : 1;
-    var newCl = Math.round(sr.cl * rampFactor);
-    cohorts.push({ month:m, N:newCl, tkm:sp.tkm, prod:sr.prod, fisc:sr.fisc, churn:sp.churn, perm:sp.perm, scIdx:sc });
-
     var totalRec = 0, totalCost = 0;
+
+    // Each active wave produces new clients every month (ramped)
+    for (var aw = 0; aw < WAVES.length; aw++) {
+      if (m < WAVES[aw].startMonth) continue;
+      var monthInWave = m - WAVES[aw].startMonth + 1;
+      var awp = waveParams[aw];
+      var awc = waveCalc[aw];
+      var cl_m = getRampedN(awp, awc, monthInWave);
+      cohorts.push({ month:m, N:cl_m, tkm:awp.tkm, prod:awc.prod, fisc:awc.fisc, churn:awp.churn, perm:awp.perm, waveIdx:aw });
+      // Squad overhead
+      totalCost += awc.tot;
+    }
+
+    // Revenue from all surviving cohorts
     for (var ci = 0; ci < cohorts.length; ci++) {
       var co = cohorts[ci], age = m - co.month;
-      if (age >= co.perm) continue;
+      if (age < 0 || age >= co.perm) continue;
       var surv = co.N * Math.pow(1 - co.churn, age);
       totalRec += surv * co.tkm;
       if (age >= 1) totalCost += surv * (co.prod + co.fisc);
     }
-    totalCost += sr.tot;
-    if (m >= 2 && cohorts.length >= 2) {
-      var prevCo = cohorts[cohorts.length - 2];
-      totalCost += prevCo.N * scCalc[prevCo.scIdx].cac;
-    }
+
     var netM = Math.round(totalRec) - Math.round(totalCost);
     netFlows.push(netM);
     totalInvested += Math.round(totalCost);
@@ -2207,20 +2267,21 @@ document.querySelectorAll('.sc-input').forEach(function(inp) {
 // ─── PROFILE MANAGEMENT ─────────────────────────────────────
 function newProfile(){
   if(!confirm('Limpar tudo e começar do zero?'))return;
-  SCENARIOS=[null];SC_DURATIONS=[6];CUR_SC=0;LOADED_P=null;
+  WAVES=[{startMonth:1}];WAVE_NAMES=['Leva 1'];CUR_WAVE=0;LOADED_P=null;
   // Reset all inputs to defaults
   var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,scomv:0,ccom:500,gcom:0,show:80,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
   applyRaw(defs);el('gon').checked=true;
-  SCENARIOS[0]=getRaw();
-  renderTabs();renderTimelineConfig();renderPs();render();
+  renderWaveCards();renderWaveConfig();renderPs();render();
 }
 function duplicateP(){
-  SCENARIOS[CUR_SC]=getRaw();
+  // Save current wave's team composition
+  WAVES[CUR_WAVE]=getWaveFromSidebar();
   var ps=getPs();
   var baseName=LOADED_P!==null&&ps[LOADED_P]?ps[LOADED_P].n:'Perfil';
   var n=prompt('Nome para o perfil duplicado:',baseName+' (cópia)');
   if(!n)return;
-  ps.push({n:n,sc:SCENARIOS.slice(),dur:SC_DURATIONS.slice(),cur:CUR_SC});setPs(ps);
+  var globalParams=getRaw();
+  ps.push({n:n,waves:WAVES.slice(),globalParams:globalParams,cur:CUR_WAVE,version:2});setPs(ps);
   LOADED_P=ps.length-1;renderPs();
 }
 
@@ -2232,9 +2293,9 @@ function renderArena(){
   if(ps.length<2){el('arena-content').innerHTML='<p style="color:var(--muted)">Salve pelo menos 2 perfis para comparar. Use o botão 💾 Salvar.</p>';return;}
   // Simulate each profile
   var results=ps.map(function(p,idx){
-    var sc0=p.sc&&p.sc[0]?p.sc[0]:(p.sc||{});
-    var r=simulate(sc0);
-    r.name=p.n;r.idx=idx;r.nSc=p.sc?p.sc.length:1;
+    var raw=p.globalParams||p.sc&&p.sc[0]||p.sc||{};
+    var r=simulate(raw);
+    r.name=p.n;r.idx=idx;r.nWaves=p.waves?p.waves.length:1;
     return r;
   });
   var metrics=[
@@ -2254,7 +2315,7 @@ function renderArena(){
   var html='<div class="arena-grid" style="grid-template-columns:160px repeat('+results.length+',1fr)">';
   // Header row
   html+='<div class="ah">Métrica</div>';
-  results.forEach(function(r){html+='<div class="ah" style="text-align:center">'+r.name+'<br><span style="font-size:7px;opacity:.6">'+r.nSc+' cenário(s)</span></div>';});
+  results.forEach(function(r){html+='<div class="ah" style="text-align:center">'+r.name+'<br><span style="font-size:7px;opacity:.6">'+r.nWaves+' leva(s)</span></div>';});
   // Data rows
   metrics.forEach(function(m){
     html+='<div class="ac" style="font-weight:500;color:var(--muted)">'+m.label+'</div>';
@@ -2286,7 +2347,7 @@ function renderArena(){
 
 // ─── STRESS TEST ────────────────────────────────────────────
 function runStress(){
-  SCENARIOS[CUR_SC]=getRaw();
+  WAVES[CUR_WAVE]=getWaveFromSidebar();
   var base=getRaw();
   var baseR=simulate(base);
   // Pessimistic: churn +50%, conv -30%, tkm -15%
@@ -2405,22 +2466,23 @@ function runOptimizer(){
 }
 function applyOptResult(){
   if(!window._optTop||!window._optTop[0])return;
-  applyRaw(window._optTop[0].raw);SCENARIOS[CUR_SC]=getRaw();render();
+  applyRaw(window._optTop[0].raw);WAVES[CUR_WAVE]=getWaveFromSidebar();render();
 }
 function saveOptTop(){
   if(!window._optTop)return;
   var ps=getPs();
   window._optTop.slice(0,3).forEach(function(t,i){
-    ps.push({n:'Otimizado #'+(i+1)+' ('+t.sdrs+'SDR+'+t.clos+'CL)',sc:[t.raw],dur:[6],cur:0});
+    var globalParams=t.raw;
+    ps.push({n:'Otimizado #'+(i+1)+' ('+t.sdrs+'SDR+'+t.clos+'CL)',waves:[{startMonth:1,sdrs:t.sdrs,clos:t.clos}],globalParams:globalParams,cur:0,version:2});
   });
   setPs(ps);renderPs();
   alert('Top 3 salvos como perfis!');
 }
 
 // ─── INIT ────────────────────────────────────────────────────
-SCENARIOS[0] = getRaw();
-renderTabs();
-renderTimelineConfig();
+WAVES[0] = getWaveFromSidebar();
+renderWaveCards();
+renderWaveConfig();
 renderPs();
 renderPresets();
 renderScorecard();
