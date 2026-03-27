@@ -482,6 +482,164 @@ canvas{max-height:250px!important}
     max-width: 300px;
   }
 }
+/* ═══════════════════════════════════════════════════════════════
+   PAGE NAVIGATION & PAGE SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+
+.page-nav {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-s);
+  flex-wrap: wrap;
+}
+
+.page-nav-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.page-nav-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-dim);
+}
+
+.page-nav-btn.active {
+  background: var(--accent-dim2);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.page {
+  display: none;
+  animation: fadeIn .3s ease-out;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-content {
+  width: 100%;
+}
+
+/* Dashboard summary metrics grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--accent-dim);
+  border-radius: 8px;
+}
+
+.metric-label {
+  font-size: 10px;
+  color: var(--dim);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+}
+
+/* Real vs Plan table styling */
+.rvp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.rvp-table th {
+  background: var(--card2);
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-s);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.rvp-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.rvp-table tr:hover {
+  background: var(--accent-dim);
+}
+
+.rvp-table input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-b);
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  width: 100%;
+  max-width: 120px;
+}
+
+.rvp-table input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Cohort heatmap container */
+#ch-cohorts {
+  max-height: 400px;
+}
+
+/* Responsive grid for dashboard summary */
+@media (max-width: 1200px) {
+  .dash-row.cols-2x2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-row.cols-2x2 {
+    grid-template-columns: 1fr;
+  }
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-nav {
+    gap: 4px;
+  }
+  .page-nav-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
 
 </style>
 </head>
@@ -640,8 +798,17 @@ canvas{max-height:250px!important}
 <!-- Scenario tabs (rendered by JS) -->
 <div class="sc-presets" id="sc-presets"></div>
 <div class="sc-tabs" id="sc-tabs"></div>
+<!-- Page Navigation -->
+<div class="page-nav">
+  <button class="page-nav-btn active" onclick="setPage('page-sim')" data-page="page-sim">📊 Simulador</button>
+  <button class="page-nav-btn" onclick="setPage('page-dash')" data-page="page-dash">📈 Dashboard</button>
+  <button class="page-nav-btn" onclick="setPage('page-cohorts')" data-page="page-cohorts">🔥 Cohorts</button>
+  <button class="page-nav-btn" onclick="setPage('page-rvp')" data-page="page-rvp">✓ Real vs Plan</button>
+</div>
+
 
 <!-- Dashboard -->
+<div class="page active" id="page-sim">
 <div class="dashboard">
 
 <!-- KPIs -->
@@ -837,6 +1004,78 @@ canvas{max-height:250px!important}
 </div>
 
 </div><!-- End dashboard -->
+</div>
+<!-- Page: Dashboard Summary -->
+<div class="page" id="page-dash">
+  <div class="page-content">
+    <h2 style="margin-bottom:20px">Dashboard de Resumo</h2>
+    <div class="dash-row cols-2x2">
+      <div class="dash-card">
+        <div class="panel-t">Métricas Operacionais</div>
+        <div class="metrics-grid">
+          <div class="metric-item"><span class="metric-label">Clientes/mês</span><span class="metric-value" id="dash-cl">0</span></div>
+          <div class="metric-item"><span class="metric-label">Agendamentos/mês</span><span class="metric-value" id="dash-ag">0</span></div>
+          <div class="metric-item"><span class="metric-label">Utilização</span><span class="metric-value" id="dash-util">0%</span></div>
+          <div class="metric-item"><span class="metric-label">Churn</span><span class="metric-value" id="dash-churn">0%</span></div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="panel-t">Métricas Financeiras</div>
+        <div class="metrics-grid">
+          <div class="metric-item"><span class="metric-label">CAC</span><span class="metric-value" id="dash-cac">R$ 0</span></div>
+          <div class="metric-item"><span class="metric-label">LTV c/ margem</span><span class="metric-value" id="dash-ltv">R$ 0</span></div>
+          <div class="metric-item"><span class="metric-label">LTV:CAC</span><span class="metric-value" id="dash-ltvac">0×</span></div>
+          <div class="metric-item"><span class="metric-label">Payback</span><span class="metric-value" id="dash-pb">0m</span></div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="panel-t">Projeção 12 meses</div>
+        <div class="cw" style="height:200px"><canvas id="ch-dash-12m"></canvas></div>
+      </div>
+      <div class="dash-card">
+        <div class="panel-t">Resumo das Levas</div>
+        <div id="dash-waves-summary" style="font-size:12px;line-height:1.6">Nenhuma leva configurada</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page: Cohorts Retention -->
+<div class="page" id="page-cohorts">
+  <div class="page-content">
+    <h2 style="margin-bottom:20px">Retenção por Cohort</h2>
+    <div class="dash-card">
+      <div class="panel-t">Heatmap: Survival por Cohort (1 - Churn)^Age</div>
+      <div class="cs-sub">Verde = maior retenção | Vermelho = maior churn</div>
+      <div class="cw" style="height:400px;margin-top:10px"><canvas id="ch-cohorts"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Page: Real vs Plan -->
+<div class="page" id="page-rvp">
+  <div class="page-content">
+    <h2 style="margin-bottom:20px">Real vs Planejado</h2>
+    <div class="dash-row cols-1">
+      <div class="dash-card">
+        <div class="panel-t">Acompanhamento Mensal</div>
+        <div id="rvp-table-container" style="overflow-x:auto;margin-bottom:20px">
+          <table id="rvp-table" class="rvp-table">
+            <thead>
+              <tr><th>Mês</th><th>Planejado</th><th>Real</th><th>Var. %</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="rvp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="panel-t">Comparação Gráfica</div>
+        <div class="cw" style="height:300px"><canvas id="ch-rvp"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -849,6 +1088,9 @@ var C1 = null, C2 = null, C3 = null, CF = null;
 var CUR_WAVE = 0;
 var MAX_WAVES = 8;
 var WAVE_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2'];
+
+// Page navigation
+var CUR_PAGE = 'page-sim';
 
 // Wave storage: each wave contains {startMonth, sdrs, clos, train?, accel?}
 // Global defaults (sidebar params) apply to all waves
@@ -1364,6 +1606,285 @@ function mkKpi(label, value, sub, cls, extra) {
 }
 function mkBk(l,v,n){ return '<div class="bk"><div class="bkl">'+l+'</div><div class="bkv">'+v+'</div><div class="bkn">'+n+'</div></div>'; }
 
+// ─── PAGE NAVIGATION ─────────────────────────────────────────
+function setPage(pageId) {
+  CUR_PAGE = pageId;
+
+  // Hide all pages
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) {
+    pages[i].classList.remove('active');
+  }
+
+  // Show selected page
+  var activePage = el(pageId);
+  if (activePage) {
+    activePage.classList.add('active');
+  }
+
+  // Update nav button states
+  var navBtns = document.querySelectorAll('.page-nav-btn');
+  for (var i = 0; i < navBtns.length; i++) {
+    navBtns[i].classList.remove('active');
+    if (navBtns[i].getAttribute('data-page') === pageId) {
+      navBtns[i].classList.add('active');
+    }
+  }
+
+  // Render page-specific content
+  if (pageId === 'page-dash') {
+    renderDashboard();
+  } else if (pageId === 'page-cohorts') {
+    renderCohorts();
+  } else if (pageId === 'page-rvp') {
+    renderRvP();
+  }
+}
+
+function renderDashboard() {
+  var p = getP();
+  var c = calcFromP(p);
+
+  // Métricas Operacionais
+  el('dash-cl').textContent = fmt(c.cl);
+  el('dash-ag').textContent = fmt(c.cl * p.conv);
+  el('dash-util').textContent = (c.avgLife * 12).toFixed(1) + ' meses';
+  el('dash-churn').textContent = (p.churn * 100).toFixed(1) + '%';
+
+  // Métricas Financeiras
+  el('dash-cac').textContent = 'R$ ' + fmt(c.cac);
+  el('dash-ltv').textContent = 'R$ ' + fmt(c.ltvMargin);
+  el('dash-ltvac').textContent = (c.ltvCac || 0).toFixed(2) + 'x';
+  el('dash-pb').textContent = fmtPB(c.pb);
+
+  // Resumo das Levas
+  var wavesHtml = '<div class="waves-summary-items">';
+  for (var i = 0; i < WAVES.length; i++) {
+    var w = WAVES[i];
+    var waveCal = calcFromP(Object.assign({}, p, w));
+    wavesHtml += '<div class="wave-summary-item" style="border-left:4px solid '+WAVE_COLORS[i]+'">' +
+      '<div class="wave-name">' + WAVE_NAMES[i] + '</div>' +
+      '<div class="wave-metrics">' +
+      '<span>Clientes: ' + fmt(waveCal.cl) + '</span>' +
+      '<span>CAC: R$ ' + fmt(waveCal.cac) + '</span>' +
+      '<span>Payback: ' + fmtPB(waveCal.pb) + '</span>' +
+      '</div></div>';
+  }
+  wavesHtml += '</div>';
+  el('dash-waves-summary').innerHTML = wavesHtml;
+
+  // Projeção 12 meses chart
+  renderDash12mChart();
+}
+
+function renderDash12mChart() {
+  var p = getP();
+  var c = calcFromP(p);
+  var labels = [];
+  var data = [];
+  var meses = 12;
+
+  for (var m = 1; m <= meses; m++) {
+    labels.push('M' + m);
+    var monthRevenue = 0;
+    for (var i = 0; i < WAVES.length; i++) {
+      var w = WAVES[i];
+      if (m >= w.startMonth) {
+        var age = m - w.startMonth;
+        var waveP = Object.assign({}, p, w);
+        var waveC = calcFromP(waveP);
+        var rampedN = Math.max(0, waveC.cl * Math.max(0, (age - (w.train || waveC.train)) / ((w.accel || waveC.accel) + 1)));
+        monthRevenue += rampedN * waveC.arpu;
+      }
+    }
+    data.push(Math.round(monthRevenue));
+  }
+
+  var ctx = el('ch-dash-12m');
+  if (ctx) {
+    if (window.dashChart12m) window.dashChart12m.destroy();
+    window.dashChart12m = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Receita Projetada',
+          data: data,
+          borderColor: 'var(--accent)',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: function(v) { return fmtK(v); } } }
+        }
+      }
+    });
+  }
+}
+
+function renderCohorts() {
+  var p = getP();
+  var c = calcFromP(p);
+  var cohortAges = 13;
+  var cohortMonths = 12;
+  var data = [];
+  var labels = [];
+
+  for (var cohort = 0; cohort < cohortMonths; cohort++) {
+    for (var age = 0; age < cohortAges; age++) {
+      var survival = Math.pow(1 - p.churn, age);
+      data.push({ x: age, y: cohort, v: survival });
+    }
+  }
+
+  var ctx = el('ch-cohorts');
+  if (ctx) {
+    if (window.cohortsChart) window.cohortsChart.destroy();
+
+    var heatmapData = [];
+    for (var m = 0; m < cohortMonths; m++) {
+      var row = [];
+      for (var a = 0; a < cohortAges; a++) {
+        var survival = Math.pow(1 - p.churn, a);
+        row.push(survival);
+      }
+      heatmapData.push(row);
+    }
+
+    renderHeatmap(ctx, heatmapData, cohortAges, cohortMonths);
+  }
+}
+
+function renderHeatmap(canvas, data, cols, rows) {
+  var ctx = canvas.getContext('2d');
+  var width = canvas.width || canvas.parentElement.offsetWidth;
+  var height = canvas.height || 400;
+  var cellW = width / cols;
+  var cellH = height / rows;
+
+  ctx.clearRect(0, 0, width, height);
+
+  for (var r = 0; r < rows; r++) {
+    for (var c = 0; c < cols; c++) {
+      var value = data[r][c];
+      var hue = (value * 120) / 360;
+      ctx.fillStyle = 'hsl(' + (hue * 360) + ', 70%, 50%)';
+      ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+
+      ctx.fillStyle = 'var(--text)';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText((value * 100).toFixed(0) + '%', c * cellW + cellW / 2, r * cellH + cellH / 2);
+    }
+  }
+}
+
+function renderRvP() {
+  loadRvPTable();
+  renderRvPChart();
+}
+
+function loadRvPTable() {
+  var tbody = el('rvp-tbody');
+  var months = 12;
+  var html = '';
+
+  for (var m = 1; m <= months; m++) {
+    var planned = parseInt(localStorage.getItem('rvp-planned-' + m)) || 0;
+    var actual = parseInt(localStorage.getItem('rvp-actual-' + m)) || 0;
+    var varPct = planned > 0 ? ((actual - planned) / planned * 100).toFixed(1) : 0;
+
+    html += '<tr>' +
+      '<td>Mês ' + m + '</td>' +
+      '<td><input type="number" value="' + planned + '" data-month="' + m + '" data-type="planned" class="rvp-input" onchange="saveRvPData(this)"></td>' +
+      '<td><input type="number" value="' + actual + '" data-month="' + m + '" data-type="actual" class="rvp-input" onchange="saveRvPData(this)"></td>' +
+      '<td class="' + (varPct >= 0 ? 'ac' : 'dg') + '">' + varPct + '%</td>' +
+      '<td><button onclick="clearRvPMonth(' + m + ')" class="btn-sm">Limpar</button></td>' +
+      '</tr>';
+  }
+
+  tbody.innerHTML = html;
+}
+
+function saveRvPData(input) {
+  var month = input.getAttribute('data-month');
+  var type = input.getAttribute('data-type');
+  var value = input.value;
+
+  try {
+    localStorage.setItem('rvp-' + type + '-' + month, value);
+  } catch (e) {}
+
+  renderRvPTable();
+  renderRvPChart();
+}
+
+function clearRvPMonth(month) {
+  try {
+    localStorage.removeItem('rvp-planned-' + month);
+    localStorage.removeItem('rvp-actual-' + month);
+  } catch (e) {}
+
+  renderRvPTable();
+  renderRvPChart();
+}
+
+function renderRvPChart() {
+  var ctx = el('ch-rvp');
+  if (!ctx) return;
+
+  var months = 12;
+  var plannedData = [];
+  var actualData = [];
+  var labels = [];
+
+  for (var m = 1; m <= months; m++) {
+    labels.push('M' + m);
+    plannedData.push(parseInt(localStorage.getItem('rvp-planned-' + m)) || 0);
+    actualData.push(parseInt(localStorage.getItem('rvp-actual-' + m)) || 0);
+  }
+
+  if (window.rvpChart) window.rvpChart.destroy();
+
+  window.rvpChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Planejado',
+          data: plannedData,
+          backgroundColor: 'rgba(76, 175, 80, 0.6)',
+          borderColor: 'var(--accent)',
+          borderWidth: 1
+        },
+        {
+          label: 'Real',
+          data: actualData,
+          backgroundColor: 'rgba(156, 216, 200, 0.6)',
+          borderColor: '#4ECDC4',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, position: 'bottom' } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: function(v) { return fmtK(v); } } }
+      }
+    }
+  });
+}
+
 // ─── MAIN RENDER ─────────────────────────────────────────────
 function render() {
   var p = getP();
@@ -1498,6 +2019,15 @@ function render() {
 
   // Investment analysis
   renderInvestment();
+
+  // Render active page content
+  if (CUR_PAGE === 'page-dash') {
+    renderDashboard();
+  } else if (CUR_PAGE === 'page-cohorts') {
+    renderCohorts();
+  } else if (CUR_PAGE === 'page-rvp') {
+    renderRvP();
+  }
 }
 
 // ─── SENSITIVITY TABLE ───────────────────────────────────────
