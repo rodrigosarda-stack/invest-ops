@@ -646,6 +646,17 @@ canvas{max-height:250px!important}
 <!-- KPIs -->
 <div class="kpis" id="kpis"></div>
 
+<!-- Funil Comercial (3 barras por mês) -->
+<div class="dash-card">
+  <div class="panel-t">Funil Comercial</div>
+  <div class="cs">
+    <div class="cs-t">Agendamentos × Reuniões × Vendas por mês <span class="tip-icon" data-tip="Mostra a evolução mensal do funil: quantos agendamentos os SDRs geram, quantas reuniões acontecem de fato (cap. closers) e quantas viram venda (conversão). Inclui ramp-up da squad.">?</span></div>
+    <div class="cs-sub" id="funnel-sub"></div>
+    <div class="leg" id="funnel-leg"></div>
+    <div class="cw" style="height:280px"><canvas id="ch-funnel"></canvas></div>
+  </div>
+</div>
+
 <!-- Unit Economics: LTV | Breakdown -->
 <div class="dash-row cols-2">
   <div class="dash-card">
@@ -833,7 +844,7 @@ canvas{max-height:250px!important}
 
 var WEEKS = 4.33, FD = 8, BASE_CONV = 0.35;
 var VIEW = 'ind', LOADED_P = null;
-var C1 = null, C2 = null, C3 = null;
+var C1 = null, C2 = null, C3 = null, CF = null;
 var CUR_SC = 0;
 var MAX_SCENARIOS = 8;
 var SC_LETTERS = ['A','B','C','D','E','F','G','H'];
@@ -874,7 +885,7 @@ function gc(n) {
     lnAc: d?'#4da6ff':'#0070c0',
     g1: d?'#0ACCC7':'#099', g2: d?'#0f4a4a':'#9FE1DE',
     r1: d?'#E24B4A':'#c73432', r2: d?'#F09595':'#e88', r3: d?'#A32D2D':'#a32d2d', r4: d?'#993C1D':'#993c1d',
-    pu: d?'#8b5cf6':'#7c3aed',
+    pu: d?'#8b5cf6':'#7c3aed', blue: d?'#60a5fa':'#0070c0',
     p1: d?'#0ACCC7':'#099', p2: d?'#e2a200':'#a87600', p3: d?'#4da6ff':'#0070c0',
     p4: d?'#8b5cf6':'#7c3aed', p5: d?'#f472b6':'#db2777', p6: d?'#22d3ee':'#0891b2',
     p7: d?'#f97316':'#ea580c', p8: d?'#84cc16':'#65a30d',
@@ -1237,7 +1248,7 @@ function calcFromP(p) {
   return {
     cl:cl, sal:Math.round(sal), se:Math.round(se), ce:Math.round(ce), ge:Math.round(ge),
     cs:cs, csv:Math.round(csv), cc:Math.round(cc), cg:Math.round(cg), tot:tot, cac:cac,
-    pb:pb, util:util, au:Math.round(au),
+    pb:pb, util:util, ag:Math.round(ag), au:Math.round(au),
     mrr:cl*p.tkm, ltv:ltv, ltvMargin:ltvMargin, ltvNet:ltvNet,
     ltvCac:ltvCac, ltvMarginCac:ltvMarginCac, ltvNetCac:ltvNetCac,
     cacMax:cacMax, avgLife:avgLife,
@@ -1376,6 +1387,7 @@ function render() {
   drawSensChurn(p, r);
 
   // Charts
+  drawFunnel(p, r);
   drawChart1(p, r);
   if (VIEW==='mrr') drawMRR(p, r);
   else if (VIEW==='op') drawOp(p, r);
@@ -1433,6 +1445,67 @@ function drawSensChurn(p, r) {
   });
   html += '</table>';
   el('sens-churn').innerHTML = html;
+}
+
+// ─── CHART FUNNEL: Agendamentos × Reuniões × Vendas ─────────
+function drawFunnel(p, r) {
+  var H = 12;
+  var agArr = [], auArr = [], clArr = [], labels = [];
+  for (var m = 1; m <= H; m++) {
+    labels.push('M' + m);
+    // ramp applies to closers → affects au and cl; SDR output is constant post-hire
+    var totalRamp = (p.train || 0) + (p.accel || 0);
+    var rampFactor = 1;
+    if (totalRamp > 0 && m <= totalRamp) {
+      if (m <= (p.train || 0)) { rampFactor = 0; }
+      else { rampFactor = (m - (p.train || 0)) / ((p.accel || 0) + 1); }
+    }
+    var ag_m = Math.round(p.sdrs * p.rsdr * WEEKS);
+    var cap_m = Math.round(p.clos * p.rclo * 5 * WEEKS);
+    var au_m = Math.round(Math.min(ag_m, cap_m) * rampFactor);
+    var cl_m = Math.round(au_m * p.conv);
+    agArr.push(ag_m);
+    auArr.push(au_m);
+    clArr.push(cl_m);
+  }
+  // legend
+  var legEl = el('funnel-leg');
+  if (legEl) legEl.innerHTML = [
+    {c: gc('blue'), l: 'Agendamentos'},
+    {c: gc('bAct'), l: 'Reuniões'},
+    {c: gc('p1'), l: 'Vendas'}
+  ].map(function(it) {
+    return '<span class="li"><span class="ld" style="background:' + it.c + '"></span>' + it.l + '</span>';
+  }).join('');
+  // subtitle
+  var subEl = el('funnel-sub');
+  if (subEl) subEl.textContent = '12 meses · ' + p.sdrs + ' SDR' + (p.sdrs > 1 ? 's' : '') + ' · ' + p.clos + ' Closer' + (p.clos > 1 ? 's' : '') + ' · conv ' + Math.round(p.conv * 100) + '%';
+  if (CF) CF.destroy();
+  CF = new Chart(el('ch-funnel'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Agendamentos', data: agArr, backgroundColor: gc('blue'), borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Reuniões', data: auArr, backgroundColor: gc('bAct'), borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Vendas', data: clArr, backgroundColor: gc('p1'), borderRadius: 4, maxBarThickness: 32 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', callbacks: {
+          label: function(ctx) { return ctx.dataset.label + ': ' + ctx.raw; }
+        }}
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' } } },
+        y: { grid: { color: gc('grid') }, ticks: { color: gc('tick'), font: { size: 10, family: 'Inter' }, callback: function(v) { return v; } },
+          beginAtZero: true }
+      }
+    }
+  });
 }
 
 // ─── CHART 1: CAC por SDR ────────────────────────────────────
