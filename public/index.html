@@ -1186,7 +1186,7 @@ function simulate(raw) {
 }
 
 // ─── EVENT LISTENERS ─────────────────────────────────────────
-['sdrs','clos','rsdr','rclo','sded','cded','gded','scom','scomv','ccom','gcom','conv','mprod','fisc','churn','train','accel'].forEach(function(id){
+['sdrs','clos','rsdr','rclo','sded','cded','gded','scom','scomv','ccom','gcom','show','conv','mprod','fisc','churn','train','accel'].forEach(function(id){
   el(id).addEventListener('input',render);
 });
 el('gon').addEventListener('change',render);
