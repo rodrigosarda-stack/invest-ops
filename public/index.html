@@ -1971,13 +1971,19 @@ function renderTimeline() {
     if (wentNeg && acum_arr[bi] >= 0 && be === -1) be = bi + 1;
   }
 
+  // Prepend M0 — reference month before any wave starts
+  labels.unshift('M0');
+  rec_arr.unshift(0); cost_arr.unshift(0); acum_arr.unshift(0);
+  for (var pw0 = 0; pw0 < WAVES.length; pw0++) { wRec[pw0].unshift(0); wCost[pw0].unshift(0); }
+  var total1 = total + 1;
+
   // Build chart datasets — stacked per-wave bars
   var datasets = [];
   for (var ds = 0; ds < WAVES.length; ds++) {
     var dscolor = WAVE_COLORS[ds % WAVE_COLORS.length];
     var recDs = wRec[ds].map(function(v){ return Math.round(v); });
     var costDs = [];
-    for (var mi2 = 0; mi2 < total; mi2++) {
+    for (var mi2 = 0; mi2 < total1; mi2++) {
       var wc = mi2 < wCost[ds].length ? wCost[ds][mi2] : 0;
       costDs.push(-Math.round(wc));
     }
@@ -1985,7 +1991,7 @@ function renderTimeline() {
     datasets.push({ label:'Custos '+wName(ds), data:costDs, backgroundColor:dscolor+'88', stack:'s', maxBarThickness:28 });
   }
   datasets.push({ label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
-    borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===total-1?5:1.5;}),
+    borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===acum_arr.length-1?5:1.5;}),
     pointBackgroundColor:acum_arr.map(function(v){return v>=0?gc('bAct'):gc('r1');}),
     tension:.3, yAxisID:'y2', order:-1, fill:false });
 
@@ -2029,7 +2035,7 @@ function renderTimeline() {
           // Draw wave start lines
           for (var dwl = 0; dwl < WAVES.length; dwl++) {
             if (WAVES[dwl].startMonth > 1) {
-              drawPhaseVLine(chart, WAVES[dwl].startMonth - 1, wName(dwl)+' inicia', WAVE_COLORS[dwl % WAVE_COLORS.length]);
+              drawPhaseVLine(chart, WAVES[dwl].startMonth, wName(dwl)+' inicia', WAVE_COLORS[dwl % WAVE_COLORS.length]);
             }
           }
           if (be > 0) drawVLine(chart, be, 'BREAKEVEN');
