@@ -211,6 +211,14 @@ select:focus{border-color:var(--accent);box-shadow:0 0 8px var(--glow-accent)}
 .sens td.hl{background:var(--accent-dim);color:var(--accent);font-weight:600}
 .sens td.wn{background:var(--warn-dim);color:var(--warn)}
 .sens td.dg{background:var(--danger-dim);color:var(--danger)}
+/* Data Table */
+.dt-wrap{overflow-x:auto;margin-top:8px}
+.dt{width:100%;border-collapse:collapse;font-family:'DM Mono','Inter',monospace;font-size:10px;border-radius:var(--radius);overflow:hidden}
+.dt th,.dt td{padding:6px 8px;text-align:right;border:1px solid var(--glass-border);white-space:nowrap}
+.dt th{background:rgba(255,255,255,.03);color:var(--muted);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.6px;text-align:center}
+.dt td:first-child{text-align:center;font-weight:600;color:var(--accent)}
+.dt tr:hover{background:rgba(255,255,255,.02)}
+.dt .neg{color:var(--danger)}.dt .pos{color:var(--accent)}.dt .warn{color:var(--warn)}
 
 /* Cashbox */
 .cbox{background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--glass-border);border-radius:var(--radius);padding:14px 16px;font-size:11px;color:var(--muted);line-height:1.7;margin-top:12px}
@@ -756,6 +764,7 @@ canvas{max-height:250px!important}
     <div class="leg" id="tl-leg"></div>
     <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
     <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
+    <div id="tl-datatable" style="margin-top:14px"></div>
   </div>
   <div class="cbox" id="cbox"></div>
 </div>
@@ -1913,12 +1922,14 @@ function renderTimeline() {
 
   var cohorts = [];
   var rec_arr = [], cost_arr = [], acum_arr = [];
+  var newCl_arr = [], activeCl_arr = [], mrr_arr = [], hc_arr = [];
   var acum = 0;
   var labels = [];
 
   for (var m = 1; m <= total; m++) {
     labels.push('M' + m);
     var totalRec = 0, totalCost = 0;
+    var newClM = 0, hcM = 0;
 
     // Each active wave produces new clients every month (ramped)
     for (var aw = 0; aw < WAVES.length; aw++) {
@@ -1930,6 +1941,8 @@ function renderTimeline() {
 
       // New clients this month for this wave (ramp applied)
       var cl_m = getRampedN(awp, awc, monthInWave);
+      newClM += cl_m;
+      hcM += awp.sdrs + awp.clos + (awp.gon ? 1 : 0);
       cohorts.push({ month: m, N: cl_m, tkm: awp.tkm, prod: awc.prod, fisc: awc.fisc, churn: awp.churn, perm: awp.perm, waveIdx: aw });
 
       // Squad overhead for this wave this month
@@ -1941,17 +1954,24 @@ function renderTimeline() {
     // Revenue & variable costs from all surviving cohorts
     var perWaveRev = [];
     for (var pwi = 0; pwi < WAVES.length; pwi++) perWaveRev.push(0);
+    var activeM = 0;
 
     for (var ci3 = 0; ci3 < cohorts.length; ci3++) {
       var co = cohorts[ci3];
       var age = m - co.month;
       if (age < 0 || age >= co.perm) continue;
       var surviving = co.N * Math.pow(1 - co.churn, age);
+      activeM += surviving;
       var rev = surviving * co.tkm;
       totalRec += rev;
       perWaveRev[co.waveIdx] += rev;
       if (age >= 1) totalCost += surviving * (co.prod + co.fisc);
     }
+
+    newCl_arr.push(newClM);
+    activeCl_arr.push(Math.round(activeM));
+    mrr_arr.push(Math.round(totalRec));
+    hc_arr.push(hcM);
 
     // Update per-wave revenue arrays
     for (var pr = 0; pr < WAVES.length; pr++) {
@@ -2045,6 +2065,29 @@ function renderTimeline() {
       }
     }
   });
+
+  // ─── DATA TABLE ────────────────────────────────────────────
+  var dtHtml = '<div class="cs-t" style="margin-top:14px">Tabela de Dados <span style="font-size:8px;padding:3px 8px;border-radius:6px;background:rgba(10,204,199,.08);color:var(--accent);text-transform:uppercase;letter-spacing:.8px;font-weight:600;border:1px solid rgba(10,204,199,.12)">auditável &amp; exportável</span></div>';
+  var csvData = 'Mês,Clientes,Novos,MRR,Receita,Custos,Resultado,Caixa,CAC,Margem,LTV/CAC,HC\\n';
+  for (var dt = 0; dt < total; dt++) {
+    var dtRes = rec_arr[dt+1]||0, dtCst = cost_arr[dt+1]||0, dtSaldo = dtRes-dtCst;
+    var dtCaixa = acum_arr[dt+1]||0;
+    var dtCac = newCl_arr[dt]>0 ? Math.round(dtCst/newCl_arr[dt]) : 0;
+    var dtMarg = dtRes>0 ? ((dtSaldo/dtRes)*100).toFixed(1) : '0.0';
+    var dtLtvCac = dtCac>0 ? (globalP.tkm*Math.min(1/(globalP.churn||0.05),globalP.perm)*0.5/dtCac).toFixed(1) : '0.0';
+    csvData += 'M'+(dt+1)+','+activeCl_arr[dt]+','+newCl_arr[dt]+','+mrr_arr[dt]+','+dtRes+','+dtCst+','+dtSaldo+','+dtCaixa+','+dtCac+','+dtMarg+'%,'+dtLtvCac+','+hc_arr[dt]+'\\n';
+  }
+  dtHtml += '<button style="margin:8px 0;padding:5px 14px;font-size:10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card2);color:var(--text);cursor:pointer" onclick="navigator.clipboard.writeText(\''+csvData+'\').then(function(){this.textContent=\'Copiado!\'}.bind(this))">Copiar CSV</button>';
+  dtHtml += '<div class="dt-wrap"><table class="dt"><thead><tr><th>Mês</th><th>Clientes</th><th>Novos</th><th>MRR</th><th>Receita</th><th>Custos</th><th>Resultado</th><th>Caixa</th><th>CAC</th><th>Margem</th><th>LTV/CAC</th><th>HC</th></tr></thead><tbody>';
+  for (var dt2 = 0; dt2 < total; dt2++) {
+    var r2 = rec_arr[dt2+1]||0, c2 = cost_arr[dt2+1]||0, s2 = r2-c2, cx2 = acum_arr[dt2+1]||0;
+    var cac2 = newCl_arr[dt2]>0 ? Math.round(c2/newCl_arr[dt2]) : 0;
+    var mg2 = r2>0 ? ((s2/r2)*100).toFixed(1) : '0.0';
+    var lc2 = cac2>0 ? (globalP.tkm*Math.min(1/(globalP.churn||0.05),globalP.perm)*0.5/cac2).toFixed(1) : '0.0';
+    dtHtml += '<tr><td>M'+(dt2+1)+'</td><td>'+activeCl_arr[dt2]+'</td><td>'+newCl_arr[dt2]+'</td><td>R$ '+fmtK(mrr_arr[dt2])+'</td><td>R$ '+fmtK(r2)+'</td><td class="neg">R$ '+fmtK(c2)+'</td><td style="color:'+(s2>=0?'var(--accent)':'var(--danger)')+'">R$ '+fmtK(s2)+'</td><td style="color:'+(cx2>=0?'var(--accent)':'var(--danger)')+'">R$ '+fmtK(cx2)+'</td><td>R$ '+fmtK(cac2)+'</td><td>'+mg2+'%</td><td>'+lc2+'x</td><td>'+hc_arr[dt2]+'</td></tr>';
+  }
+  dtHtml += '</tbody></table></div>';
+  el('tl-datatable').innerHTML = dtHtml;
 }
 
 function drawPhaseVLine(chart, idx, lbl, color) {
