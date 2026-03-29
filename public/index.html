@@ -537,7 +537,7 @@ canvas{max-height:250px!important}
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Quantidade<span class="tip-icon" data-tip="Número de SDRs (pré-vendedores) na squad. Cada SDR prospecta leads e agenda reuniões para os closers.">?</span></span></label><input type="range" id="sdrs" min="1" max="10" value="4" step="1"><span class="rv" id="sdrs-v">4</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Salário (R$)<span class="tip-icon" data-tip="Salário fixo mensal de cada SDR. Inclua encargos se quiser simular custo real.">?</span></span></label><input type="range" id="ssal" min="1000" max="12000" value="4500" step="100"><input type="number" id="ssal-n" value="4500" min="100" max="50000" step="100"></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Dedicação<span class="tip-icon" data-tip="Percentual do tempo dedicado a esta operação. 100% = exclusivo. 50% = divide com outra atividade.">?</span></span></label><input type="range" id="sded" min="1" max="8" value="8" step="0.5"><span class="rv dim" id="sded-v">8h (100%)</span></div>
-        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. agend.<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião agendada que realmente acontece (qualified meeting).">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
+        <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. reunião<span class="tip-icon" data-tip="Comissão paga ao SDR por cada reunião que realmente acontece (qualified meeting). Calculada sobre reuniões realizadas, não agendamentos.">?</span></span></label><input type="range" id="scom" min="0" max="300" value="60" step="10"><span class="rv" id="scom-v">R$60</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Comis. venda<span class="tip-icon" data-tip="Comissão paga ao SDR por cada venda fechada (cliente ganho). Incentivo extra além da comissão por agendamento.">?</span></span></label><input type="range" id="scomv" min="0" max="1000" value="0" step="50"><span class="rv" id="scomv-v">R$0</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Reun./semana<span class="tip-icon" data-tip="Reuniões qualificadas que cada SDR consegue agendar por semana. Varia conforme maturidade do processo.">?</span></span></label><input type="range" id="rsdr" min="1" max="15" value="6" step="1"><span class="rv" id="rsdr-v">6</span></div>
         <div class="row"><label><span class="tip" style="display:inline-flex; align-items:center;">Treinamento<span class="tip-icon" data-tip="Meses de treinamento puro onde o SDR produz ZERO resultado. Está aprendendo o processo, ICP, ferramentas. Após esse período, começa a fase de aceleração.">?</span></span></label><input type="range" id="train" min="0" max="3" value="1" step="0.25"><span class="rv dim" id="train-v">1 mês</span></div>
@@ -1412,7 +1412,7 @@ function render() {
     mkKpi('MRR gerado <span class=\"tip-icon\" data-tip=\"Receita Recorrente Mensal: novos clientes × ticket médio.\">?</span>', 'R$ '+fmt(r.mrr), 'margem: R$'+fmt(r.margemContrib*r.cl)+'/mês', '') +
     mkKpi('LTV c/ margem <span class=\"tip-icon\" data-tip=\"LTV descontando margem e impostos. Lucro real por cliente ao longo da vida.\">?</span>', 'R$ '+fmt(r.ltvMargin), 'bruto: R$'+fmt(r.ltv)+' · vida: '+r.avgLife.toFixed(1)+'m', 'blue') +
     mkKpi('LTV:CAC <span class=\"tip-icon\" data-tip=\"Proporção valor do cliente ÷ custo de aquisição. Acima de 3× é saudável.\">?</span>', r.ltvMarginCac.toFixed(1)+'×', r.ltvMarginCac>=3?'saudável (≥3×)':r.ltvMarginCac>=2?'atenção':'crítico (<2×)', ltvCacCls) +
-    mkKpi('Margem líq./mês <span class=\"tip-icon\" data-tip=\"Margem líquida mensal por cliente após descontar custos e impostos.\">?</span>', 'R$ '+fmt(r.net*r.cl), 'R$'+fmt(r.net)+' × '+r.cl+' cl.', 'purple');
+    mkKpi('Contrib. novos cl./mês <span class=\"tip-icon\" data-tip=\"Contribuição dos novos clientes adquiridos no mês (margem por cliente × clientes). NÃO inclui custo do squad — veja Timeline para resultado operacional.\">?</span>', 'R$ '+fmt(r.net*r.cl), 'R$'+fmt(r.net)+' × '+r.cl+' cl.', 'purple');
 
   // Payback badge
   el('pbadge').className = 'pbadge '+cls;
@@ -1426,7 +1426,7 @@ function render() {
     mkBk('Salários efetivos','R$ '+fmt(r.sal),'SDR R$'+fmt(r.se)+sn+' | Closer R$'+fmt(r.ce)+cn2+(p.gon?' | Gab R$'+fmt(r.ge)+gn:'')) +
     mkBk('Comissões','R$ '+fmt(r.cs+r.csv+r.cc+r.cg),'SDR ag. R$'+fmt(r.cs)+(r.csv>0?' + vda R$'+fmt(r.csv):'')+' | Closer R$'+fmt(r.cc)+(p.gon&&r.cg>0?' | Gab R$'+fmt(r.cg):'')) +
     mkBk('Carga fiscal/mês','R$ '+fmt(r.mrrF),p.fisc+'% sobre MRR') +
-    mkBk('Custo total / aproveit.','R$ '+fmt(r.tot),'Closer: '+r.util+'% capacidade');
+    mkBk('Custo squad (aquisição)','R$ '+fmt(r.tot),'Closer: '+r.util+'% capacidade');
 
   // Squad Performance
   var sdrAgend = r.ag; // agendamentos brutos (antes do show rate)
@@ -1447,7 +1447,7 @@ function render() {
   var spHtml = mkSpCard('SDR (×'+p.sdrs+')', '#2eab6f', [
     ['Agendamentos/mês', sdrAgend],
     ['Salário efetivo', 'R$ '+fmt(r.se)],
-    ['Comis. agendamento', 'R$ '+fmt(r.cs)],
+    ['Comis. reunião', 'R$ '+fmt(r.cs)],
     ['Comis. venda', 'R$ '+fmt(r.csv)]
   ], sdrCustoTotal);
   spHtml += mkSpCard('Closer (×'+p.clos+')', '#3b82f6', [
@@ -1504,7 +1504,7 @@ function render() {
 function drawSensitivity(p, r) {
   var convs = [20,25,30,35,40,45,50,55,60];
   var curConv = Math.round(p.conv * 100);
-  var html = '<table><tr><th>Conversão</th><th>Clientes/mês</th><th>CAC</th><th>Payback</th><th>LTV/CAC</th><th>Margem líq.</th></tr>';
+  var html = '<table><tr><th>Conversão</th><th>Clientes/mês</th><th>CAC</th><th>Payback</th><th>LTV/CAC</th><th>Contrib./mês</th></tr>';
   convs.forEach(function(c) {
     var pp = {}; for(var k in p) pp[k]=p[k];
     pp.conv = c/100;
@@ -1525,6 +1525,7 @@ function drawSensChurn(p, r) {
   churns.forEach(function(c) {
     var pp = {}; for(var k in p) pp[k]=p[k];
     pp.churn = c / 100;
+    pp.perm = 999; // remove perm cap so churn sensitivity is visible
     var rr = calcFromP(pp);
     var isCur = Math.abs(c - curChurn) < 0.3;
     var cls = isCur ? ' class="hl"' : rr.ltvMarginCac < 2 ? ' class="dg"' : rr.ltvMarginCac < 3 ? ' class="wn"' : '';
@@ -2193,7 +2194,7 @@ function renderInvestment() {
   var cashCls = squadWins ? 'pos' : 'neg';
 
   el('inv-grid').innerHTML =
-    '<div class="inv-card '+vplCls+' tip tip-l"><div class="inv-card-l">VPL <span class="tip-icon" data-tip="Valor Presente Líquido: traz todos os fluxos de caixa futuros da squad a valor de hoje, descontados pela taxa Hurdle ('+(hurdleAa*100).toFixed(0)+'% a.a.). VPL positivo = o projeto gera mais valor do que custaria investir esse dinheiro a '+(hurdleAa*100).toFixed(0)+'%. Quanto maior, melhor.">?</span></div><div class="inv-card-v">'+(vpl>=0?'+':'')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
+    '<div class="inv-card '+vplCls+' tip tip-l"><div class="inv-card-l">VPL <span class="tip-icon" data-tip="Valor Presente Líquido: traz todos os fluxos de caixa futuros da squad a valor de hoje, descontados pela taxa Hurdle ('+(hurdleAa*100).toFixed(0)+'% a.a.). VPL positivo = o projeto gera mais valor do que custaria investir esse dinheiro a '+(hurdleAa*100).toFixed(0)+'%. Quanto maior, melhor.">?</span></div><div class="inv-card-v">'+(vpl>=0?'+ ':'\u2212 ')+' R$ '+fmt(Math.abs(vpl))+'</div><div class="inv-card-s">Taxa: '+(hurdleAa*100).toFixed(0)+'% a.a. (CDI+risco) · '+total+' meses<br>'+(vpl>0?'Projeto gera valor acima do hurdle rate':'Retorno abaixo do custo de capital')+'</div></div>'+
     '<div class="inv-card '+tirCls+' tip"><div class="inv-card-l">TIR <span class="tip-icon" data-tip="Taxa Interna de Retorno: é o retorno anualizado real que a squad gera. Calculada a partir do fluxo de caixa mês a mês. Se a TIR for maior que o Hurdle Rate ('+(hurdleAa*100).toFixed(0)+'%), o investimento se justifica. TIR de '+tirAa+'% significa que cada real investido rende '+tirAa+'% ao ano.">?</span></div><div class="inv-card-v">'+tirAa+'% a.a.</div><div class="inv-card-s">Hurdle rate: '+(hurdleAa*100).toFixed(0)+'% · CDI: '+(cdiAa*100).toFixed(1)+'%<br>'+(tirAa>hurdleAa*100?'TIR > Hurdle → aceitar':'TIR < Hurdle → reavaliar')+'</div></div>'+
     '<div class="inv-card tip tip-r"><div class="inv-card-l">NECESSIDADE DE CAIXA <span class="tip-icon" data-tip="O máximo de dinheiro que você precisa ter disponível para bancar a operação até ela se pagar. No mês '+peakMonth+' o caixa acumulado atinge o ponto mais negativo (R$'+fmt(cashNeed)+'). Após isso, a receita dos clientes começa a cobrir os custos. Total aportado ao longo de toda a operação: R$'+fmt(totalAported)+'.">?</span></div><div class="inv-card-v" style="color:var(--warn)">R$ '+fmt(cashNeed)+'</div><div class="inv-card-s">Pico no mês '+peakMonth+' · Total aportado: R$'+fmt(totalAported)+'<br>Capital máximo necessário para bancar a operação</div></div>';
 
@@ -2319,7 +2320,7 @@ function renderArena(){
     {key:'net',label:'Margem líq./cl',fmt:function(v){return 'R$ '+fmt(v);},better:'max'},
     {key:'squadCost',label:'Custo squad/mês',fmt:function(v){return 'R$ '+fmt(v);},better:'min'},
     {key:'headcount',label:'Headcount',fmt:function(v){return v;},better:'info'},
-    {key:'vpl12',label:'VPL (12m)',fmt:function(v){return (v>=0?'+':'')+' R$ '+fmt(Math.abs(v));},better:'max'},
+    {key:'vpl12',label:'VPL (12m)',fmt:function(v){return (v>=0?'+ ':'\u2212 ')+' R$ '+fmt(Math.abs(v));},better:'max'},
     {key:'tir12',label:'TIR (a.a.)',fmt:function(v){return v+'%';},better:'max'}
   ];
   var cols=results.length+1;
@@ -2379,8 +2380,8 @@ function runStress(){
     {l:'CAC',p:'R$ '+fmt(pessR.cac),b:'R$ '+fmt(baseR.cac),o:'R$ '+fmt(otimR.cac)},
     {l:'Payback',p:fmtPB(pessR.pb),b:fmtPB(baseR.pb),o:fmtPB(otimR.pb)},
     {l:'LTV:CAC',p:pessR.ltvMarginCac.toFixed(1)+'×',b:baseR.ltvMarginCac.toFixed(1)+'×',o:otimR.ltvMarginCac.toFixed(1)+'×'},
-    {l:'Margem líq./mês',p:'R$ '+fmt(pessR.net*pessR.cl),b:'R$ '+fmt(baseR.net*baseR.cl),o:'R$ '+fmt(otimR.net*otimR.cl)},
-    {l:'VPL (12m)',p:(pessR.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(pessR.vpl12)),b:(baseR.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(baseR.vpl12)),o:(otimR.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(otimR.vpl12))},
+    {l:'Contrib. novos cl.',p:'R$ '+fmt(pessR.net*pessR.cl),b:'R$ '+fmt(baseR.net*baseR.cl),o:'R$ '+fmt(otimR.net*otimR.cl)},
+    {l:'VPL (12m)',p:(pessR.vpl12>=0?'+ ':'\u2212 ')+' R$ '+fmt(Math.abs(pessR.vpl12)),b:(baseR.vpl12>=0?'+ ':'\u2212 ')+' R$ '+fmt(Math.abs(baseR.vpl12)),o:(otimR.vpl12>=0?'+ ':'\u2212 ')+' R$ '+fmt(Math.abs(otimR.vpl12))},
     {l:'TIR (a.a.)',p:pessR.tir12+'%',b:baseR.tir12+'%',o:otimR.tir12+'%'}
   ];
   var html='<div class="stress-grid">';
@@ -2463,7 +2464,7 @@ function runOptimizer(){
     html+='<div class="oc'+gold+'" style="text-align:center">'+t.r.cl+'</div>';
     html+='<div class="oc'+gold+'" style="text-align:center">R$ '+fmt(t.r.cac)+'</div>';
     html+='<div class="oc'+gold+'" style="text-align:center">'+fmtPB(t.r.pb)+'</div>';
-    html+='<div class="oc'+gold+'" style="text-align:center">'+(t.r.vpl12>=0?'+':'')+' R$ '+fmt(Math.abs(t.r.vpl12))+'</div>';
+    html+='<div class="oc'+gold+'" style="text-align:center">'+(t.r.vpl12>=0?'+ ':'\u2212 ')+' R$ '+fmt(Math.abs(t.r.vpl12))+'</div>';
     html+='<div class="oc'+gold+'" style="text-align:center">'+t.r.tir12+'%</div>';
   });
   html+='</div>';
