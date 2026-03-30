@@ -569,7 +569,8 @@ canvas{max-height:250px!important}
 <div class="sidebar">
   <div class="sb-header">⚙ Configuração</div>
   <div class="sb-content">
-    <!-- SDR Block -->
+    <!-- SDR/Closer/Manager: hidden, kept for JS compat -->
+    <div style="display:none">
     <div class="sb-block">
       <div class="sb-header-block"><span>SDR</span></div>
       <div class="sb-content-block">
@@ -609,7 +610,8 @@ canvas{max-height:250px!important}
         <div id="goff" style="display:none;font-size:10px;color:var(--dim);padding-top:6px">Gabriel não incluído no custo.</div>
       </div>
     </div>
-    
+    </div><!-- end hidden SDR/Closer/Manager -->
+
     <!-- Produto Block -->
     <div class="sb-block">
       <div class="sb-header-block"><span>Produto</span></div>
