@@ -913,24 +913,26 @@ var ROLE_DEFAULTS = {
 var WAVE_COLORS = ['#2eab6f','#3b82f6','#8b5cf6','#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8'];
 
 function initDefaultPeople() {
-  // Realistic staggered hiring: squad grows over time
-  var team = [
-    {role:'manager', name:'Gabriel',   start:1},
-    {role:'closer',  name:'Closer 1',  start:1},
-    {role:'sdr',     name:'SDR 1',     start:1},
-    {role:'sdr',     name:'SDR 2',     start:3},
-    {role:'sdr',     name:'SDR 3',     start:5},
-    {role:'sdr',     name:'SDR 4',     start:8}
-  ];
+  // Cenário: Operação Outbound Carolina (Proposta B2B PJ)
   PEOPLE = [];
   NEXT_PERSON_ID = 1;
+  var team = [
+    // Gabriel — gestor da operação, desde M1
+    {role:'manager', name:'Gabriel', start:1, end:null, salary:6000, commMeeting:0, commSale:0, ded:8, reun:0, train:0, accel:0},
+    // Closer interno M3A — já existe no time, custo incremental zero
+    {role:'closer', name:'Closer M3A', start:1, end:null, salary:0, commMeeting:0, commSale:0, ded:8, reun:6, train:0, accel:0},
+    // Carolina Fase 1 — Setup & Ramp-up (M1-M2)
+    {role:'sdr', name:'Carolina (Setup)', start:1, end:2, salary:4000, commMeeting:120, commSale:1000, ded:8, reun:6, train:0.5, accel:1},
+    // Carolina Fase 2 — Operação consolidada (M3+)
+    {role:'sdr', name:'Carolina (Operação)', start:3, end:null, salary:4000, commMeeting:60, commSale:500, ded:8, reun:10, train:0, accel:0}
+  ];
   for (var i = 0; i < team.length; i++) {
-    var d = ROLE_DEFAULTS[team[i].role];
+    var t = team[i];
     PEOPLE.push({
-      id: NEXT_PERSON_ID++, name: team[i].name, role: team[i].role,
-      salary: d.salary, commMeeting: d.commMeeting||0, commSale: d.commSale||0,
-      ded: d.ded, reun: d.reun||0, startMonth: team[i].start, endMonth: null,
-      train: d.train||0, accel: d.accel||0
+      id: NEXT_PERSON_ID++, name: t.name, role: t.role,
+      salary: t.salary, commMeeting: t.commMeeting, commSale: t.commSale,
+      ded: t.ded, reun: t.reun, startMonth: t.start, endMonth: t.end,
+      train: t.train, accel: t.accel
     });
   }
 }
