@@ -494,16 +494,16 @@ canvas{max-height:250px!important}
 /* ─── GANTT CHART ─────────────────────────────────── */
 .gantt{margin:10px 0;font-family:'DM Mono','Inter',monospace;font-size:10px}
 .gantt-hdr{display:flex;border-bottom:1px solid var(--glass-border);padding-bottom:4px;margin-bottom:2px}
-.gantt-lbl{width:120px;min-width:120px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:3px 6px}
+.gantt-lbl{width:140px;min-width:140px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:3px 6px}
 .gantt-months{display:flex;flex:1;overflow-x:auto}
-.gantt-mh{flex:1;min-width:28px;text-align:center;font-size:8px;color:var(--muted);padding:2px 0}
-.gantt-row{display:flex;align-items:center;min-height:28px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .1s}
+.gantt-mh{flex:1;min-width:48px;text-align:center;font-size:10px;color:var(--muted);padding:3px 0}
+.gantt-row{display:flex;align-items:center;min-height:34px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .1s}
 .gantt-row:hover{background:rgba(255,255,255,.03)}
 .gantt-row.sel{background:rgba(10,204,199,.06)}
-.gantt-name{width:120px;min-width:120px;padding:3px 6px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.gantt-name{width:140px;min-width:140px;padding:4px 8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
 .gantt-name .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .gantt-bars{display:flex;flex:1;position:relative;min-height:24px}
-.gantt-cell{flex:1;min-width:28px;display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(255,255,255,.5);position:relative;z-index:1}
+.gantt-cell{flex:1;min-width:48px;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.5);position:relative;z-index:1}
 .gantt-cell.train{background:repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,.06) 2px,rgba(255,255,255,.06) 4px)}
 .gantt-cell.accel{background:rgba(255,255,255,.08)}
 .gantt-cell.full{font-weight:600;color:rgba(255,255,255,.8)}
@@ -513,14 +513,32 @@ canvas{max-height:250px!important}
 .gantt-foot .btn{font-size:10px;padding:4px 12px}
 .gantt-summary{font-size:9px;color:var(--muted);margin-left:auto}
 .gantt-totals{display:flex;min-height:22px;border-top:1px solid var(--glass-border);margin-top:2px;padding-top:2px}
-.gantt-totals .gantt-lbl{font-weight:600;font-size:8px}
-.gantt-totals .gantt-cell{font-size:8px;font-weight:600;color:var(--accent)}
+.gantt-totals .gantt-lbl{font-weight:600;font-size:10px}
+.gantt-totals .gantt-cell{font-size:10px;font-weight:600;color:var(--accent)}
 /* Gantt editor panel */
 .gantt-ed{background:var(--card2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px;margin:4px 0 8px 120px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;font-size:10px}
 .gantt-ed label{display:flex;flex-direction:column;gap:2px;color:var(--muted);font-size:9px}
 .gantt-ed input[type="text"],.gantt-ed input[type="number"]{background:var(--bg);border:1px solid var(--glass-border);border-radius:4px;padding:4px 6px;color:var(--text);font-size:10px;font-family:'DM Mono',monospace;width:100%}
 .gantt-ed .ed-rm{grid-column:1/-1;text-align:right}
 .gantt-ed .ed-rm button{background:var(--danger-dim);color:var(--danger);border:1px solid var(--danger);border-radius:4px;padding:3px 10px;font-size:9px;cursor:pointer}
+/* Gantt pagination */
+.gantt-nav{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0;font-size:11px}
+.gantt-nav button{background:var(--card2);border:1px solid var(--glass-border);border-radius:6px;padding:4px 12px;color:var(--text);cursor:pointer;font-size:10px;font-family:'DM Mono',monospace}
+.gantt-nav button:hover{border-color:var(--accent)}
+.gantt-nav button.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.gantt-nav button:disabled{opacity:.3;cursor:default}
+/* Preset tabs */
+.preset-bar{display:flex;align-items:center;gap:6px;padding:8px 0;flex-wrap:wrap;margin-bottom:4px}
+.ptab{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--card2);cursor:pointer;font-size:11px;font-family:'DM Mono','Inter',monospace;color:var(--text);transition:all .15s}
+.ptab:hover{border-color:var(--accent);background:rgba(10,204,199,.05)}
+.ptab.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:600}
+.ptab-dot{width:6px;height:6px;border-radius:50%;background:var(--glass-border);flex-shrink:0}
+.ptab-dot.on{background:var(--accent)}
+.ptab-actions{display:inline-flex;gap:2px;margin-left:4px;font-size:10px;opacity:.5}
+.ptab:hover .ptab-actions{opacity:1}
+.ptab-btn{cursor:pointer;padding:0 2px}
+.ptab-btn:hover{color:var(--accent)}
+.ptab-add{border-style:dashed;color:var(--muted);font-weight:400}
 
 </style>
 </head>
@@ -666,20 +684,13 @@ canvas{max-height:250px!important}
     <button class="btn sm" onclick="duplicateP()" data-tip="Duplicar o perfil atual com outro nome para comparar variações">📑 Duplicar</button>
     <button class="btn sm" onclick="openArena()" data-tip="Comparar perfis salvos lado a lado com semáforo de métricas">⚔️ Comparar</button>
     <button class="btn sm" onclick="window.print()" data-tip="Exportar a página atual como PDF para impressão ou envio">🖨 PDF</button>
-    <button class="btn sm" onclick="openPresetM()" data-tip="Salvar apenas o cenário ativo como preset reutilizável em outros perfis">📋 Preset</button>
-    <button class="btn sm" onclick="openM()" data-tip="Salvar todos os cenários e configurações como perfil nomeado no navegador">💾 Salvar</button>
+    <button class="btn sm" onclick="if(ACTIVE_PRESET_ID){updatePreset12(ACTIVE_PRESET_ID);}else{var n=prompt('Nome do preset:');if(n&&n.trim())saveAsPreset(n.trim());}" data-tip="Salvar como preset nomeado (ou atualizar o preset ativo)">💾 Salvar</button>
     <button class="btn sm" onclick="openLayoutSettings()" data-tip="Organizar layout: mostrar/esconder e reordenar seções">⚙ Layout</button>
     <button class="btn rnd" id="tbtn" onclick="toggleTheme()" data-tip="Alternar tema claro/escuro">🌙</button>
   </div>
 </div>
-<!-- Profiles -->
-<div class="profiles">
-  <span class="plbl">Perfis</span>
-  <div class="plist" id="plist"><span class="no-p">Nenhum perfil salvo.</span></div>
-</div>
-
-<!-- Scenario presets -->
-<div class="sc-presets" id="sc-presets"></div>
+<!-- Preset Tabs (Monday-style views) -->
+<div class="preset-bar" id="preset-tabs"></div>
 <!-- Gantt Chart (People) -->
 <div id="gantt-container"></div>
 <!-- Dashboard -->
@@ -1062,13 +1073,34 @@ function getPersonMonthOutput(person, month) {
 }
 
 // ─── GANTT CHART ────────────────────────────────────────────
+function ganttSetPage(pg) { GANTT_PAGE=pg; renderGantt(); }
+
 function renderGantt() {
   var container = el('gantt-container');
   if (!container) return;
   var total = getTotalDuration();
+  var totalPages = Math.ceil(total / MONTHS_PER_PAGE);
+  if (GANTT_PAGE >= totalPages) GANTT_PAGE = totalPages - 1;
+  if (GANTT_PAGE < 0) GANTT_PAGE = 0;
+  var pageStart = GANTT_PAGE * MONTHS_PER_PAGE + 1;
+  var pageEnd = Math.min(pageStart + MONTHS_PER_PAGE - 1, total);
+  var pageMonths = pageEnd - pageStart + 1;
+
+  var h = '<div class="gantt">';
+  // Pagination nav
+  if (totalPages > 1) {
+    h += '<div class="gantt-nav">';
+    h += '<button'+(GANTT_PAGE<=0?' disabled':'')+' onclick="ganttSetPage('+(GANTT_PAGE-1)+')">◀</button>';
+    for (var pg=0;pg<totalPages;pg++) {
+      var pgS=pg*MONTHS_PER_PAGE+1, pgE=Math.min(pgS+MONTHS_PER_PAGE-1,total);
+      h += '<button class="'+(pg===GANTT_PAGE?'active':'')+'" onclick="ganttSetPage('+pg+')">M'+pgS+'–M'+pgE+'</button>';
+    }
+    h += '<button'+(GANTT_PAGE>=totalPages-1?' disabled':'')+' onclick="ganttSetPage('+(GANTT_PAGE+1)+')">▶</button>';
+    h += '</div>';
+  }
   // Header
-  var h = '<div class="gantt"><div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
-  for (var m=1;m<=total;m++) h += '<div class="gantt-mh">M'+m+'</div>';
+  h += '<div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
+  for (var m=pageStart;m<=pageEnd;m++) h += '<div class="gantt-mh">M'+m+'</div>';
   h += '</div></div>';
   // Rows
   var sorted = PEOPLE.slice().sort(function(a,b){
@@ -1079,16 +1111,19 @@ function renderGantt() {
     var isSel = SELECTED_PERSON===p.id;
     var color = ROLE_COLORS[p.role];
     var endM = p.endMonth || total;
-    // Row
     h += '<div class="gantt-row'+(isSel?' sel':'')+'" onclick="selectPerson('+p.id+')">';
     h += '<div class="gantt-name"><span class="dot" style="background:'+color+'"></span>'+p.name+'</div>';
     h += '<div class="gantt-bars">';
-    // Background bar
-    var leftPct = ((p.startMonth-1)/total*100).toFixed(1);
-    var widthPct = ((endM-p.startMonth+1)/total*100).toFixed(1);
-    h += '<div class="gantt-bg" style="left:'+leftPct+'%;width:'+widthPct+'%;background:'+color+'"></div>';
-    // Per-month cells
-    for (var cm=1;cm<=total;cm++) {
+    // Background bar (relative to page)
+    var barStart = Math.max(p.startMonth, pageStart);
+    var barEnd = Math.min(endM, pageEnd);
+    if (barEnd >= barStart) {
+      var leftPct = ((barStart-pageStart)/pageMonths*100).toFixed(1);
+      var widthPct = ((barEnd-barStart+1)/pageMonths*100).toFixed(1);
+      h += '<div class="gantt-bg" style="left:'+leftPct+'%;width:'+widthPct+'%;background:'+color+'"></div>';
+    }
+    // Cells for this page
+    for (var cm=pageStart;cm<=pageEnd;cm++) {
       var isActive = cm>=p.startMonth && cm<=endM;
       var ramp = isActive ? getPersonRamp(p,cm) : -1;
       var cls = 'gantt-cell';
@@ -1102,10 +1137,12 @@ function renderGantt() {
       h += '<div class="'+cls+'">'+(val===0?'0':val||'')+'</div>';
     }
     h += '</div></div>';
-    // Editor panel if selected
+    // Editor
     if (isSel) {
       h += '<div class="gantt-ed">';
       h += '<label>Nome<input type="text" value="'+p.name+'" onchange="updatePerson('+p.id+',\'name\',this.value)"></label>';
+      h += '<label>Início mês<input type="number" value="'+p.startMonth+'" min="1" max="36" onchange="updatePerson('+p.id+',\'startMonth\',+this.value)"></label>';
+      h += '<label>Saída mês<input type="number" value="'+(p.endMonth||'')+'" min="1" max="48" placeholder="até fim" onchange="updatePerson('+p.id+',\'endMonth\',this.value?+this.value:null)"></label>';
       h += '<label>Salário R$<input type="number" value="'+p.salary+'" step="100" onchange="updatePerson('+p.id+',\'salary\',+this.value)"></label>';
       if (p.role==='sdr') {
         h += '<label>Comis./reunião R$<input type="number" value="'+p.commMeeting+'" step="10" onchange="updatePerson('+p.id+',\'commMeeting\',+this.value)"></label>';
@@ -1120,17 +1157,15 @@ function renderGantt() {
         h += '<label>Comis./venda R$<input type="number" value="'+p.commSale+'" step="50" onchange="updatePerson('+p.id+',\'commSale\',+this.value)"></label>';
       }
       h += '<label>Dedicação (h/dia)<input type="number" value="'+p.ded+'" min="1" max="8" step="0.5" onchange="updatePerson('+p.id+',\'ded\',+this.value)"></label>';
-      h += '<label>Treino (meses)<input type="number" value="'+p.train+'" min="0" max="6" step="0.5" onchange="updatePerson('+p.id+',\'train\',+this.value)"></label>';
-      h += '<label>Aceleração (meses)<input type="number" value="'+p.accel+'" min="0" max="6" onchange="updatePerson('+p.id+',\'accel\',+this.value)"></label>';
-      h += '<label>Início mês<input type="number" value="'+p.startMonth+'" min="1" max="36" onchange="updatePerson('+p.id+',\'startMonth\',+this.value)"></label>';
-      h += '<label>Saída mês (vazio=até fim)<input type="number" value="'+(p.endMonth||'')+'" min="1" max="48" onchange="updatePerson('+p.id+',\'endMonth\',this.value?+this.value:null)"></label>';
+      h += '<label>Treino (meses)<input type="number" value="'+p.train+'" min="0" max="6" step="0.25" onchange="updatePerson('+p.id+',\'train\',+this.value)"></label>';
+      h += '<label>Aceleração (meses)<input type="number" value="'+p.accel+'" min="0" max="6" step="0.5" onchange="updatePerson('+p.id+',\'accel\',+this.value)"></label>';
       h += '<div class="ed-rm"><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
       h += '</div>';
     }
   }
-  // Totals row: headcount per month
+  // Totals: HC
   h += '<div class="gantt-totals"><div class="gantt-lbl">HC</div><div class="gantt-months" style="display:flex;flex:1">';
-  for (var tm=1;tm<=total;tm++) {
+  for (var tm=pageStart;tm<=pageEnd;tm++) {
     var hc=0;
     for (var ti=0;ti<PEOPLE.length;ti++) {
       if (PEOPLE[ti].startMonth<=tm && (!PEOPLE[ti].endMonth||PEOPLE[ti].endMonth>=tm)) hc++;
@@ -1138,15 +1173,15 @@ function renderGantt() {
     h += '<div class="gantt-cell" style="font-weight:600;color:var(--accent)">'+hc+'</div>';
   }
   h += '</div></div>';
-  // Cost row
+  // Totals: Cost
   var gp = getGlobalP();
   h += '<div class="gantt-totals"><div class="gantt-lbl">Custo</div><div class="gantt-months" style="display:flex;flex:1">';
-  for (var cm2=1;cm2<=total;cm2++) {
+  for (var cm2=pageStart;cm2<=pageEnd;cm2++) {
     var agg = aggregateMonth(cm2, gp);
-    h += '<div class="gantt-cell" style="font-size:7px;color:var(--warn)">'+fmtK(agg.costTotal)+'</div>';
+    h += '<div class="gantt-cell" style="color:var(--warn)">'+fmtK(agg.costTotal)+'</div>';
   }
   h += '</div></div>';
-  // Footer with buttons
+  // Footer
   h += '<div class="gantt-foot">';
   h += '<button class="btn sm" style="background:'+ROLE_COLORS.sdr+';color:#fff;border-color:'+ROLE_COLORS.sdr+'" onclick="addPerson(\'sdr\')">+ SDR</button>';
   h += '<button class="btn sm" style="background:'+ROLE_COLORS.closer+';color:#fff;border-color:'+ROLE_COLORS.closer+'" onclick="addPerson(\'closer\')">+ Closer</button>';
@@ -1154,7 +1189,7 @@ function renderGantt() {
   var sdrs=PEOPLE.filter(function(p){return p.role==='sdr';}).length;
   var clos=PEOPLE.filter(function(p){return p.role==='closer';}).length;
   var mgrs=PEOPLE.filter(function(p){return p.role==='manager';}).length;
-  h += '<span class="gantt-summary">'+sdrs+' SDR · '+clos+' Closer · '+mgrs+' Gestor</span>';
+  h += '<span class="gantt-summary">'+sdrs+' SDR · '+clos+' Closer · '+mgrs+' Gestor · '+total+' meses</span>';
   h += '</div></div>';
   container.innerHTML = h;
 }
@@ -1202,6 +1237,140 @@ function aggregateMonth(month, gp) {
   return {ag:ag,au:au,cl:cl,salTotal:salT,commTotal:commT,costTotal:costT,
     sdrComm:sdrComm,closerComm:closerComm,managerComm:managerComm,
     sdrs:nSDR,closers:nCLO,managers:nMGR,headcount:hc};
+}
+
+// ─── AUTO-SAVE ──────────────────────────────────────────────
+var ACTIVE_PRESET_ID = null;
+var GANTT_PAGE = 0;
+var MONTHS_PER_PAGE = 12;
+
+function autoSave() {
+  try {
+    var gp = {};
+    try { gp = {show:el('show').value,conv:el('conv').value,tkm:el('tkm-n').value,perm:el('perm-n').value,mprod:el('mprod').value,fisc:el('fisc').value,churn:el('churn').value}; } catch(e){}
+    localStorage.setItem('m3a-v12-state', JSON.stringify({
+      people: PEOPLE, nextId: NEXT_PERSON_ID, globals: gp,
+      activePreset: ACTIVE_PRESET_ID, ganttPage: GANTT_PAGE
+    }));
+  } catch(e) {}
+}
+
+function autoLoad() {
+  try {
+    var raw = localStorage.getItem('m3a-v12-state');
+    if (!raw) return false;
+    var s = JSON.parse(raw);
+    if (s.people && s.people.length > 0) {
+      PEOPLE = s.people;
+      NEXT_PERSON_ID = s.nextId || (Math.max.apply(null, PEOPLE.map(function(p){return p.id;}))+1);
+      ACTIVE_PRESET_ID = s.activePreset || null;
+      GANTT_PAGE = s.ganttPage || 0;
+      if (s.globals) {
+        var sv = function(id,v){var e=el(id);if(e&&v!=null)e.value=v;};
+        sv('show',s.globals.show);sv('conv',s.globals.conv);
+        sv('tkm',s.globals.tkm);sv('tkm-n',s.globals.tkm);
+        sv('perm',s.globals.perm);sv('perm-n',s.globals.perm);
+        sv('mprod',s.globals.mprod);sv('fisc',s.globals.fisc);sv('churn',s.globals.churn);
+      }
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// ─── PRESETS v12 ────────────────────────────────────────────
+var NEXT_PRESET_ID = 1;
+
+function getPresets12() {
+  try { return JSON.parse(localStorage.getItem('m3a-v12-presets')||'[]'); } catch(e) { return []; }
+}
+function setPresets12(list) {
+  try { localStorage.setItem('m3a-v12-presets', JSON.stringify(list)); } catch(e) {}
+}
+function saveAsPreset(name) {
+  var list = getPresets12();
+  var maxId = list.reduce(function(mx,p){return Math.max(mx,p.id||0);},0);
+  var gp = {};
+  try { gp = {show:el('show').value,conv:el('conv').value,tkm:el('tkm-n').value,perm:el('perm-n').value,mprod:el('mprod').value,fisc:el('fisc').value,churn:el('churn').value}; } catch(e){}
+  var preset = { id: maxId+1, name: name, people: JSON.parse(JSON.stringify(PEOPLE)), globals: gp, nextId: NEXT_PERSON_ID, updatedAt: Date.now() };
+  list.push(preset);
+  setPresets12(list);
+  ACTIVE_PRESET_ID = preset.id;
+  renderPresetTabs(); autoSave();
+}
+function updatePreset12(id) {
+  var list = getPresets12();
+  var gp = {};
+  try { gp = {show:el('show').value,conv:el('conv').value,tkm:el('tkm-n').value,perm:el('perm-n').value,mprod:el('mprod').value,fisc:el('fisc').value,churn:el('churn').value}; } catch(e){}
+  for (var i=0;i<list.length;i++) {
+    if (list[i].id===id) {
+      list[i].people = JSON.parse(JSON.stringify(PEOPLE));
+      list[i].globals = gp;
+      list[i].nextId = NEXT_PERSON_ID;
+      list[i].updatedAt = Date.now();
+      break;
+    }
+  }
+  setPresets12(list);
+  renderPresetTabs();
+}
+function loadPreset12(id) {
+  var list = getPresets12();
+  for (var i=0;i<list.length;i++) {
+    if (list[i].id===id) {
+      PEOPLE = JSON.parse(JSON.stringify(list[i].people));
+      NEXT_PERSON_ID = list[i].nextId || (Math.max.apply(null,PEOPLE.map(function(p){return p.id;}))+1);
+      ACTIVE_PRESET_ID = id;
+      SELECTED_PERSON = null;
+      GANTT_PAGE = 0;
+      if (list[i].globals) {
+        var sv=function(eid,v){var e=el(eid);if(e&&v!=null)e.value=v;};
+        sv('show',list[i].globals.show);sv('conv',list[i].globals.conv);
+        sv('tkm',list[i].globals.tkm);sv('tkm-n',list[i].globals.tkm);
+        sv('perm',list[i].globals.perm);sv('perm-n',list[i].globals.perm);
+        sv('mprod',list[i].globals.mprod);sv('fisc',list[i].globals.fisc);sv('churn',list[i].globals.churn);
+      }
+      renderPresetTabs(); renderGantt(); render();
+      return;
+    }
+  }
+}
+function deletePreset12(id) {
+  var list = getPresets12().filter(function(p){return p.id!==id;});
+  setPresets12(list);
+  if (ACTIVE_PRESET_ID===id) ACTIVE_PRESET_ID=null;
+  renderPresetTabs();
+}
+function renamePreset12(id) {
+  var list = getPresets12();
+  for (var i=0;i<list.length;i++) {
+    if (list[i].id===id) {
+      var newName = prompt('Renomear preset:', list[i].name);
+      if (newName && newName.trim()) { list[i].name = newName.trim(); setPresets12(list); renderPresetTabs(); }
+      return;
+    }
+  }
+}
+
+function renderPresetTabs() {
+  var container = el('preset-tabs');
+  if (!container) return;
+  var list = getPresets12();
+  var h = '';
+  for (var i=0;i<list.length;i++) {
+    var p = list[i];
+    var isActive = ACTIVE_PRESET_ID === p.id;
+    h += '<div class="ptab'+(isActive?' active':'')+'" onclick="loadPreset12('+p.id+')" title="Clique para carregar">';
+    h += '<span class="ptab-dot'+(isActive?' on':'')+'"></span>';
+    h += '<span class="ptab-name">'+p.name+'</span>';
+    h += '<span class="ptab-actions">';
+    if (isActive) h += '<span class="ptab-btn" onclick="event.stopPropagation();updatePreset12('+p.id+')" title="Salvar alterações">💾</span>';
+    h += '<span class="ptab-btn" onclick="event.stopPropagation();renamePreset12('+p.id+')" title="Renomear">✎</span>';
+    h += '<span class="ptab-btn" onclick="event.stopPropagation();if(confirm(\'Deletar preset?\'))deletePreset12('+p.id+')" title="Deletar">×</span>';
+    h += '</span></div>';
+  }
+  h += '<div class="ptab ptab-add" onclick="var n=prompt(\'Nome do preset:\');if(n&&n.trim())saveAsPreset(n.trim())" title="Salvar como novo preset">+ Novo</div>';
+  container.innerHTML = h;
 }
 
 // ─── GLOBAL PARAMS (non-person) ─────────────────────────────
@@ -1727,6 +1896,9 @@ function render() {
 
   // Investment analysis
   renderInvestment();
+
+  // Auto-save state
+  autoSave();
 }
 
 // ─── SENSITIVITY TABLE ───────────────────────────────────────
@@ -2454,11 +2626,14 @@ document.querySelectorAll('.sc-input').forEach(function(inp) {
 // ─── PROFILE MANAGEMENT ─────────────────────────────────────
 function newProfile(){
   if(!confirm('Limpar tudo e começar do zero?'))return;
-  WAVES=[{startMonth:1}];WAVE_NAMES=['Leva 1'];CUR_WAVE=0;LOADED_P=null;
-  // Reset all inputs to defaults
-  var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,scomv:0,ccom:500,gcom:0,show:80,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
-  applyRaw(defs);el('gon').checked=true;
-  renderGantt();/*renderWaveConfig removed*/renderPs();render();
+  initDefaultPeople();
+  ACTIVE_PRESET_ID=null; SELECTED_PERSON=null; GANTT_PAGE=0;
+  var defs={show:80,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5};
+  var sv=function(id,v){var e=el(id);if(e)e.value=v;};
+  sv('show',defs.show);sv('conv',defs.conv);sv('tkm',defs.tkm);sv('tkm-n',defs.tkm);
+  sv('perm',defs.perm);sv('perm-n',defs.perm);sv('mprod',defs.mprod);sv('fisc',defs.fisc);sv('churn',defs.churn);
+  try{localStorage.removeItem('m3a-v12-state');}catch(e){}
+  renderPresetTabs();renderGantt();render();
 }
 function duplicateP(){
   // Save current wave's team composition
@@ -2667,11 +2842,10 @@ function saveOptTop(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────
-WAVES[0] = getWaveFromSidebar();
+// Auto-load saved state, or use defaults
+if (!autoLoad()) { initDefaultPeople(); }
+renderPresetTabs();
 renderGantt();
-/*renderWaveConfig removed*/
-renderPs();
-renderPresets();
 renderScorecard();
 render();
 
