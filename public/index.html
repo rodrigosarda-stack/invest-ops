@@ -491,6 +491,37 @@ canvas{max-height:250px!important}
   }
 }
 
+/* ─── GANTT CHART ─────────────────────────────────── */
+.gantt{margin:10px 0;font-family:'DM Mono','Inter',monospace;font-size:10px}
+.gantt-hdr{display:flex;border-bottom:1px solid var(--glass-border);padding-bottom:4px;margin-bottom:2px}
+.gantt-lbl{width:120px;min-width:120px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:3px 6px}
+.gantt-months{display:flex;flex:1;overflow-x:auto}
+.gantt-mh{flex:1;min-width:28px;text-align:center;font-size:8px;color:var(--muted);padding:2px 0}
+.gantt-row{display:flex;align-items:center;min-height:28px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .1s}
+.gantt-row:hover{background:rgba(255,255,255,.03)}
+.gantt-row.sel{background:rgba(10,204,199,.06)}
+.gantt-name{width:120px;min-width:120px;padding:3px 6px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.gantt-name .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.gantt-bars{display:flex;flex:1;position:relative;min-height:24px}
+.gantt-cell{flex:1;min-width:28px;display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(255,255,255,.5);position:relative;z-index:1}
+.gantt-cell.train{background:repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,.06) 2px,rgba(255,255,255,.06) 4px)}
+.gantt-cell.accel{background:rgba(255,255,255,.08)}
+.gantt-cell.full{font-weight:600;color:rgba(255,255,255,.8)}
+.gantt-cell.active{border-radius:2px}
+.gantt-bg{position:absolute;top:2px;bottom:2px;border-radius:4px;opacity:.25;z-index:0}
+.gantt-foot{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.gantt-foot .btn{font-size:10px;padding:4px 12px}
+.gantt-summary{font-size:9px;color:var(--muted);margin-left:auto}
+.gantt-totals{display:flex;min-height:22px;border-top:1px solid var(--glass-border);margin-top:2px;padding-top:2px}
+.gantt-totals .gantt-lbl{font-weight:600;font-size:8px}
+.gantt-totals .gantt-cell{font-size:8px;font-weight:600;color:var(--accent)}
+/* Gantt editor panel */
+.gantt-ed{background:var(--card2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px;margin:4px 0 8px 120px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;font-size:10px}
+.gantt-ed label{display:flex;flex-direction:column;gap:2px;color:var(--muted);font-size:9px}
+.gantt-ed input[type="text"],.gantt-ed input[type="number"]{background:var(--bg);border:1px solid var(--glass-border);border-radius:4px;padding:4px 6px;color:var(--text);font-size:10px;font-family:'DM Mono',monospace;width:100%}
+.gantt-ed .ed-rm{grid-column:1/-1;text-align:right}
+.gantt-ed .ed-rm button{background:var(--danger-dim);color:var(--danger);border:1px solid var(--danger);border-radius:4px;padding:3px 10px;font-size:9px;cursor:pointer}
+
 </style>
 </head>
 <body class="phase-colors">
@@ -626,7 +657,7 @@ canvas{max-height:250px!important}
 <div class="hdr">
   <div>
     <h1>Painel de Gestão Comercial</h1>
-    <div class="sub">M3A Médico · v11 · CAC · Payback · Fluxo de Caixa · Cenários dinâmicos</div>
+    <div class="sub">M3A Médico · v12 · CAC · Payback · Fluxo de Caixa · Gantt de Squad</div>
   </div>
   <div class="hdr-r">
     <button class="btn sm" onclick="newProfile()" data-tip="Limpar tudo e começar uma simulação do zero">🆕 Novo</button>
@@ -645,9 +676,10 @@ canvas{max-height:250px!important}
   <div class="plist" id="plist"><span class="no-p">Nenhum perfil salvo.</span></div>
 </div>
 
-<!-- Scenario tabs (rendered by JS) -->
+<!-- Scenario presets -->
 <div class="sc-presets" id="sc-presets"></div>
-<div class="sc-tabs" id="sc-tabs"></div>
+<!-- Gantt Chart (People) -->
+<div id="gantt-container"></div>
 <!-- Dashboard -->
 <div class="dashboard">
 
@@ -755,12 +787,10 @@ canvas{max-height:250px!important}
   <div class="timeline-section">
     <div class="cs-h">
       <div>
-        <div class="cs-t">Timeline combinada — levas de recrutamento <span class="tip-icon" data-tip="Levas de contratação empilhadas no tempo. Cada leva tem seu mês de início e time próprio. Os resultados se acumulam.">?</span></div>
-        <div class="cs-sub">Adicione levas de contratação e defina quando cada uma começa.</div>
+        <div class="cs-t">Timeline combinada — projeção financeira <span class="tip-icon" data-tip="Projeção de receita, custos e caixa baseada na equipe configurada no Gantt acima. Cada pessoa contribui individualmente com ramp próprio.">?</span></div>
+        <div class="cs-sub">Configure a equipe no Gantt acima. A timeline reflete automaticamente.</div>
       </div>
     </div>
-    <div class="tl-config" id="tl-config"></div>
-    <div class="tl-bar" id="tl-bar"></div>
     <div class="leg" id="tl-leg"></div>
     <div class="cw" style="height:300px"><canvas id="ch3"></canvas></div>
     <div class="cs-sub" id="tl-summary" style="margin-top:8px"></div>
@@ -855,14 +885,39 @@ canvas{max-height:250px!important}
 var WEEKS = 4.33, FD = 8, BASE_CONV = 0.35;
 var VIEW = 'ind', LOADED_P = null;
 var C1 = null, C2 = null, C3 = null, CF = null;
-var CUR_WAVE = 0;
-var MAX_WAVES = 8;
-var WAVE_COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8','#F7DC6F','#BB8FCE','#85C1E2'];
+// ─── PEOPLE MODEL (v12) ─────────────────────────────────────
+var PEOPLE = [];
+var NEXT_PERSON_ID = 1;
+var SELECTED_PERSON = null;
+var ROLE_COLORS = {sdr:'#2eab6f', closer:'#3b82f6', manager:'#8b5cf6'};
+var ROLE_LABELS = {sdr:'SDR', closer:'Closer', manager:'Gestor'};
+var ROLE_DEFAULTS = {
+  sdr:    {salary:4500, commMeeting:60, commSale:0, ded:8, reun:6, train:1, accel:2},
+  closer: {salary:4500, commMeeting:0, commSale:500, ded:8, reun:6, train:0, accel:0},
+  manager:{salary:6000, commMeeting:0, commSale:0, ded:8, reun:0, train:0, accel:0}
+};
+// Backwards compat for chart colors
+var WAVE_COLORS = ['#2eab6f','#3b82f6','#8b5cf6','#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8'];
 
-// Wave storage: each wave contains {startMonth, sdrs, clos, train?, accel?}
-// Global defaults (sidebar params) apply to all waves
-var WAVES = [{ startMonth: 1 }];
-var WAVE_NAMES = ['Leva 1'];
+function initDefaultPeople() {
+  var roles = [
+    {role:'sdr',name:'SDR 1'},{role:'sdr',name:'SDR 2'},{role:'sdr',name:'SDR 3'},{role:'sdr',name:'SDR 4'},
+    {role:'closer',name:'Closer 1'},
+    {role:'manager',name:'Gabriel'}
+  ];
+  PEOPLE = [];
+  NEXT_PERSON_ID = 1;
+  for (var i = 0; i < roles.length; i++) {
+    var d = ROLE_DEFAULTS[roles[i].role];
+    PEOPLE.push({
+      id: NEXT_PERSON_ID++, name: roles[i].name, role: roles[i].role,
+      salary: d.salary, commMeeting: d.commMeeting||0, commSale: d.commSale||0,
+      ded: d.ded, reun: d.reun||0, startMonth: 1, endMonth: null,
+      train: d.train||0, accel: d.accel||0
+    });
+  }
+}
+initDefaultPeople();
 
 // ─── UTILS ───────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
@@ -925,104 +980,259 @@ function setView(v) {
   render();
 }
 
-// ─── WAVE MANAGEMENT ────────────────────────────────────────
-function switchWave(idx) {
-  // Save current wave's SDR/closer overrides
-  WAVES[CUR_WAVE] = getWaveFromSidebar();
-  CUR_WAVE = idx;
-  // Apply wave-specific overrides
-  if (WAVES[idx]) applyWaveToSidebar(WAVES[idx]);
-  var tabs = document.querySelectorAll('.wave-card');
-  tabs.forEach(function(t,i){ t.classList.toggle('active', i===idx); });
-  render();
-}
-
-function addWave() {
-  if (WAVES.length >= MAX_WAVES) return;
-  // Calculate startMonth for new wave (after last wave's start)
-  var lastStartMonth = WAVES[WAVES.length - 1] ? WAVES[WAVES.length - 1].startMonth : 1;
-  var newWave = {
-    startMonth: lastStartMonth + 3,
-    sdrs: parseInt(el('sdrs').value),
-    clos: parseInt(el('clos').value)
+// ─── PEOPLE MANAGEMENT ──────────────────────────────────────
+function addPerson(role) {
+  var d = ROLE_DEFAULTS[role];
+  var count = PEOPLE.filter(function(p){return p.role===role;}).length;
+  var person = {
+    id: NEXT_PERSON_ID++, name: ROLE_LABELS[role]+' '+(count+1), role: role,
+    salary: d.salary, commMeeting: d.commMeeting||0, commSale: d.commSale||0,
+    ded: d.ded, reun: d.reun||0, startMonth: 1, endMonth: null,
+    train: d.train||0, accel: d.accel||0
   };
-  WAVES.push(newWave);
-  WAVE_NAMES.push('Leva ' + WAVES.length);
-  CUR_WAVE = WAVES.length - 1;
-  renderWaveCards();
-  renderWaveConfig();
-  render();
+  PEOPLE.push(person);
+  SELECTED_PERSON = person.id;
+  renderGantt(); render();
+}
+function removePerson(id) {
+  if (PEOPLE.length <= 1) return;
+  PEOPLE = PEOPLE.filter(function(p){return p.id!==id;});
+  if (SELECTED_PERSON===id) SELECTED_PERSON=null;
+  renderGantt(); render();
+}
+function selectPerson(id) {
+  SELECTED_PERSON = SELECTED_PERSON===id ? null : id;
+  renderGantt();
+}
+function updatePerson(id, field, value) {
+  for (var i=0;i<PEOPLE.length;i++) {
+    if (PEOPLE[i].id===id) { PEOPLE[i][field]=value; break; }
+  }
+  renderGantt(); render();
+}
+function getPersonById(id) {
+  for (var i=0;i<PEOPLE.length;i++) { if(PEOPLE[i].id===id) return PEOPLE[i]; }
+  return null;
 }
 
-function removeWave(idx) {
-  if (WAVES.length <= 1) return;
-  WAVES.splice(idx, 1);
-  WAVE_NAMES.splice(idx, 1);
-  if (CUR_WAVE >= WAVES.length) CUR_WAVE = WAVES.length - 1;
-  else if (CUR_WAVE > idx) CUR_WAVE--;
-  else if (CUR_WAVE === idx) {
-    CUR_WAVE = Math.min(idx, WAVES.length - 1);
-    if (WAVES[CUR_WAVE]) applyWaveToSidebar(WAVES[CUR_WAVE]);
-  }
-  renderWaveCards();
-  renderWaveConfig();
-  render();
+// ─── PERSON RAMP ────────────────────────────────────────────
+function getPersonRamp(person, month) {
+  if (month < person.startMonth) return 0;
+  if (person.endMonth && month > person.endMonth) return 0;
+  var active = month - person.startMonth + 1;
+  if (active <= person.train) return 0;
+  var a = active - person.train;
+  if (person.accel > 0 && a <= person.accel) return a / (person.accel + 1);
+  return 1;
 }
 
-function wName(i) { return WAVE_NAMES[i] || ('Leva '+(i+1)); }
-function renderWaveCards() {
-  // Ensure WAVE_NAMES is always in sync with WAVES length
-  while (WAVE_NAMES.length < WAVES.length) WAVE_NAMES.push('Leva '+(WAVE_NAMES.length+1));
-  var container = el('sc-tabs');
-  var html = '';
-  for (var i = 0; i < WAVES.length; i++) {
-    var wave = WAVES[i];
-    var color = WAVE_COLORS[i % WAVE_COLORS.length];
-    html += '<div class="sc-tab'+(i===CUR_WAVE?' active':'')+'" data-idx="'+i+'" onclick="switchWave('+i+')">'+
-      '<span class="sc-dot" style="background:'+color+'"></span>'+wName(i)+
-      ' <span style="opacity:.6;font-size:9px">(M'+(wave.startMonth||1)+' · '+(wave.sdrs||el('sdrs').value)+'SDR+'+(wave.clos||el('clos').value)+'CL)</span>'+
-      (WAVES.length > 1 ? '<span class="sc-close" onclick="event.stopPropagation();removeWave('+i+')">×</span>' : '')+
-      '</div>';
+function getPersonMonthOutput(person, month) {
+  var ramp = getPersonRamp(person, month);
+  if (person.role === 'sdr') {
+    return Math.round(person.reun * WEEKS * ramp * (person.ded / FD));
   }
-  if (WAVES.length < MAX_WAVES) {
-    html += '<div class="sc-tab sc-tab-add" onclick="addWave()">+</div>';
+  if (person.role === 'closer') {
+    return ramp > 0 ? Math.round(person.reun * 5 * WEEKS * ramp * (person.ded / FD)) : 0;
   }
-  container.innerHTML = html;
+  return ramp > 0 ? '—' : '';
 }
 
-function renderWaveConfig() {
-  var container = el('tl-config');
-  var html = '';
-  for (var i = 0; i < WAVES.length; i++) {
-    var wave = WAVES[i];
-    var color = WAVE_COLORS[i % WAVE_COLORS.length];
-    html += '<div style="display:flex;align-items:center;gap:6px">'+
-      '<span class="sc-dot" style="background:'+color+';width:8px;height:8px;border-radius:50%;display:inline-block"></span>'+
-      '<label><span class="tip" style="display:inline-flex;align-items:center;">'+wName(i)+' começa em:<span class="tip-icon" data-tip="Mês em que essa leva de contratação começa.">?</span></span></label>'+
-      '<input type="number" id="tl-'+i+'" value="'+wave.startMonth+'" min="1" max="36" style="width:42px"> <span class="rv dim">mês</span></div>';
+// ─── GANTT CHART ────────────────────────────────────────────
+function renderGantt() {
+  var container = el('gantt-container');
+  if (!container) return;
+  var total = getTotalDuration();
+  // Header
+  var h = '<div class="gantt"><div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
+  for (var m=1;m<=total;m++) h += '<div class="gantt-mh">M'+m+'</div>';
+  h += '</div></div>';
+  // Rows
+  var sorted = PEOPLE.slice().sort(function(a,b){
+    var ro={sdr:0,closer:1,manager:2}; return ro[a.role]-ro[b.role] || a.startMonth-b.startMonth;
+  });
+  for (var i=0;i<sorted.length;i++) {
+    var p = sorted[i];
+    var isSel = SELECTED_PERSON===p.id;
+    var color = ROLE_COLORS[p.role];
+    var endM = p.endMonth || total;
+    // Row
+    h += '<div class="gantt-row'+(isSel?' sel':'')+'" onclick="selectPerson('+p.id+')">';
+    h += '<div class="gantt-name"><span class="dot" style="background:'+color+'"></span>'+p.name+'</div>';
+    h += '<div class="gantt-bars">';
+    // Background bar
+    var leftPct = ((p.startMonth-1)/total*100).toFixed(1);
+    var widthPct = ((endM-p.startMonth+1)/total*100).toFixed(1);
+    h += '<div class="gantt-bg" style="left:'+leftPct+'%;width:'+widthPct+'%;background:'+color+'"></div>';
+    // Per-month cells
+    for (var cm=1;cm<=total;cm++) {
+      var isActive = cm>=p.startMonth && cm<=endM;
+      var ramp = isActive ? getPersonRamp(p,cm) : -1;
+      var cls = 'gantt-cell';
+      if (isActive) {
+        cls += ' active';
+        if (ramp === 0) cls += ' train';
+        else if (ramp < 1) cls += ' accel';
+        else cls += ' full';
+      }
+      var val = isActive ? getPersonMonthOutput(p, cm) : '';
+      h += '<div class="'+cls+'">'+(val===0?'0':val||'')+'</div>';
+    }
+    h += '</div></div>';
+    // Editor panel if selected
+    if (isSel) {
+      h += '<div class="gantt-ed">';
+      h += '<label>Nome<input type="text" value="'+p.name+'" onchange="updatePerson('+p.id+',\'name\',this.value)"></label>';
+      h += '<label>Salário R$<input type="number" value="'+p.salary+'" step="100" onchange="updatePerson('+p.id+',\'salary\',+this.value)"></label>';
+      if (p.role==='sdr') {
+        h += '<label>Comis./reunião R$<input type="number" value="'+p.commMeeting+'" step="10" onchange="updatePerson('+p.id+',\'commMeeting\',+this.value)"></label>';
+        h += '<label>Reun./semana<input type="number" value="'+p.reun+'" min="1" max="15" onchange="updatePerson('+p.id+',\'reun\',+this.value)"></label>';
+      }
+      if (p.role==='closer') {
+        h += '<label>Comis./venda R$<input type="number" value="'+p.commSale+'" step="50" onchange="updatePerson('+p.id+',\'commSale\',+this.value)"></label>';
+        h += '<label>Reun./dia<input type="number" value="'+p.reun+'" min="1" max="12" onchange="updatePerson('+p.id+',\'reun\',+this.value)"></label>';
+      }
+      if (p.role==='manager') {
+        h += '<label>Comis./venda R$<input type="number" value="'+p.commSale+'" step="50" onchange="updatePerson('+p.id+',\'commSale\',+this.value)"></label>';
+      }
+      h += '<label>Dedicação (h/dia)<input type="number" value="'+p.ded+'" min="1" max="8" step="0.5" onchange="updatePerson('+p.id+',\'ded\',+this.value)"></label>';
+      h += '<label>Treino (meses)<input type="number" value="'+p.train+'" min="0" max="6" step="0.5" onchange="updatePerson('+p.id+',\'train\',+this.value)"></label>';
+      h += '<label>Aceleração (meses)<input type="number" value="'+p.accel+'" min="0" max="6" onchange="updatePerson('+p.id+',\'accel\',+this.value)"></label>';
+      h += '<label>Início mês<input type="number" value="'+p.startMonth+'" min="1" max="36" onchange="updatePerson('+p.id+',\'startMonth\',+this.value)"></label>';
+      h += '<label>Saída mês (vazio=até fim)<input type="number" value="'+(p.endMonth||'')+'" min="1" max="48" onchange="updatePerson('+p.id+',\'endMonth\',this.value?+this.value:null)"></label>';
+      h += '<div class="ed-rm"><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
+      h += '</div>';
+    }
   }
-  html += '<span class="rv" id="tl-total" style="color:var(--accent)">Duração total de operação</span>';
-  container.innerHTML = html;
-  // Attach change listeners
-  for (var j = 0; j < WAVES.length; j++) {
-    (function(idx){
-      el('tl-'+idx).addEventListener('change', function() {
-        WAVES[idx].startMonth = Math.max(1, parseInt(this.value) || 1);
-        renderTimeline(); renderInvestment();
-      });
-    })(j);
+  // Totals row: headcount per month
+  h += '<div class="gantt-totals"><div class="gantt-lbl">HC</div><div class="gantt-months" style="display:flex;flex:1">';
+  for (var tm=1;tm<=total;tm++) {
+    var hc=0;
+    for (var ti=0;ti<PEOPLE.length;ti++) {
+      if (PEOPLE[ti].startMonth<=tm && (!PEOPLE[ti].endMonth||PEOPLE[ti].endMonth>=tm)) hc++;
+    }
+    h += '<div class="gantt-cell" style="font-weight:600;color:var(--accent)">'+hc+'</div>';
   }
+  h += '</div></div>';
+  // Cost row
+  var gp = getGlobalP();
+  h += '<div class="gantt-totals"><div class="gantt-lbl">Custo</div><div class="gantt-months" style="display:flex;flex:1">';
+  for (var cm2=1;cm2<=total;cm2++) {
+    var agg = aggregateMonth(cm2, gp);
+    h += '<div class="gantt-cell" style="font-size:7px;color:var(--warn)">'+fmtK(agg.costTotal)+'</div>';
+  }
+  h += '</div></div>';
+  // Footer with buttons
+  h += '<div class="gantt-foot">';
+  h += '<button class="btn sm" style="background:'+ROLE_COLORS.sdr+';color:#fff;border-color:'+ROLE_COLORS.sdr+'" onclick="addPerson(\'sdr\')">+ SDR</button>';
+  h += '<button class="btn sm" style="background:'+ROLE_COLORS.closer+';color:#fff;border-color:'+ROLE_COLORS.closer+'" onclick="addPerson(\'closer\')">+ Closer</button>';
+  h += '<button class="btn sm" style="background:'+ROLE_COLORS.manager+';color:#fff;border-color:'+ROLE_COLORS.manager+'" onclick="addPerson(\'manager\')">+ Gestor</button>';
+  var sdrs=PEOPLE.filter(function(p){return p.role==='sdr';}).length;
+  var clos=PEOPLE.filter(function(p){return p.role==='closer';}).length;
+  var mgrs=PEOPLE.filter(function(p){return p.role==='manager';}).length;
+  h += '<span class="gantt-summary">'+sdrs+' SDR · '+clos+' Closer · '+mgrs+' Gestor</span>';
+  h += '</div></div>';
+  container.innerHTML = h;
 }
 
-function getMaxWaveMonth() {
-  // Last wave's startMonth + 11 (so it gets at least 12 months of operation)
-  var maxStart = 0;
-  for (var i = 0; i < WAVES.length; i++) {
-    maxStart = Math.max(maxStart, WAVES[i].startMonth);
+// ─── AGGREGATE MONTH ────────────────────────────────────────
+function aggregateMonth(month, gp) {
+  if (!gp) gp = getGlobalP();
+  var totalMeetingsWeek=0, totalCapDay=0;
+  var salT=0, sdrCommBase=0, closerCommBase=0, mgrCommBase=0;
+  var hc=0, nSDR=0, nCLO=0, nMGR=0;
+  for (var i=0;i<PEOPLE.length;i++) {
+    var p=PEOPLE[i];
+    if (p.startMonth>month) continue;
+    if (p.endMonth && month>p.endMonth) continue;
+    var ramp=getPersonRamp(p,month);
+    var dedF=p.ded/FD;
+    hc++;
+    salT += p.salary*dedF;
+    if (p.role==='sdr') {
+      nSDR++; totalMeetingsWeek += p.reun*ramp*dedF;
+      sdrCommBase += p.commMeeting;
+    } else if (p.role==='closer') {
+      nCLO++; totalCapDay += p.reun*ramp*dedF;
+      closerCommBase += p.commSale;
+    } else {
+      nMGR++; mgrCommBase += p.commSale;
+    }
   }
-  return Math.max(12, maxStart + 11);
+  var ag=Math.round(totalMeetingsWeek*WEEKS);
+  var cap=Math.round(totalCapDay*5*WEEKS);
+  var show=gp.show||0.8, conv=gp.conv||0.35;
+  var au=Math.round(Math.min(ag,cap||9999)*show);
+  var cl=Math.round(au*conv);
+  var avgSdrComm=nSDR>0?sdrCommBase/nSDR:0;
+  var avgCloComm=nCLO>0?closerCommBase/nCLO:0;
+  // SDR commission on meetings (au)
+  var sdrComm=Math.round(au*avgSdrComm);
+  var closerComm=Math.round(cl*avgCloComm);
+  var managerComm=Math.round(cl*mgrCommBase);
+  salT=Math.round(salT);
+  var commT=sdrComm+closerComm+managerComm;
+  var costT=salT+commT;
+  return {ag:ag,au:au,cl:cl,salTotal:salT,commTotal:commT,costTotal:costT,
+    sdrComm:sdrComm,closerComm:closerComm,managerComm:managerComm,
+    sdrs:nSDR,closers:nCLO,managers:nMGR,headcount:hc};
 }
-function getTotalDuration() { return getMaxWaveMonth(); }
+
+// ─── GLOBAL PARAMS (non-person) ─────────────────────────────
+function getGlobalP() {
+  return {
+    show:parseInt(el('show').value)/100, conv:parseInt(el('conv').value)/100,
+    tkm:Math.max(100,parseInt(el('tkm-n').value)||800),
+    perm:Math.max(1,parseInt(el('perm-n').value)||16),
+    mprod:parseInt(el('mprod').value), fisc:parseFloat(el('fisc').value),
+    churn:parseFloat(el('churn').value)/100
+  };
+}
+
+// ─── BUILD SYNTHETIC P FROM PEOPLE (for calcFromP compat) ───
+function getPeopleP() {
+  var gp=getGlobalP();
+  var sdrs=PEOPLE.filter(function(p){return p.role==='sdr';});
+  var closers=PEOPLE.filter(function(p){return p.role==='closer';});
+  var managers=PEOPLE.filter(function(p){return p.role==='manager';});
+  var avg=function(arr,fn){return arr.length>0?arr.reduce(function(a,p){return a+fn(p);},0)/arr.length:0;};
+  return {
+    sdrs:sdrs.length, clos:closers.length,
+    rsdr:Math.round(avg(sdrs,function(p){return p.reun;}))||6,
+    rclo:Math.round(avg(closers,function(p){return p.reun;}))||6,
+    ssal:Math.round(avg(sdrs,function(p){return p.salary;}))||4500,
+    csal:Math.round(avg(closers,function(p){return p.salary;}))||4500,
+    gsal:managers.length>0?managers[0].salary:6000,
+    sded:avg(sdrs,function(p){return p.ded;})||8,
+    cded:avg(closers,function(p){return p.ded;})||8,
+    gded:managers.length>0?managers[0].ded:8,
+    scom:Math.round(avg(sdrs,function(p){return p.commMeeting;}))||60,
+    scomv:Math.round(avg(sdrs,function(p){return p.commSale||0;})),
+    ccom:Math.round(avg(closers,function(p){return p.commSale;}))||500,
+    gcom:managers.length>0?managers[0].commSale||0:0,
+    gon:managers.length>0,
+    show:gp.show, conv:gp.conv, tkm:gp.tkm, perm:gp.perm,
+    mprod:gp.mprod, fisc:gp.fisc, churn:gp.churn,
+    train:avg(sdrs,function(p){return p.train;})||1,
+    accel:Math.round(avg(sdrs,function(p){return p.accel;}))||2
+  };
+}
+
+// Compat shims for old code that references waves
+function wName(i) { return 'Squad'; }
+function getWaveFromSidebar() { return {}; }
+function applyWaveToSidebar() {}
+var WAVES = [{ startMonth: 1 }];
+var WAVE_NAMES = ['Squad'];
+var CUR_WAVE = 0;
+
+function getTotalDuration() {
+  var maxEnd = 12;
+  for (var i=0;i<PEOPLE.length;i++) {
+    var end = PEOPLE[i].endMonth || (PEOPLE[i].startMonth + 11);
+    if (end > maxEnd) maxEnd = end;
+  }
+  return maxEnd;
+}
 
 // ─── SEGMENT PRESETS & FUNDADOR ──────────────────────────────
 function setSegmento(tkm, perm) {
@@ -1135,8 +1345,8 @@ function loadP(i){
   if(profile.globalParams) applyRaw(profile.globalParams);
   // Apply wave-specific overrides
   if(WAVES[CUR_WAVE]) applyWaveToSidebar(WAVES[CUR_WAVE]);
-  renderWaveCards();
-  renderWaveConfig();
+  renderGantt();
+  /*renderWaveConfig removed*/
   renderPs();render();
 }
 function delP(e,i){e.stopPropagation();var ps=getPs();ps.splice(i,1);setPs(ps);if(LOADED_P===i)LOADED_P=null;else if(LOADED_P>i)LOADED_P--;renderPs();}
@@ -1287,24 +1497,7 @@ el('hor').addEventListener('input',function(){el('hor-v').textContent=el('hor').
 
 // ─── PARAMS & CALC ───────────────────────────────────────────
 function getP() {
-  return {
-    sdrs:parseInt(el('sdrs').value), clos:parseInt(el('clos').value),
-    rsdr:parseInt(el('rsdr').value), rclo:parseInt(el('rclo').value),
-    ssal:Math.max(100,parseInt(el('ssal-n').value)||4500),
-    csal:Math.max(100,parseInt(el('csal-n').value)||4500),
-    gsal:Math.max(100,parseInt(el('gsal-n').value)||6000),
-    sded:parseFloat(el('sded').value), cded:parseFloat(el('cded').value), gded:parseFloat(el('gded').value),
-    scom:parseInt(el('scom').value), scomv:parseInt(el('scomv').value)||0, ccom:parseInt(el('ccom').value), gcom:parseInt(el('gcom').value),
-    gon:el('gon').checked,
-    show:parseInt(el('show').value)/100,
-    conv:parseInt(el('conv').value)/100,
-    tkm:Math.max(100,parseInt(el('tkm-n').value)||800),
-    perm:Math.max(1,parseInt(el('perm-n').value)||16),
-    mprod:parseInt(el('mprod').value), fisc:parseFloat(el('fisc').value),
-    churn:parseFloat(el('churn').value)/100,
-    train:parseFloat(el('train').value),
-    accel:parseInt(el('accel').value)
-  };
+  return getPeopleP();
 }
 
 function calcFromP(p) {
@@ -1872,53 +2065,24 @@ function renderTimeline() {
   var tlTotal = el('tl-total');
   if (tlTotal) tlTotal.textContent = 'Duração total: ' + total + ' meses';
 
-  // Timeline bar - show active waves
-  var bar = el('tl-bar');
-  var segs = '';
-  var minStart = Math.min.apply(null, WAVES.map(function(w){ return w.startMonth; }));
-  var maxStart = Math.max.apply(null, WAVES.map(function(w){ return w.startMonth; }));
-  for (var w = 0; w < WAVES.length; w++) {
-    var wave = WAVES[w];
-    var color = WAVE_COLORS[w % WAVE_COLORS.length];
-    var wRange = total - minStart + 1;
-    var wStart = wave.startMonth - minStart;
-    var wPct = (wRange / total * 100).toFixed(1);
-    var wStartPct = (wStart / total * 100).toFixed(1);
-    segs += '<div class="tl-seg" style="margin-left:'+wStartPct+'%;width:'+wPct+'%;background:'+color+';">'+
-      wName(w)+' (M'+wave.startMonth+')</div>';
-  }
-  bar.innerHTML = segs;
-
-  // Legend - show active waves
-  var legItems = [];
-  for (var lw = 0; lw < WAVES.length; lw++) {
-    var lcol = WAVE_COLORS[lw % WAVE_COLORS.length];
-    legItems.push({c:lcol,l:wName(lw)+': receita',t:'d'});
-    legItems.push({c:lcol,l:wName(lw)+': custos',t:'d'});
-  }
-  legItems.push({c:gc('lnAc'),l:'Caixa acumulado',t:'l'});
+  // Legend
+  var legItems = [
+    {c:gc('bAct'),l:'Receita',t:'d'},
+    {c:gc('r1')||'#FF6B6B',l:'Custos',t:'d'},
+    {c:gc('lnAc'),l:'Caixa acumulado',t:'l'}
+  ];
   el('tl-leg').innerHTML = legItems.map(function(it){
     var dot = it.t==='l'?'<span class="ll2" style="background:'+it.c+'"></span>':'<span class="ld" style="background:'+it.c+'"></span>';
     return '<span class="li">'+dot+it.l+'</span>';
   }).join('');
 
-  if (total <= 0 || WAVES.length === 0) { el('tl-summary').textContent = 'Configure as ondas acima.'; return; }
+  if (total <= 0 || PEOPLE.length === 0) { el('tl-summary').textContent = 'Adicione pessoas no Gantt acima.'; return; }
 
-  // Build per-wave params: merge wave SDRs/Closers with sidebar globals (no sidebar mutation)
-  WAVES[CUR_WAVE] = getWaveFromSidebar();
-  var globalP = getP();
-  var waveParams = [], waveCalc = [];
-  for (var wi = 0; wi < WAVES.length; wi++) {
-    var wp = JSON.parse(JSON.stringify(globalP));
-    if (WAVES[wi].sdrs !== undefined) wp.sdrs = WAVES[wi].sdrs;
-    if (WAVES[wi].clos !== undefined) wp.clos = WAVES[wi].clos;
-    waveParams.push(wp);
-    waveCalc.push(calcFromP(wp));
-  }
-
-  // Per-wave revenue/cost tracking for stacked chart
-  var wRec = [], wCost = [];
-  for (var ww = 0; ww < WAVES.length; ww++) { wRec.push([]); wCost.push([]); }
+  // Build timeline from PEOPLE aggregation
+  var globalP = getGlobalP();
+  var p0 = getP(); // synthetic p for product/margin params
+  var prod0 = Math.round(globalP.tkm * (100 - globalP.mprod) / 100);
+  var fisc0 = Math.round(globalP.tkm * globalP.fisc / 100);
 
   var cohorts = [];
   var rec_arr = [], cost_arr = [], acum_arr = [];
@@ -1928,55 +2092,28 @@ function renderTimeline() {
 
   for (var m = 1; m <= total; m++) {
     labels.push('M' + m);
-    var totalRec = 0, totalCost = 0;
-    var newClM = 0, hcM = 0;
+    var agg = aggregateMonth(m, globalP);
+    var cl_m = agg.cl; // new clients this month
+    var totalCost = agg.costTotal; // squad cost this month
 
-    // Each active wave produces new clients every month (ramped)
-    for (var aw = 0; aw < WAVES.length; aw++) {
-      var awave = WAVES[aw];
-      if (m < awave.startMonth) { wRec[aw].push(0); wCost[aw].push(0); continue; }
-      var monthInWave = m - awave.startMonth + 1;
-      var awp = waveParams[aw];
-      var awc = waveCalc[aw];
-
-      // New clients this month for this wave (ramp applied)
-      var cl_m = getRampedN(awp, awc, monthInWave);
-      newClM += cl_m;
-      hcM += awp.sdrs + awp.clos + (awp.gon ? 1 : 0);
-      cohorts.push({ month: m, N: cl_m, tkm: awp.tkm, prod: awc.prod, fisc: awc.fisc, churn: awp.churn, perm: awp.perm, waveIdx: aw });
-
-      // Squad overhead for this wave this month
-      wRec[aw].push(0); // placeholder — will be updated below
-      wCost[aw].push(awc.tot);
-      totalCost += awc.tot;
-    }
+    cohorts.push({ month: m, N: cl_m, tkm: globalP.tkm, prod: prod0, fisc: fisc0, churn: globalP.churn, perm: globalP.perm });
 
     // Revenue & variable costs from all surviving cohorts
-    var perWaveRev = [];
-    for (var pwi = 0; pwi < WAVES.length; pwi++) perWaveRev.push(0);
-    var activeM = 0;
-
+    var totalRec = 0, activeM = 0;
     for (var ci3 = 0; ci3 < cohorts.length; ci3++) {
       var co = cohorts[ci3];
       var age = m - co.month;
       if (age < 0 || age >= co.perm) continue;
       var surviving = co.N * Math.pow(1 - co.churn, age);
       activeM += surviving;
-      var rev = surviving * co.tkm;
-      totalRec += rev;
-      perWaveRev[co.waveIdx] += rev;
+      totalRec += surviving * co.tkm;
       if (age >= 1) totalCost += surviving * (co.prod + co.fisc);
     }
 
-    newCl_arr.push(newClM);
+    newCl_arr.push(cl_m);
     activeCl_arr.push(Math.round(activeM));
     mrr_arr.push(Math.round(totalRec));
-    hc_arr.push(hcM);
-
-    // Update per-wave revenue arrays
-    for (var pr = 0; pr < WAVES.length; pr++) {
-      wRec[pr][wRec[pr].length - 1] = perWaveRev[pr];
-    }
+    hc_arr.push(agg.headcount);
 
     totalRec = Math.round(totalRec);
     totalCost = Math.round(totalCost);
@@ -1992,25 +2129,16 @@ function renderTimeline() {
     if (wentNeg && acum_arr[bi] >= 0 && be === -1) be = bi + 1;
   }
 
-  // Prepend M0 — reference month before any wave starts
+  // Prepend M0
   labels.unshift('M0');
   rec_arr.unshift(0); cost_arr.unshift(0); acum_arr.unshift(0);
-  for (var pw0 = 0; pw0 < WAVES.length; pw0++) { wRec[pw0].unshift(0); wCost[pw0].unshift(0); }
   var total1 = total + 1;
 
-  // Build chart datasets — stacked per-wave bars
+  // Build chart datasets — single team (no wave stacking)
   var datasets = [];
-  for (var ds = 0; ds < WAVES.length; ds++) {
-    var dscolor = WAVE_COLORS[ds % WAVE_COLORS.length];
-    var recDs = wRec[ds].map(function(v){ return Math.round(v); });
-    var costDs = [];
-    for (var mi2 = 0; mi2 < total1; mi2++) {
-      var wc = mi2 < wCost[ds].length ? wCost[ds][mi2] : 0;
-      costDs.push(-Math.round(wc));
-    }
-    datasets.push({ label:'Receita '+wName(ds), data:recDs, backgroundColor:dscolor, stack:'e', maxBarThickness:28 });
-    datasets.push({ label:'Custos '+wName(ds), data:costDs, backgroundColor:dscolor+'88', stack:'s', maxBarThickness:28 });
-  }
+  datasets.push({ label:'Receita', data:rec_arr.slice(), backgroundColor:gc('bAct')||'#2eab6f', stack:'e', maxBarThickness:28 });
+  var costDs = cost_arr.map(function(v){return -v;});
+  datasets.push({ label:'Custos', data:costDs, backgroundColor:(gc('r1')||'#FF6B6B')+'88', stack:'s', maxBarThickness:28 });
   datasets.push({ label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
     borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===acum_arr.length-1?5:1.5;}),
     pointBackgroundColor:acum_arr.map(function(v){return v>=0?gc('bAct'):gc('r1');}),
@@ -2053,12 +2181,6 @@ function renderTimeline() {
         onComplete: function(anim) {
           var chart = anim.chart;
           drawZeroLine(chart);
-          // Draw wave start lines
-          for (var dwl = 0; dwl < WAVES.length; dwl++) {
-            if (WAVES[dwl].startMonth > 1) {
-              drawPhaseVLine(chart, WAVES[dwl].startMonth, wName(dwl)+' inicia', WAVE_COLORS[dwl % WAVE_COLORS.length]);
-            }
-          }
           if (be > 0) drawVLine(chart, be, 'BREAKEVEN');
           drawLastLbl(chart, acum_arr, 'y2');
         }
@@ -2150,35 +2272,20 @@ function renderInvestment() {
     return;
   }
 
-  // Build per-wave params: merge wave SDRs/Closers with sidebar globals (no sidebar mutation)
-  var globalP2 = getP();
-  var waveParams = [], waveCalc = [];
-  for (var wi = 0; wi < WAVES.length; wi++) {
-    var wp = JSON.parse(JSON.stringify(globalP2));
-    if (WAVES[wi].sdrs !== undefined) wp.sdrs = WAVES[wi].sdrs;
-    if (WAVES[wi].clos !== undefined) wp.clos = WAVES[wi].clos;
-    waveParams.push(wp);
-    waveCalc.push(calcFromP(wp));
-  }
+  // Build timeline from PEOPLE aggregation
+  var gp2 = getGlobalP();
+  var prod2 = Math.round(gp2.tkm * (100 - gp2.mprod) / 100);
+  var fisc2 = Math.round(gp2.tkm * gp2.fisc / 100);
 
   var cohorts = [];
   var netFlows = [];
   var totalInvested = 0;
 
   for (var m = 1; m <= total; m++) {
-    var totalRec = 0, totalCost = 0;
+    var agg2 = aggregateMonth(m, gp2);
+    var totalRec = 0, totalCost = agg2.costTotal;
 
-    // Each active wave produces new clients every month (ramped)
-    for (var aw = 0; aw < WAVES.length; aw++) {
-      if (m < WAVES[aw].startMonth) continue;
-      var monthInWave = m - WAVES[aw].startMonth + 1;
-      var awp = waveParams[aw];
-      var awc = waveCalc[aw];
-      var cl_m = getRampedN(awp, awc, monthInWave);
-      cohorts.push({ month:m, N:cl_m, tkm:awp.tkm, prod:awc.prod, fisc:awc.fisc, churn:awp.churn, perm:awp.perm, waveIdx:aw });
-      // Squad overhead
-      totalCost += awc.tot;
-    }
+    cohorts.push({ month:m, N:agg2.cl, tkm:gp2.tkm, prod:prod2, fisc:fisc2, churn:gp2.churn, perm:gp2.perm });
 
     // Revenue from all surviving cohorts
     for (var ci = 0; ci < cohorts.length; ci++) {
@@ -2325,7 +2432,7 @@ function newProfile(){
   // Reset all inputs to defaults
   var defs={sdrs:4,clos:1,rsdr:6,rclo:6,ssal:4500,csal:4500,gsal:6000,sded:8,cded:8,gded:8,scom:60,scomv:0,ccom:500,gcom:0,show:80,conv:35,tkm:580,perm:20,mprod:50,fisc:8,churn:5,train:1,accel:2,gon:true,fundador:false};
   applyRaw(defs);el('gon').checked=true;
-  renderWaveCards();renderWaveConfig();renderPs();render();
+  renderGantt();/*renderWaveConfig removed*/renderPs();render();
 }
 function duplicateP(){
   // Save current wave's team composition
@@ -2535,8 +2642,8 @@ function saveOptTop(){
 
 // ─── INIT ────────────────────────────────────────────────────
 WAVES[0] = getWaveFromSidebar();
-renderWaveCards();
-renderWaveConfig();
+renderGantt();
+/*renderWaveConfig removed*/
 renderPs();
 renderPresets();
 renderScorecard();
