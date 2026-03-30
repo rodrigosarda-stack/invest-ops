@@ -1087,17 +1087,24 @@ function renderGantt() {
   var pageMonths = pageEnd - pageStart + 1;
 
   var h = '<div class="gantt">';
-  // Pagination nav
+  // Horizon control + pagination nav
+  h += '<div class="gantt-nav">';
+  h += '<span style="font-size:10px;color:var(--muted);margin-right:4px">Horizonte:</span>';
+  h += '<select onchange="HORIZON=+this.value;GANTT_PAGE=0;renderGantt();render();" style="background:var(--card2);border:1px solid var(--glass-border);border-radius:4px;color:var(--text);font-size:10px;padding:3px 6px;font-family:\'DM Mono\',monospace">';
+  [12,18,24,36,48,60].forEach(function(v){
+    h += '<option value="'+v+'"'+(HORIZON===v?' selected':'')+'>'+v+' meses'+(v===12?' (1 ano)':v===24?' (2 anos)':v===36?' (3 anos)':v===48?' (4 anos)':v===60?' (5 anos)':'')+'</option>';
+  });
+  h += '</select>';
   if (totalPages > 1) {
-    h += '<div class="gantt-nav">';
+    h += '<span style="margin:0 8px;color:var(--glass-border)">|</span>';
     h += '<button'+(GANTT_PAGE<=0?' disabled':'')+' onclick="ganttSetPage('+(GANTT_PAGE-1)+')">◀</button>';
     for (var pg=0;pg<totalPages;pg++) {
       var pgS=pg*MONTHS_PER_PAGE+1, pgE=Math.min(pgS+MONTHS_PER_PAGE-1,total);
       h += '<button class="'+(pg===GANTT_PAGE?'active':'')+'" onclick="ganttSetPage('+pg+')">M'+pgS+'–M'+pgE+'</button>';
     }
     h += '<button'+(GANTT_PAGE>=totalPages-1?' disabled':'')+' onclick="ganttSetPage('+(GANTT_PAGE+1)+')">▶</button>';
-    h += '</div>';
   }
+  h += '</div>';
   // Header
   h += '<div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
   for (var m=pageStart;m<=pageEnd;m++) h += '<div class="gantt-mh">M'+m+'</div>';
@@ -1250,7 +1257,7 @@ function autoSave() {
     try { gp = {show:el('show').value,conv:el('conv').value,tkm:el('tkm-n').value,perm:el('perm-n').value,mprod:el('mprod').value,fisc:el('fisc').value,churn:el('churn').value}; } catch(e){}
     localStorage.setItem('m3a-v12-state', JSON.stringify({
       people: PEOPLE, nextId: NEXT_PERSON_ID, globals: gp,
-      activePreset: ACTIVE_PRESET_ID, ganttPage: GANTT_PAGE
+      activePreset: ACTIVE_PRESET_ID, ganttPage: GANTT_PAGE, horizon: HORIZON
     }));
   } catch(e) {}
 }
@@ -1265,6 +1272,7 @@ function autoLoad() {
       NEXT_PERSON_ID = s.nextId || (Math.max.apply(null, PEOPLE.map(function(p){return p.id;}))+1);
       ACTIVE_PRESET_ID = s.activePreset || null;
       GANTT_PAGE = s.ganttPage || 0;
+      HORIZON = s.horizon || 24;
       if (s.globals) {
         var sv = function(id,v){var e=el(id);if(e&&v!=null)e.value=v;};
         sv('show',s.globals.show);sv('conv',s.globals.conv);
@@ -1421,8 +1429,11 @@ var WAVES = [{ startMonth: 1 }];
 var WAVE_NAMES = ['Squad'];
 var CUR_WAVE = 0;
 
+var HORIZON = 24; // user-controlled horizon (12-60 months)
+
 function getTotalDuration() {
-  var maxEnd = 12;
+  // Use the max of: user horizon, or latest person end
+  var maxEnd = HORIZON;
   for (var i=0;i<PEOPLE.length;i++) {
     var end = PEOPLE[i].endMonth || (PEOPLE[i].startMonth + 11);
     if (end > maxEnd) maxEnd = end;
