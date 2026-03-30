@@ -2068,26 +2068,25 @@ function renderTimeline() {
 
   // ─── DATA TABLE ────────────────────────────────────────────
   var dtHtml = '<div class="cs-t" style="margin-top:14px">Tabela de Dados <span style="font-size:8px;padding:3px 8px;border-radius:6px;background:rgba(10,204,199,.08);color:var(--accent);text-transform:uppercase;letter-spacing:.8px;font-weight:600;border:1px solid rgba(10,204,199,.12)">auditável &amp; exportável</span></div>';
-  var csvData = 'Mês,Clientes,Novos,MRR,Receita,Custos,Resultado,Caixa,CAC,Margem,LTV/CAC,HC\\n';
-  for (var dt = 0; dt < total; dt++) {
-    var dtRes = rec_arr[dt+1]||0, dtCst = cost_arr[dt+1]||0, dtSaldo = dtRes-dtCst;
-    var dtCaixa = acum_arr[dt+1]||0;
-    var dtCac = newCl_arr[dt]>0 ? Math.round(dtCst/newCl_arr[dt]) : 0;
-    var dtMarg = dtRes>0 ? ((dtSaldo/dtRes)*100).toFixed(1) : '0.0';
-    var dtLtvCac = dtCac>0 ? (globalP.tkm*Math.min(1/(globalP.churn||0.05),globalP.perm)*0.5/dtCac).toFixed(1) : '0.0';
-    csvData += 'M'+(dt+1)+','+activeCl_arr[dt]+','+newCl_arr[dt]+','+mrr_arr[dt]+','+dtRes+','+dtCst+','+dtSaldo+','+dtCaixa+','+dtCac+','+dtMarg+'%,'+dtLtvCac+','+hc_arr[dt]+'\\n';
-  }
-  dtHtml += '<button style="margin:8px 0;padding:5px 14px;font-size:10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card2);color:var(--text);cursor:pointer" onclick="navigator.clipboard.writeText(\''+csvData+'\').then(function(){this.textContent=\'Copiado!\'}.bind(this))">Copiar CSV</button>';
+  var csvRows = ['Mês,Clientes,Novos,MRR,Receita,Custos,Resultado,Caixa,CAC,Margem,LTV/CAC,HC'];
   dtHtml += '<div class="dt-wrap"><table class="dt"><thead><tr><th>Mês</th><th>Clientes</th><th>Novos</th><th>MRR</th><th>Receita</th><th>Custos</th><th>Resultado</th><th>Caixa</th><th>CAC</th><th>Margem</th><th>LTV/CAC</th><th>HC</th></tr></thead><tbody>';
   for (var dt2 = 0; dt2 < total; dt2++) {
     var r2 = rec_arr[dt2+1]||0, c2 = cost_arr[dt2+1]||0, s2 = r2-c2, cx2 = acum_arr[dt2+1]||0;
     var cac2 = newCl_arr[dt2]>0 ? Math.round(c2/newCl_arr[dt2]) : 0;
     var mg2 = r2>0 ? ((s2/r2)*100).toFixed(1) : '0.0';
     var lc2 = cac2>0 ? (globalP.tkm*Math.min(1/(globalP.churn||0.05),globalP.perm)*0.5/cac2).toFixed(1) : '0.0';
+    csvRows.push('M'+(dt2+1)+','+activeCl_arr[dt2]+','+newCl_arr[dt2]+','+mrr_arr[dt2]+','+r2+','+c2+','+s2+','+cx2+','+cac2+','+mg2+'%,'+lc2+','+hc_arr[dt2]);
     dtHtml += '<tr><td>M'+(dt2+1)+'</td><td>'+activeCl_arr[dt2]+'</td><td>'+newCl_arr[dt2]+'</td><td>R$ '+fmtK(mrr_arr[dt2])+'</td><td>R$ '+fmtK(r2)+'</td><td class="neg">R$ '+fmtK(c2)+'</td><td style="color:'+(s2>=0?'var(--accent)':'var(--danger)')+'">R$ '+fmtK(s2)+'</td><td style="color:'+(cx2>=0?'var(--accent)':'var(--danger)')+'">R$ '+fmtK(cx2)+'</td><td>R$ '+fmtK(cac2)+'</td><td>'+mg2+'%</td><td>'+lc2+'x</td><td>'+hc_arr[dt2]+'</td></tr>';
   }
   dtHtml += '</tbody></table></div>';
-  el('tl-datatable').innerHTML = dtHtml;
+  window._dtCsv = csvRows.join('\n');
+  var dtEl = el('tl-datatable');
+  dtEl.innerHTML = dtHtml;
+  var csvBtn = document.createElement('button');
+  csvBtn.textContent = 'Copiar CSV';
+  csvBtn.style.cssText = 'margin:8px 0;padding:5px 14px;font-size:10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card2);color:var(--text);cursor:pointer';
+  csvBtn.onclick = function(){ navigator.clipboard.writeText(window._dtCsv).then(function(){ csvBtn.textContent='Copiado!'; }); };
+  dtEl.insertBefore(csvBtn, dtEl.querySelector('.dt-wrap'));
 }
 
 function drawPhaseVLine(chart, idx, lbl, color) {
