@@ -1091,6 +1091,7 @@ function renderGantt() {
       h += '<label>Salário R$<input type="number" value="'+p.salary+'" step="100" onchange="updatePerson('+p.id+',\'salary\',+this.value)"></label>';
       if (p.role==='sdr') {
         h += '<label>Comis./reunião R$<input type="number" value="'+p.commMeeting+'" step="10" onchange="updatePerson('+p.id+',\'commMeeting\',+this.value)"></label>';
+        h += '<label>Comis./venda R$<input type="number" value="'+(p.commSale||0)+'" step="50" onchange="updatePerson('+p.id+',\'commSale\',+this.value)"></label>';
         h += '<label>Reun./semana<input type="number" value="'+p.reun+'" min="1" max="15" onchange="updatePerson('+p.id+',\'reun\',+this.value)"></label>';
       }
       if (p.role==='closer') {
@@ -1144,7 +1145,7 @@ function renderGantt() {
 function aggregateMonth(month, gp) {
   if (!gp) gp = getGlobalP();
   var totalMeetingsWeek=0, totalCapDay=0;
-  var salT=0, sdrCommBase=0, closerCommBase=0, mgrCommBase=0;
+  var salT=0, sdrCommMeetingBase=0, sdrCommSaleBase=0, closerCommBase=0, mgrCommBase=0;
   var hc=0, nSDR=0, nCLO=0, nMGR=0;
   for (var i=0;i<PEOPLE.length;i++) {
     var p=PEOPLE[i];
@@ -1156,7 +1157,8 @@ function aggregateMonth(month, gp) {
     salT += p.salary*dedF;
     if (p.role==='sdr') {
       nSDR++; totalMeetingsWeek += p.reun*ramp*dedF;
-      sdrCommBase += p.commMeeting;
+      sdrCommMeetingBase += p.commMeeting;
+      sdrCommSaleBase += (p.commSale||0);
     } else if (p.role==='closer') {
       nCLO++; totalCapDay += p.reun*ramp*dedF;
       closerCommBase += p.commSale;
@@ -1169,10 +1171,11 @@ function aggregateMonth(month, gp) {
   var show=gp.show||0.8, conv=gp.conv||0.35;
   var au=Math.round(Math.min(ag,cap||9999)*show);
   var cl=Math.round(au*conv);
-  var avgSdrComm=nSDR>0?sdrCommBase/nSDR:0;
+  var avgSdrCommMeeting=nSDR>0?sdrCommMeetingBase/nSDR:0;
+  var avgSdrCommSale=nSDR>0?sdrCommSaleBase/nSDR:0;
   var avgCloComm=nCLO>0?closerCommBase/nCLO:0;
-  // SDR commission on meetings (au)
-  var sdrComm=Math.round(au*avgSdrComm);
+  // SDR commission: per meeting + per sale
+  var sdrComm=Math.round(au*avgSdrCommMeeting) + Math.round(cl*avgSdrCommSale);
   var closerComm=Math.round(cl*avgCloComm);
   var managerComm=Math.round(cl*mgrCommBase);
   salT=Math.round(salT);
