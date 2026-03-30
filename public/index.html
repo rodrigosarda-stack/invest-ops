@@ -2148,7 +2148,7 @@ function renderTimeline() {
   datasets.push({ label:'Acumulado', data:acum_arr, type:'line', borderColor:gc('lnAc'), backgroundColor:'transparent',
     borderWidth:2.5, pointRadius:acum_arr.map(function(_,i){return i===0||i===acum_arr.length-1?5:1.5;}),
     pointBackgroundColor:acum_arr.map(function(v){return v>=0?gc('bAct'):gc('r1');}),
-    tension:.3, yAxisID:'y2', order:-1, fill:false });
+    tension:.3, order:-1, fill:false });
 
   var totalRecSum = rec_arr.reduce(function(a2,b2){return a2+b2;},0);
   var totalCostSum = cost_arr.reduce(function(a2,b2){return a2+b2;},0);
@@ -2180,15 +2180,14 @@ function renderTimeline() {
       },
       scales: {
         x: { grid:{display:false}, stacked:true, ticks:{color:gc('tick'),font:{size:9,family:'DM Mono'},callback:function(v,i){return total>24?(i%3===0?labels[i]:''):labels[i];}} },
-        y: { grid:{color:gc('grid')}, stacked:true, ticks:{color:gc('tick'),font:{size:10,family:'DM Mono'},callback:function(v){return 'R$'+fmtK(v);}} },
-        y2: { position:'right', grid:{display:false}, ticks:{color:gc('lnAc'),font:{size:10,family:'DM Mono'},callback:function(v){return 'R$'+fmtK(v);}} }
+        y: { grid:{color:gc('grid')}, stacked:true, ticks:{color:gc('tick'),font:{size:10,family:'DM Mono'},callback:function(v){return 'R$'+fmtK(v);}} }
       },
       animation: {
         onComplete: function(anim) {
           var chart = anim.chart;
           drawZeroLine(chart);
           if (be > 0) drawVLine(chart, be, 'BREAKEVEN');
-          drawLastLbl(chart, acum_arr, 'y2');
+          drawLastLbl(chart, acum_arr, 'y');
         }
       }
     }
