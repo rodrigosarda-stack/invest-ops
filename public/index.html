@@ -1090,11 +1090,9 @@ function renderGantt() {
   // Horizon control + pagination nav
   h += '<div class="gantt-nav">';
   h += '<span style="font-size:10px;color:var(--muted);margin-right:4px">Horizonte:</span>';
-  h += '<select onchange="HORIZON=+this.value;GANTT_PAGE=0;renderGantt();render();" style="background:var(--card2);border:1px solid var(--glass-border);border-radius:4px;color:var(--text);font-size:10px;padding:3px 6px;font-family:\'DM Mono\',monospace">';
-  [12,18,24,36,48,60].forEach(function(v){
-    h += '<option value="'+v+'"'+(HORIZON===v?' selected':'')+'>'+v+' meses'+(v===12?' (1 ano)':v===24?' (2 anos)':v===36?' (3 anos)':v===48?' (4 anos)':v===60?' (5 anos)':'')+'</option>';
+  [{v:12,l:'1a'},{v:24,l:'2a'},{v:36,l:'3a'},{v:48,l:'4a'},{v:60,l:'5a'}].forEach(function(o){
+    h += '<button class="'+(HORIZON===o.v?'active':'')+'" onclick="HORIZON='+o.v+';GANTT_PAGE=0;renderGantt();render();">'+o.l+'</button>';
   });
-  h += '</select>';
   if (totalPages > 1) {
     h += '<span style="margin:0 8px;color:var(--glass-border)">|</span>';
     h += '<button'+(GANTT_PAGE<=0?' disabled':'')+' onclick="ganttSetPage('+(GANTT_PAGE-1)+')">◀</button>';
