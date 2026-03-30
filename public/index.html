@@ -1102,6 +1102,10 @@ function renderGantt() {
     }
     h += '<button'+(GANTT_PAGE>=totalPages-1?' disabled':'')+' onclick="ganttSetPage('+(GANTT_PAGE+1)+')">▶</button>';
   }
+  h += '<span style="margin:0 8px;color:var(--glass-border)">|</span>';
+  h += '<button class="btn sm" style="background:'+ROLE_COLORS.sdr+';color:#fff;border-color:'+ROLE_COLORS.sdr+'" onclick="addPerson(\'sdr\')">+ SDR</button>';
+  h += '<button class="btn sm" style="background:'+ROLE_COLORS.closer+';color:#fff;border-color:'+ROLE_COLORS.closer+'" onclick="addPerson(\'closer\')">+ Closer</button>';
+  h += '<button class="btn sm" style="background:'+ROLE_COLORS.manager+';color:#fff;border-color:'+ROLE_COLORS.manager+'" onclick="addPerson(\'manager\')">+ Gestor</button>';
   h += '</div>';
   // Header
   h += '<div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
@@ -1186,16 +1190,12 @@ function renderGantt() {
     h += '<div class="gantt-cell" style="color:var(--warn)">'+fmtK(agg.costTotal)+'</div>';
   }
   h += '</div></div>';
-  // Footer
-  h += '<div class="gantt-foot">';
-  h += '<button class="btn sm" style="background:'+ROLE_COLORS.sdr+';color:#fff;border-color:'+ROLE_COLORS.sdr+'" onclick="addPerson(\'sdr\')">+ SDR</button>';
-  h += '<button class="btn sm" style="background:'+ROLE_COLORS.closer+';color:#fff;border-color:'+ROLE_COLORS.closer+'" onclick="addPerson(\'closer\')">+ Closer</button>';
-  h += '<button class="btn sm" style="background:'+ROLE_COLORS.manager+';color:#fff;border-color:'+ROLE_COLORS.manager+'" onclick="addPerson(\'manager\')">+ Gestor</button>';
+  // Footer summary
   var sdrs=PEOPLE.filter(function(p){return p.role==='sdr';}).length;
   var clos=PEOPLE.filter(function(p){return p.role==='closer';}).length;
   var mgrs=PEOPLE.filter(function(p){return p.role==='manager';}).length;
-  h += '<span class="gantt-summary">'+sdrs+' SDR · '+clos+' Closer · '+mgrs+' Gestor · '+total+' meses</span>';
-  h += '</div></div>';
+  h += '<div class="gantt-foot"><span class="gantt-summary" style="margin-left:auto">'+sdrs+' SDR · '+clos+' Closer · '+mgrs+' Gestor · '+total+' meses</span></div>';
+  h += '</div>';
   container.innerHTML = h;
 }
 
