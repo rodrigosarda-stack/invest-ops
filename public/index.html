@@ -1021,24 +1021,42 @@ function getPersonById(id) {
   return null;
 }
 
-// ─── PERSON RAMP ────────────────────────────────────────────
+// ─── PERSON RAMP (sub-month fractional) ─────────────────────
+// Returns 0..1 effective productivity for a given month.
+// Handles fractional train/accel: within a single month, part may
+// be training (0%), part accelerating (linear 0→100%), part full (100%).
 function getPersonRamp(person, month) {
   if (month < person.startMonth) return 0;
   if (person.endMonth && month > person.endMonth) return 0;
-  var active = month - person.startMonth + 1;
-  if (active <= person.train) return 0;
-  var a = active - person.train;
-  if (person.accel > 0 && a <= person.accel) return a / (person.accel + 1);
-  return 1;
+  var T = person.train || 0;
+  var A = person.accel || 0;
+  // Time range this month covers (months since start, 0-based)
+  var t0 = month - person.startMonth;     // start of month
+  var t1 = t0 + 1;                         // end of month
+  var trainEnd = T;
+  var accelEnd = T + A;
+  // Accel portion: linear ramp 0→1 over A months
+  var aS = Math.max(t0, trainEnd);
+  var aE = Math.min(t1, accelEnd);
+  var accelContrib = 0;
+  if (aE > aS && A > 0) {
+    var r0 = (aS - trainEnd) / A;  // ramp at start of portion
+    var r1 = (aE - trainEnd) / A;  // ramp at end of portion
+    accelContrib = (aE - aS) * (r0 + r1) / 2;  // area under linear ramp
+  }
+  // Full portion: 100%
+  var fullContrib = Math.max(0, t1 - Math.max(t0, accelEnd));
+  // Training contributes 0. Result is weighted average for the month.
+  return Math.max(0, Math.min(1, accelContrib + fullContrib));
 }
 
 function getPersonMonthOutput(person, month) {
   var ramp = getPersonRamp(person, month);
   if (person.role === 'sdr') {
-    return Math.round(person.reun * WEEKS * ramp * (person.ded / FD));
+    return Math.max(0, Math.round(person.reun * WEEKS * ramp * (person.ded / FD)));
   }
   if (person.role === 'closer') {
-    return ramp > 0 ? Math.round(person.reun * 5 * WEEKS * ramp * (person.ded / FD)) : 0;
+    return Math.max(0, Math.round(person.reun * 5 * WEEKS * ramp * (person.ded / FD)));
   }
   return ramp > 0 ? '—' : '';
 }
