@@ -900,19 +900,23 @@ var ROLE_DEFAULTS = {
 var WAVE_COLORS = ['#2eab6f','#3b82f6','#8b5cf6','#FF6B6B','#4ECDC4','#45B7D1','#FFA07A','#98D8C8'];
 
 function initDefaultPeople() {
-  var roles = [
-    {role:'sdr',name:'SDR 1'},{role:'sdr',name:'SDR 2'},{role:'sdr',name:'SDR 3'},{role:'sdr',name:'SDR 4'},
-    {role:'closer',name:'Closer 1'},
-    {role:'manager',name:'Gabriel'}
+  // Realistic staggered hiring: squad grows over time
+  var team = [
+    {role:'manager', name:'Gabriel',   start:1},
+    {role:'closer',  name:'Closer 1',  start:1},
+    {role:'sdr',     name:'SDR 1',     start:1},
+    {role:'sdr',     name:'SDR 2',     start:3},
+    {role:'sdr',     name:'SDR 3',     start:5},
+    {role:'sdr',     name:'SDR 4',     start:8}
   ];
   PEOPLE = [];
   NEXT_PERSON_ID = 1;
-  for (var i = 0; i < roles.length; i++) {
-    var d = ROLE_DEFAULTS[roles[i].role];
+  for (var i = 0; i < team.length; i++) {
+    var d = ROLE_DEFAULTS[team[i].role];
     PEOPLE.push({
-      id: NEXT_PERSON_ID++, name: roles[i].name, role: roles[i].role,
+      id: NEXT_PERSON_ID++, name: team[i].name, role: team[i].role,
       salary: d.salary, commMeeting: d.commMeeting||0, commSale: d.commSale||0,
-      ded: d.ded, reun: d.reun||0, startMonth: 1, endMonth: null,
+      ded: d.ded, reun: d.reun||0, startMonth: team[i].start, endMonth: null,
       train: d.train||0, accel: d.accel||0
     });
   }
