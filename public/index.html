@@ -1248,6 +1248,16 @@ function renderGantt() {
     h += '<div class="gantt-cell" style="color:'+rc+';font-weight:600">'+fmtK(rv)+'</div>';
   }
   h += '</div></div>';
+  // Resultado acumulado with dynamic color
+  var mResAcum=[], acumR=0;
+  for (var ra=0;ra<mRes.length;ra++) { acumR+=mRes[ra]; mResAcum.push(acumR); }
+  h += '<div class="gantt-totals"><div class="gantt-lbl">Acumulado</div><div class="gantt-months" style="display:flex;flex:1">';
+  for (var ra2=pageStart-1;ra2<=pageEnd-1;ra2++) {
+    var rav=ra2<mResAcum.length?mResAcum[ra2]:0;
+    var rac=rav>=0?'var(--accent)':'var(--danger)';
+    h += '<div class="gantt-cell" style="color:'+rac+';font-weight:600">'+fmtK(rav)+'</div>';
+  }
+  h += '</div></div>';
   h += mRow('HC', mHc, 'var(--accent)', '', false);
   // Footer summary
   var sdrs=PEOPLE.filter(function(p){return p.role==='sdr';}).length;
