@@ -1174,24 +1174,81 @@ function renderGantt() {
       h += '</div>';
     }
   }
-  // Totals: HC
-  h += '<div class="gantt-totals"><div class="gantt-lbl">HC</div><div class="gantt-months" style="display:flex;flex:1">';
-  for (var tm=pageStart;tm<=pageEnd;tm++) {
-    var hc=0;
-    for (var ti=0;ti<PEOPLE.length;ti++) {
-      if (PEOPLE[ti].startMonth<=tm && (!PEOPLE[ti].endMonth||PEOPLE[ti].endMonth>=tm)) hc++;
-    }
-    h += '<div class="gantt-cell" style="font-weight:600;color:var(--accent)">'+hc+'</div>';
-  }
-  h += '</div></div>';
-  // Totals: Cost
+  // ─── METRICS ROWS ──────────────────────────────────────────
   var gp = getGlobalP();
-  h += '<div class="gantt-totals"><div class="gantt-lbl">Custo</div><div class="gantt-months" style="display:flex;flex:1">';
-  for (var cm2=pageStart;cm2<=pageEnd;cm2++) {
-    var agg = aggregateMonth(cm2, gp);
-    h += '<div class="gantt-cell" style="color:var(--warn)">'+fmtK(agg.costTotal)+'</div>';
+  var prod0 = Math.round(gp.tkm * (100 - gp.mprod) / 100);
+  var fisc0 = Math.round(gp.tkm * gp.fisc / 100);
+  var ltvPerClient = Math.round(gp.tkm * Math.min(1/(gp.churn||0.05), gp.perm));
+
+  // Pre-compute per-month data for all metrics
+  var mAg=[],mAu=[],mCl=[],mClAcum=[],mLtv=[],mRec=[],mCostOp=[],mCostFisc=[],mCostTot=[],mRes=[],mHc=[],mCac=[];
+  var cohorts2=[], acumAtivos=0;
+  for (var mm=1;mm<=total;mm++) {
+    var agg=aggregateMonth(mm,gp);
+    // Cohort tracking for revenue + active clients
+    cohorts2.push({month:mm, N:agg.cl, tkm:gp.tkm, prod:prod0, fisc:fisc0, churn:gp.churn, perm:gp.perm});
+    var tRec=0, tFisc=0, activos=0;
+    for (var ci=0;ci<cohorts2.length;ci++) {
+      var co=cohorts2[ci], age=mm-co.month;
+      if (age<0||age>=co.perm) continue;
+      var surv=co.N*Math.pow(1-co.churn,age);
+      activos+=surv;
+      tRec+=surv*co.tkm;
+      if (age>=1) tFisc+=surv*co.fisc;
+    }
+    tRec=Math.round(tRec); tFisc=Math.round(tFisc);
+    var costOp=agg.costTotal;
+    var costTot=costOp+tFisc;
+    mAg.push(agg.ag); mAu.push(agg.au); mCl.push(agg.cl);
+    mClAcum.push(Math.round(activos));
+    mLtv.push(agg.cl*ltvPerClient);
+    mRec.push(tRec); mCostOp.push(costOp); mCostFisc.push(tFisc);
+    mCostTot.push(costTot); mRes.push(tRec-costTot);
+    mHc.push(agg.headcount);
+    mCac.push(agg.cl>0 ? Math.round(costOp/agg.cl) : null);
+  }
+
+  // Helper to render a metrics row
+  function mRow(label, arr, color, prefix, isMoney) {
+    var r='<div class="gantt-totals"><div class="gantt-lbl">'+label+'</div><div class="gantt-months" style="display:flex;flex:1">';
+    for (var mi=pageStart-1;mi<=pageEnd-1;mi++) {
+      var v=mi<arr.length?arr[mi]:0;
+      var txt=v===null?'—':(isMoney?fmtK(v):(prefix||'')+v);
+      r+='<div class="gantt-cell" style="color:'+color+'">'+txt+'</div>';
+    }
+    return r+'</div></div>';
+  }
+
+  // Section: Funil
+  h += '<div style="margin-top:6px;padding:4px 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--glass-border)">Funil</div>';
+  h += mRow('Agend.', mAg, 'var(--text)', '', false);
+  h += mRow('Reuniões', mAu, 'var(--text)', '', false);
+  h += mRow('Vendas', mCl, 'var(--accent)', '', false);
+  h += mRow('Clientes', mClAcum, 'var(--accent)', '', false);
+  // CAC with null handling
+  h += '<div class="gantt-totals"><div class="gantt-lbl">CAC</div><div class="gantt-months" style="display:flex;flex:1">';
+  for (var ci2=pageStart-1;ci2<=pageEnd-1;ci2++) {
+    var cv=ci2<mCac.length?mCac[ci2]:null;
+    h += '<div class="gantt-cell" style="color:var(--warn)">'+(cv===null?'—':'R$'+fmtK(cv))+'</div>';
   }
   h += '</div></div>';
+
+  // Section: Financeiro
+  h += '<div style="padding:4px 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--glass-border)">Financeiro</div>';
+  h += mRow('LTV gerado', mLtv, '#8b5cf6', '', true);
+  h += mRow('Receita', mRec, 'var(--accent)', '', true);
+  h += mRow('Custo oper.', mCostOp, 'var(--warn)', '', true);
+  h += mRow('Custo fiscal', mCostFisc, 'var(--danger)', '', true);
+  h += mRow('Custo total', mCostTot, 'var(--danger)', '', true);
+  // Resultado with dynamic color per cell
+  h += '<div class="gantt-totals"><div class="gantt-lbl">Resultado</div><div class="gantt-months" style="display:flex;flex:1">';
+  for (var ri=pageStart-1;ri<=pageEnd-1;ri++) {
+    var rv=ri<mRes.length?mRes[ri]:0;
+    var rc=rv>=0?'var(--accent)':'var(--danger)';
+    h += '<div class="gantt-cell" style="color:'+rc+';font-weight:600">'+fmtK(rv)+'</div>';
+  }
+  h += '</div></div>';
+  h += mRow('HC', mHc, 'var(--accent)', '', false);
   // Footer summary
   var sdrs=PEOPLE.filter(function(p){return p.role==='sdr';}).length;
   var clos=PEOPLE.filter(function(p){return p.role==='closer';}).length;
