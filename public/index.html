@@ -1069,7 +1069,14 @@ function getPersonMonthOutput(person, month) {
     return Math.max(0, Math.round(person.reun * WEEKS * ramp * (person.ded / FD)));
   }
   if (person.role === 'closer') {
-    return Math.max(0, Math.round(person.reun * 5 * WEEKS * ramp * (person.ded / FD)));
+    // Closer receives meetings from the pipeline, not generates them
+    // Show actual reuniões = min(agendamentos, capacity) × show rate, split among closers
+    var gp = getGlobalP();
+    var agg = aggregateMonth(month, gp);
+    var nClosers = agg.closers || 1;
+    var reunPerCloser = Math.round(agg.au / nClosers); // au = realized meetings after show rate
+    if (ramp <= 0) return 0;
+    return Math.max(0, reunPerCloser);
   }
   return ramp > 0 ? '—' : '';
 }
