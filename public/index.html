@@ -1218,11 +1218,11 @@ function renderGantt() {
     var color = ROLE_COLORS[p.role];
     var endM = p.endMonth || total;
     var isMulti = MULTI_SELECT.indexOf(p.id) >= 0;
-    h += '<div class="gantt-row'+(isSel?' sel':'')+(isMulti?' sel':'')+'">';
-    h += '<div class="gantt-name" style="cursor:pointer">';
+    h += '<div class="gantt-row'+(isSel?' sel':'')+(isMulti?' sel':'')+'" onclick="selectPerson('+p.id+')" style="cursor:pointer">';
+    h += '<div class="gantt-name">';
     h += '<input type="checkbox" '+(isMulti?'checked':'')+' onclick="event.stopPropagation();toggleMultiSelect('+p.id+')" style="margin:0 4px 0 0;cursor:pointer">';
     h += '<span class="dot" style="background:'+color+'"></span>';
-    h += '<span onclick="selectPerson('+p.id+')">'+p.name+'</span></div>';
+    h += p.name+'</div>';
     h += '<div class="gantt-bars">';
     // Background bar (relative to page)
     var barStart = Math.max(p.startMonth, pageStart);
