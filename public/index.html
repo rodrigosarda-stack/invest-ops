@@ -919,8 +919,8 @@ function initDefaultPeople() {
   var team = [
     // Gabriel — gestor da operação, desde M1
     {role:'manager', name:'Gabriel', start:1, end:null, salary:6000, commMeeting:0, commSale:0, ded:8, reun:0, train:0, accel:0},
-    // Closer interno M3A — já existe no time, custo incremental zero
-    {role:'closer', name:'Closer M3A', start:1, end:null, salary:0, commMeeting:0, commSale:0, ded:8, reun:6, train:0, accel:0},
+    // CS como Closer — salário já pago pelo CS, custo incremental = só comissão
+    {role:'closer', name:'CS (Closer)', start:1, end:null, salary:0, commMeeting:0, commSale:500, ded:8, reun:6, train:0, accel:0},
     // Carolina Fase 1 — Setup & Ramp-up (M1-M2)
     {role:'sdr', name:'Carolina (Setup)', start:1, end:2, salary:4000, commMeeting:120, commSale:1000, ded:8, reun:6, train:0.5, accel:1},
     // Carolina Fase 2 — Operação consolidada (M3+)
