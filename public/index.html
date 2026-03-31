@@ -1185,10 +1185,13 @@ function renderGantt() {
   var gp = getGlobalP();
   var prod0 = Math.round(gp.tkm * (100 - gp.mprod) / 100);
   var fisc0 = Math.round(gp.tkm * gp.fisc / 100);
-  var ltvPerClient = Math.round(gp.tkm * Math.min(1/(gp.churn||0.05), gp.perm));
+  var avgLife = Math.min(1/(gp.churn||0.05), gp.perm);
+  var ltvPerClient = Math.round(gp.tkm * avgLife);
+  var netPerMonth = gp.tkm - prod0 - fisc0; // margem líquida por cliente/mês
+  var ltvLiqPerClient = Math.round(netPerMonth * avgLife);
 
   // Pre-compute per-month data for all metrics
-  var mAg=[],mAu=[],mCl=[],mClAcum=[],mLtv=[],mRec=[],mCostOp=[],mCostFisc=[],mCostTot=[],mRes=[],mHc=[],mCac=[];
+  var mAg=[],mAu=[],mCl=[],mClAcum=[],mLtv=[],mLtvLiq=[],mRec=[],mCostOp=[],mCostFisc=[],mCostTot=[],mRes=[],mHc=[],mCac=[];
   var cohorts2=[], acumAtivos=0;
   for (var mm=1;mm<=total;mm++) {
     var agg=aggregateMonth(mm,gp);
@@ -1209,6 +1212,7 @@ function renderGantt() {
     mAg.push(agg.ag); mAu.push(agg.au); mCl.push(agg.cl);
     mClAcum.push(Math.round(activos));
     mLtv.push(agg.cl*ltvPerClient);
+    mLtvLiq.push(agg.cl*ltvLiqPerClient);
     mRec.push(tRec); mCostOp.push(costOp); mCostFisc.push(tFisc);
     mCostTot.push(costTot); mRes.push(tRec-costTot);
     mHc.push(agg.headcount);
@@ -1244,6 +1248,7 @@ function renderGantt() {
   // Section: Financeiro
   h += '<div style="padding:4px 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--glass-border)">Financeiro</div>';
   h += mRow('LTV gerado', mLtv, '#8b5cf6', '', true);
+  h += mRow('LTV líquido', mLtvLiq, '#a78bfa', '', true);
   h += mRow('Receita', mRec, 'var(--accent)', '', true);
   h += mRow('Custo oper.', mCostOp, 'var(--warn)', '', true);
   h += mRow('Custo fiscal', mCostFisc, 'var(--danger)', '', true);
