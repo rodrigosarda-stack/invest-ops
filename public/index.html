@@ -904,6 +904,38 @@ var NEXT_PERSON_ID = 1;
 var SELECTED_PERSON = null;
 var ROLE_COLORS = {sdr:'#2eab6f', closer:'#3b82f6', manager:'#8b5cf6'};
 var ROLE_LABELS = {sdr:'SDR', closer:'Closer', manager:'Gestor'};
+var MULTI_SELECT = []; // array of person IDs for batch edit
+
+function toggleMultiSelect(id) {
+  var idx = MULTI_SELECT.indexOf(id);
+  if (idx >= 0) MULTI_SELECT.splice(idx, 1);
+  else MULTI_SELECT.push(id);
+  SELECTED_PERSON = null;
+  renderGantt();
+}
+function selectAllRole(role) {
+  MULTI_SELECT = PEOPLE.filter(function(p){return p.role===role;}).map(function(p){return p.id;});
+  SELECTED_PERSON = null;
+  renderGantt();
+}
+function selectAllPeople() {
+  MULTI_SELECT = PEOPLE.map(function(p){return p.id;});
+  SELECTED_PERSON = null;
+  renderGantt();
+}
+function clearMultiSelect() {
+  MULTI_SELECT = [];
+  renderGantt();
+}
+function updateMulti(field, value) {
+  for (var i = 0; i < PEOPLE.length; i++) {
+    if (MULTI_SELECT.indexOf(PEOPLE[i].id) >= 0) {
+      PEOPLE[i][field] = value;
+    }
+  }
+  renderGantt(); render();
+}
+
 var ROLE_DEFAULTS = {
   sdr:    {salary:4500, commMeeting:60, commSale:0, ded:8, reun:6, train:1, accel:2},
   closer: {salary:4500, commMeeting:0, commSale:500, ded:8, reun:6, train:0, accel:0},
@@ -1136,6 +1168,12 @@ function renderGantt() {
   h += '<button class="btn sm" style="background:'+ROLE_COLORS.sdr+';color:#fff;border-color:'+ROLE_COLORS.sdr+'" onclick="addPerson(\'sdr\')">+ SDR</button>';
   h += '<button class="btn sm" style="background:'+ROLE_COLORS.closer+';color:#fff;border-color:'+ROLE_COLORS.closer+'" onclick="addPerson(\'closer\')">+ Closer</button>';
   h += '<button class="btn sm" style="background:'+ROLE_COLORS.manager+';color:#fff;border-color:'+ROLE_COLORS.manager+'" onclick="addPerson(\'manager\')">+ Gestor</button>';
+  h += '<span style="margin:0 6px;color:var(--glass-border)">|</span>';
+  h += '<span style="font-size:12px;color:var(--muted)">Selecionar:</span>';
+  h += '<button class="btn sm" onclick="selectAllRole(\'sdr\')" style="font-size:12px;padding:3px 8px">SDRs</button>';
+  h += '<button class="btn sm" onclick="selectAllRole(\'closer\')" style="font-size:12px;padding:3px 8px">Closers</button>';
+  h += '<button class="btn sm" onclick="selectAllPeople()" style="font-size:12px;padding:3px 8px">Todos</button>';
+  if (MULTI_SELECT.length>0) h += '<button class="btn sm" onclick="clearMultiSelect()" style="font-size:12px;padding:3px 8px;color:var(--muted)">Limpar ('+MULTI_SELECT.length+')</button>';
   h += '</div>';
   // Header
   h += '<div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
@@ -1150,8 +1188,12 @@ function renderGantt() {
     var isSel = SELECTED_PERSON===p.id;
     var color = ROLE_COLORS[p.role];
     var endM = p.endMonth || total;
-    h += '<div class="gantt-row'+(isSel?' sel':'')+'" onclick="selectPerson('+p.id+')">';
-    h += '<div class="gantt-name"><span class="dot" style="background:'+color+'"></span>'+p.name+'</div>';
+    var isMulti = MULTI_SELECT.indexOf(p.id) >= 0;
+    h += '<div class="gantt-row'+(isSel?' sel':'')+(isMulti?' sel':'')+'">';
+    h += '<div class="gantt-name" style="cursor:pointer">';
+    h += '<input type="checkbox" '+(isMulti?'checked':'')+' onclick="event.stopPropagation();toggleMultiSelect('+p.id+')" style="margin:0 4px 0 0;cursor:pointer">';
+    h += '<span class="dot" style="background:'+color+'"></span>';
+    h += '<span onclick="selectPerson('+p.id+')">'+p.name+'</span></div>';
     h += '<div class="gantt-bars">';
     // Background bar (relative to page)
     var barStart = Math.max(p.startMonth, pageStart);
@@ -1239,6 +1281,31 @@ function renderGantt() {
       h += '<div class="ed-rm"><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
       h += '</div>';
     }
+  }
+  // ─── MULTI-EDIT PANEL ─────────────────────────────────────
+  if (MULTI_SELECT.length > 1) {
+    var selPeople = PEOPLE.filter(function(p){return MULTI_SELECT.indexOf(p.id)>=0;});
+    var hasSDR = selPeople.some(function(p){return p.role==='sdr';});
+    var hasCLO = selPeople.some(function(p){return p.role==='closer';});
+    var hasMGR = selPeople.some(function(p){return p.role==='manager';});
+    h += '<div class="gantt-ed" style="margin-left:0;border-color:var(--warn)">';
+    h += '<div style="grid-column:1/-1;font-size:13px;color:var(--warn);font-weight:600">Editar '+MULTI_SELECT.length+' selecionados</div>';
+    h += '<label>Salário R$<input type="number" placeholder="manter" step="100" onchange="if(this.value)updateMulti(\'salary\',+this.value)"></label>';
+    h += '<label>Início mês<input type="number" placeholder="manter" min="1" max="36" onchange="if(this.value)updateMulti(\'startMonth\',+this.value)"></label>';
+    h += '<label>Saída mês<input type="number" placeholder="manter" min="1" max="48" onchange="if(this.value)updateMulti(\'endMonth\',+this.value)"></label>';
+    h += '<label>Dedicação (h/dia)<input type="number" placeholder="manter" min="1" max="8" step="0.5" onchange="if(this.value)updateMulti(\'ded\',+this.value)"></label>';
+    h += '<label>Treino (meses)<input type="number" placeholder="manter" min="0" max="6" step="0.25" onchange="if(this.value)updateMulti(\'train\',+this.value)"></label>';
+    h += '<label>Aceleração (meses)<input type="number" placeholder="manter" min="0" max="6" step="0.5" onchange="if(this.value)updateMulti(\'accel\',+this.value)"></label>';
+    if (hasSDR) {
+      h += '<label>Comis./reunião R$ (SDRs)<input type="number" placeholder="manter" step="10" onchange="if(this.value)updateMulti(\'commMeeting\',+this.value)"></label>';
+    }
+    if (hasSDR || hasCLO || hasMGR) {
+      h += '<label>Comis./venda R$<input type="number" placeholder="manter" step="50" onchange="if(this.value)updateMulti(\'commSale\',+this.value)"></label>';
+    }
+    if (hasSDR) {
+      h += '<label>Reun./semana (SDRs)<input type="number" placeholder="manter" min="1" max="15" onchange="if(this.value)updateMulti(\'reun\',+this.value)"></label>';
+    }
+    h += '</div>';
   }
   // ─── METRICS ROWS ──────────────────────────────────────────
   var gp = getGlobalP();
