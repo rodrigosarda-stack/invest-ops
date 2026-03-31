@@ -1045,6 +1045,32 @@ function addPerson(role) {
   SELECTED_PERSON = person.id;
   renderGantt(); render();
 }
+function duplicatePerson(id) {
+  var orig = getPersonById(id);
+  if (!orig) return;
+  var copy = JSON.parse(JSON.stringify(orig));
+  copy.id = NEXT_PERSON_ID++;
+  copy.name = orig.name + ' (cópia)';
+  PEOPLE.push(copy);
+  SELECTED_PERSON = copy.id;
+  renderGantt(); render();
+}
+function duplicateMulti() {
+  var ids = MULTI_SELECT.slice();
+  var newIds = [];
+  for (var i = 0; i < ids.length; i++) {
+    var orig = getPersonById(ids[i]);
+    if (!orig) continue;
+    var copy = JSON.parse(JSON.stringify(orig));
+    copy.id = NEXT_PERSON_ID++;
+    copy.name = orig.name + ' (cópia)';
+    PEOPLE.push(copy);
+    newIds.push(copy.id);
+  }
+  MULTI_SELECT = newIds;
+  SELECTED_PERSON = null;
+  renderGantt(); render();
+}
 function removePerson(id) {
   if (PEOPLE.length <= 1) return;
   PEOPLE = PEOPLE.filter(function(p){return p.id!==id;});
@@ -1173,7 +1199,10 @@ function renderGantt() {
   h += '<button class="btn sm" onclick="selectAllRole(\'sdr\')" style="font-size:12px;padding:3px 8px">SDRs</button>';
   h += '<button class="btn sm" onclick="selectAllRole(\'closer\')" style="font-size:12px;padding:3px 8px">Closers</button>';
   h += '<button class="btn sm" onclick="selectAllPeople()" style="font-size:12px;padding:3px 8px">Todos</button>';
-  if (MULTI_SELECT.length>0) h += '<button class="btn sm" onclick="clearMultiSelect()" style="font-size:12px;padding:3px 8px;color:var(--muted)">Limpar ('+MULTI_SELECT.length+')</button>';
+  if (MULTI_SELECT.length>0) {
+    h += '<button class="btn sm" onclick="duplicateMulti()" style="font-size:12px;padding:3px 8px;color:var(--accent);border-color:var(--accent)">Duplicar ('+MULTI_SELECT.length+')</button>';
+    h += '<button class="btn sm" onclick="clearMultiSelect()" style="font-size:12px;padding:3px 8px;color:var(--muted)">Limpar</button>';
+  }
   h += '</div>';
   // Header
   h += '<div class="gantt-hdr"><div class="gantt-lbl">Equipe</div><div class="gantt-months">';
@@ -1278,7 +1307,7 @@ function renderGantt() {
       var eCacPessoa = eVendas > 0 ? Math.round(eTotal / eVendas) : 0;
       if (eVendas > 0) h += '<span style="color:var(--warn)">Custo/venda: <strong>R$ '+fmt(eCacPessoa)+'</strong> <span style="font-size:11px;opacity:.6">(R$'+fmt(eTotal)+' ÷ '+eVendas+' vendas)</span></span>';
       h += '</div></div>';
-      h += '<div class="ed-rm"><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
+      h += '<div class="ed-rm"><button onclick="event.stopPropagation();duplicatePerson('+p.id+')" style="background:rgba(10,204,199,.1);color:var(--accent);border-color:var(--accent);margin-right:8px">Duplicar</button><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
       h += '</div>';
     }
   }
