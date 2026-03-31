@@ -2908,14 +2908,65 @@ function duplicateP(){
 // ─── ARENA DE COMPARAÇÃO ────────────────────────────────────
 function openArena(){el('modal-arena').classList.add('open');renderArena();}
 function closeArena(){el('modal-arena').classList.remove('open');}
+function simulatePreset(preset) {
+  // Temporarily swap PEOPLE to simulate a preset
+  var savedPeople = PEOPLE;
+  var savedNextId = NEXT_PERSON_ID;
+  PEOPLE = preset.people || [];
+  NEXT_PERSON_ID = preset.nextId || 1;
+  // Apply globals temporarily
+  var gp = preset.globals || {};
+  var sv = function(id,v){var e=el(id);if(e&&v!=null)e.value=v;};
+  var orig = {};
+  ['show','conv','tkm','perm','mprod','fisc','churn'].forEach(function(k){
+    var e=el(k==='tkm'?'tkm-n':k==='perm'?'perm-n':k);
+    if(e){orig[k]=e.value; if(gp[k]!=null)e.value=gp[k];}
+  });
+  var p = getPeopleP();
+  var r = calcFromP(p);
+  // VPL/TIR
+  var gpx = getGlobalP();
+  var prod2 = Math.round(gpx.tkm*(100-gpx.mprod)/100);
+  var fisc2 = Math.round(gpx.tkm*gpx.fisc/100);
+  var H = getTotalDuration();
+  var flows = [], cohorts3 = [];
+  for (var m=1;m<=H;m++) {
+    var agg = aggregateMonth(m, gpx);
+    var totalCost = agg.costTotal;
+    cohorts3.push({month:m, N:agg.cl, tkm:gpx.tkm, prod:prod2, fisc:fisc2, churn:gpx.churn, perm:gpx.perm});
+    var totalRec = 0;
+    for (var ci=0;ci<cohorts3.length;ci++) {
+      var co=cohorts3[ci], age=m-co.month;
+      if(age<0||age>=co.perm) continue;
+      var surv=co.N*Math.pow(1-co.churn,age);
+      totalRec+=surv*co.tkm;
+      if(age>=1) totalCost+=surv*(co.prod+co.fisc);
+    }
+    flows.push(Math.round(totalRec)-Math.round(totalCost));
+  }
+  var hurdleMo = Math.pow(1.14,1/12)-1;
+  r.vpl12 = Math.round(calcVPL(flows, hurdleMo));
+  var tirMo = calcTIR(flows);
+  r.tir12 = Math.round((Math.pow(1+tirMo,12)-1)*100);
+  r.squadCost = r.tot;
+  r.headcount = p.sdrs + p.clos + (p.gon?1:0);
+  // Restore
+  PEOPLE = savedPeople;
+  NEXT_PERSON_ID = savedNextId;
+  ['show','conv','tkm','perm','mprod','fisc','churn'].forEach(function(k){
+    var e=el(k==='tkm'?'tkm-n':k==='perm'?'perm-n':k);
+    if(e&&orig[k]!=null)e.value=orig[k];
+  });
+  return r;
+}
+
 function renderArena(){
-  var ps=getPs();
-  if(ps.length<2){el('arena-content').innerHTML='<p style="color:var(--muted)">Salve pelo menos 2 perfis para comparar. Use o botão 💾 Salvar.</p>';return;}
-  // Simulate each profile
+  var ps=getPresets12();
+  if(ps.length<2){el('arena-content').innerHTML='<p style="color:var(--muted)">Salve pelo menos 2 presets para comparar. Use o botão 💾 Salvar.</p>';return;}
+  // Simulate each preset
   var results=ps.map(function(p,idx){
-    var raw=p.globalParams||p.sc&&p.sc[0]||p.sc||{};
-    var r=simulate(raw);
-    r.name=p.n;r.idx=idx;r.nWaves=p.waves?p.waves.length:1;
+    var r=simulatePreset(p);
+    r.name=p.name;r.idx=idx;r.nPeople=p.people?p.people.length:0;
     return r;
   });
   var metrics=[
@@ -2935,7 +2986,7 @@ function renderArena(){
   var html='<div class="arena-grid" style="grid-template-columns:160px repeat('+results.length+',1fr)">';
   // Header row
   html+='<div class="ah">Métrica</div>';
-  results.forEach(function(r){html+='<div class="ah" style="text-align:center">'+r.name+'<br><span style="font-size:12px;opacity:.6">'+r.nWaves+' leva(s)</span></div>';});
+  results.forEach(function(r){html+='<div class="ah" style="text-align:center">'+r.name+'<br><span style="font-size:12px;opacity:.6">'+r.nPeople+' pessoas</span></div>';});
   // Data rows
   metrics.forEach(function(m){
     html+='<div class="ac" style="font-weight:500;color:var(--muted)">'+m.label+'</div>';
