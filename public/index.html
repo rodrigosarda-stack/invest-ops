@@ -1212,6 +1212,7 @@ function renderGantt() {
     mRec.push(tRec); mCostOp.push(costOp); mCostFisc.push(tFisc);
     mCostTot.push(costTot); mRes.push(tRec-costTot);
     mHc.push(agg.headcount);
+    // CAC = custo operação do mês / vendas do mês
     mCac.push(agg.cl>0 ? Math.round(costOp/agg.cl) : null);
   }
 
