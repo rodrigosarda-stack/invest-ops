@@ -1204,7 +1204,11 @@ function renderGantt() {
       h += '<span style="color:var(--muted)">Salário: <strong style="color:var(--text)">R$ '+fmt(eSal)+'</strong></span>';
       if (eCommMeet > 0) h += '<span style="color:var(--muted)">Comis. reunião: <strong style="color:var(--text)">R$ '+fmt(eCommMeet)+'</strong> <span style="font-size:11px;opacity:.6">('+eReun+' ag × '+(gpe.show*100)+'% show × R$'+p.commMeeting+')</span></span>';
       if (eCommSale > 0) h += '<span style="color:var(--muted)">Comis. venda: <strong style="color:var(--text)">R$ '+fmt(eCommSale)+'</strong> <span style="font-size:11px;opacity:.6">('+eVendas+' vendas × R$'+p.commSale+')</span></span>';
-      h += '<span style="color:var(--accent);font-weight:700;font-size:16px;margin-left:auto">Total: R$ '+fmt(eTotal)+'/mês</span>';
+      h += '</div>';
+      h += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">';
+      h += '<span style="color:var(--accent);font-weight:700;font-size:16px">Total: R$ '+fmt(eTotal)+'/mês</span>';
+      var eCacPessoa = eVendas > 0 ? Math.round(eTotal / eVendas) : 0;
+      if (eVendas > 0) h += '<span style="color:var(--warn)">Custo/venda: <strong>R$ '+fmt(eCacPessoa)+'</strong> <span style="font-size:11px;opacity:.6">(R$'+fmt(eTotal)+' ÷ '+eVendas+' vendas)</span></span>';
       h += '</div></div>';
       h += '<div class="ed-rm"><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
       h += '</div>';
