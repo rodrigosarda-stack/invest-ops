@@ -1177,6 +1177,35 @@ function renderGantt() {
       h += '<label>Dedicação (h/dia)<input type="number" value="'+p.ded+'" min="1" max="8" step="0.5" onchange="updatePerson('+p.id+',\'ded\',+this.value)"></label>';
       h += '<label>Treino (meses)<input type="number" value="'+p.train+'" min="0" max="6" step="0.25" onchange="updatePerson('+p.id+',\'train\',+this.value)"></label>';
       h += '<label>Aceleração (meses)<input type="number" value="'+p.accel+'" min="0" max="6" step="0.5" onchange="updatePerson('+p.id+',\'accel\',+this.value)"></label>';
+      // ── Projeção de ganhos ──
+      var gpe = getGlobalP();
+      var agge = aggregateMonth(Math.max(p.startMonth + Math.ceil(p.train + p.accel), 1), gpe);
+      var dedF = p.ded / FD;
+      var eSal = Math.round(p.salary * dedF);
+      var eCommMeet = 0, eCommSale = 0, eReun = 0, eVendas = 0;
+      if (p.role === 'sdr') {
+        eReun = Math.round(p.reun * WEEKS * dedF);
+        var eShow = Math.round(eReun * (gpe.show || 0.8));
+        eVendas = Math.round(eShow * (gpe.conv || 0.35));
+        eCommMeet = Math.round(eShow * p.commMeeting);
+        eCommSale = Math.round(eVendas * (p.commSale || 0));
+      } else if (p.role === 'closer') {
+        eReun = agge.au || 0;
+        eVendas = agge.cl || 0;
+        eCommSale = Math.round(eVendas * p.commSale);
+      } else if (p.role === 'manager') {
+        eVendas = agge.cl || 0;
+        eCommSale = Math.round(eVendas * p.commSale);
+      }
+      var eTotal = eSal + eCommMeet + eCommSale;
+      h += '<div style="grid-column:1/-1;background:rgba(255,255,255,.03);border-radius:6px;padding:10px 12px;margin-top:4px">';
+      h += '<div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">Projeção de ganhos (plena produção)</div>';
+      h += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">';
+      h += '<span style="color:var(--muted)">Salário: <strong style="color:var(--text)">R$ '+fmt(eSal)+'</strong></span>';
+      if (eCommMeet > 0) h += '<span style="color:var(--muted)">Comis. reunião: <strong style="color:var(--text)">R$ '+fmt(eCommMeet)+'</strong> <span style="font-size:11px;opacity:.6">('+eReun+' ag × '+(gpe.show*100)+'% show × R$'+p.commMeeting+')</span></span>';
+      if (eCommSale > 0) h += '<span style="color:var(--muted)">Comis. venda: <strong style="color:var(--text)">R$ '+fmt(eCommSale)+'</strong> <span style="font-size:11px;opacity:.6">('+eVendas+' vendas × R$'+p.commSale+')</span></span>';
+      h += '<span style="color:var(--accent);font-weight:700;font-size:16px;margin-left:auto">Total: R$ '+fmt(eTotal)+'/mês</span>';
+      h += '</div></div>';
       h += '<div class="ed-rm"><button onclick="event.stopPropagation();removePerson('+p.id+')">Remover</button></div>';
       h += '</div>';
     }
