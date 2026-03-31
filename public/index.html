@@ -1287,11 +1287,12 @@ function renderGantt() {
         eCommMeet = Math.round(eShow * p.commMeeting);
         eCommSale = Math.round(eVendas * (p.commSale || 0));
       } else if (p.role === 'closer') {
-        eReun = agge.au || 0;
-        eVendas = agge.cl || 0;
+        var nClo = agge.closers || 1;
+        eReun = Math.round((agge.au || 0) / nClo);
+        eVendas = Math.round((agge.cl || 0) / nClo);
         eCommSale = Math.round(eVendas * p.commSale);
       } else if (p.role === 'manager') {
-        eVendas = agge.cl || 0;
+        eVendas = agge.cl || 0; // manager gets comm on ALL sales
         eCommSale = Math.round(eVendas * p.commSale);
       }
       var eTotal = eSal + eCommMeet + eCommSale;
