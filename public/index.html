@@ -941,7 +941,7 @@ initDefaultPeople();
 // ─── UTILS ───────────────────────────────────────────────────
 function el(id) { return document.getElementById(id); }
 function fmt(n) { return Math.round(n).toLocaleString('pt-BR'); }
-function fmtK(n) { var a = Math.abs(n); if (a >= 1e6) return (n/1e6).toFixed(1)+'M'; if (a >= 1000) return Math.round(n/1000)+'k'; return ''+Math.round(n); }
+function fmtK(n) { var a = Math.abs(n); if (a >= 1e6) return (n/1e6).toFixed(1)+'M'; if (a >= 1000) return Math.round(n/1000)+'k'; if (a >= 100) return (n/1000).toFixed(1)+'k'; return ''+Math.round(n); }
 function fmtH(h) { var hh = parseFloat(h); return (hh%1===0?hh:hh.toFixed(1)) + 'h (' + Math.round(hh/FD*100) + '%)'; }
 function fmtPB(r) { if (r<=0) return '—'; if (r<1) return Math.round(r*30)+' dias'; return r.toFixed(1)+' meses'; }
 function salE(sal, ded) { return sal * (ded / FD); }
