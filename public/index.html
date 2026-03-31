@@ -1066,19 +1066,40 @@ function getPersonRamp(person, month) {
 function getPersonMonthOutput(person, month) {
   var ramp = getPersonRamp(person, month);
   if (person.role === 'sdr') {
-    return Math.max(0, Math.round(person.reun * WEEKS * ramp * (person.ded / FD)));
+    // Show reuniões geradas (após show rate) — mesma métrica do closer
+    var agPerson = Math.round(person.reun * WEEKS * ramp * (person.ded / FD));
+    var gps = getGlobalP();
+    return Math.max(0, Math.round(agPerson * (gps.show || 0.8)));
   }
   if (person.role === 'closer') {
-    // Closer receives meetings from the pipeline, not generates them
-    // Show actual reuniões = min(agendamentos, capacity) × show rate, split among closers
     var gp = getGlobalP();
     var agg = aggregateMonth(month, gp);
     var nClosers = agg.closers || 1;
-    var reunPerCloser = Math.round(agg.au / nClosers); // au = realized meetings after show rate
+    var reunPerCloser = Math.round(agg.au / nClosers);
     if (ramp <= 0) return 0;
     return Math.max(0, reunPerCloser);
   }
   return ramp > 0 ? '—' : '';
+}
+
+// Detect bottleneck for a given month: 'closer' if cap limits, 'sdr' if demand limits, null if balanced
+function getBottleneck(month) {
+  var gp = getGlobalP();
+  var totalMeetingsWeek = 0, totalCapDay = 0;
+  for (var i = 0; i < PEOPLE.length; i++) {
+    var p = PEOPLE[i];
+    if (p.startMonth > month || (p.endMonth && month > p.endMonth)) continue;
+    var ramp = getPersonRamp(p, month);
+    var dedF = p.ded / FD;
+    if (p.role === 'sdr') totalMeetingsWeek += p.reun * ramp * dedF;
+    else if (p.role === 'closer') totalCapDay += p.reun * ramp * dedF;
+  }
+  var sdrSupply = Math.round(totalMeetingsWeek * WEEKS * (gp.show || 0.8)); // reuniões geradas
+  var closerCap = Math.round(totalCapDay * 5 * WEEKS); // capacidade do closer
+  if (closerCap <= 0 && sdrSupply <= 0) return null;
+  if (closerCap < sdrSupply) return {who:'closer', supply:sdrSupply, cap:closerCap, lost:sdrSupply-closerCap};
+  if (sdrSupply < closerCap * 0.8) return {who:'sdr', supply:sdrSupply, cap:closerCap, idle:closerCap-sdrSupply};
+  return null; // balanced
 }
 
 // ─── GANTT CHART ────────────────────────────────────────────
@@ -1152,7 +1173,12 @@ function renderGantt() {
         else cls += ' full';
       }
       var val = isActive ? getPersonMonthOutput(p, cm) : '';
-      h += '<div class="'+cls+'">'+(val===0?'0':val||'')+'</div>';
+      var cellStyle = '';
+      if (isActive && ramp > 0 && (p.role === 'sdr' || p.role === 'closer')) {
+        var bn = getBottleneck(cm);
+        if (bn && bn.who === p.role) cellStyle = ' style="color:var(--warn)"';
+      }
+      h += '<div class="'+cls+'"'+cellStyle+'>'+(val===0?'0':val||'')+'</div>';
     }
     h += '</div></div>';
     // Editor
@@ -1268,6 +1294,17 @@ function renderGantt() {
   h += '<div style="margin-top:6px;padding:4px 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--glass-border)">Funil</div>';
   h += mRow('Agend.', mAg, 'var(--text)', '', false);
   h += mRow('Reuniões', mAu, 'var(--text)', '', false);
+  // Bottleneck alert
+  var bnLast = getBottleneck(pageEnd);
+  if (bnLast) {
+    var bnMsg = '';
+    if (bnLast.who === 'closer') {
+      bnMsg = '⚠ Gargalo: Closers (cap '+bnLast.cap+' < demanda '+bnLast.supply+' · '+bnLast.lost+' reuniões perdidas) → Contrate closer';
+    } else {
+      bnMsg = '⚠ Closers ociosos (cap '+bnLast.cap+' vs demanda '+bnLast.supply+' · '+bnLast.idle+' slots livres) → Contrate SDR';
+    }
+    h += '<div style="padding:4px 8px 4px 148px;font-size:12px;color:var(--warn);font-weight:500">'+bnMsg+'</div>';
+  }
   h += mRow('Vendas', mCl, 'var(--accent)', '', false);
   h += mRow('Clientes', mClAcum, 'var(--accent)', '', false);
   // CAC with null handling
