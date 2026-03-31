@@ -1039,7 +1039,8 @@ function addPerson(role) {
     id: NEXT_PERSON_ID++, name: ROLE_LABELS[role]+' '+(count+1), role: role,
     salary: d.salary, commMeeting: d.commMeeting||0, commSale: d.commSale||0,
     ded: d.ded, reun: d.reun||0, startMonth: 1, endMonth: null,
-    train: d.train||0, accel: d.accel||0
+    train: d.train||0, accel: d.accel||0,
+    extraCost: 0, extraInstallments: 1, extraMonthly: 0
   };
   PEOPLE.push(person);
   SELECTED_PERSON = person.id;
@@ -1274,6 +1275,9 @@ function renderGantt() {
       h += '<label>Dedicação (h/dia)<input type="number" value="'+p.ded+'" min="1" max="8" step="0.5" onchange="updatePerson('+p.id+',\'ded\',+this.value)"></label>';
       h += '<label>Treino (meses)<input type="number" value="'+p.train+'" min="0" max="6" step="0.25" onchange="updatePerson('+p.id+',\'train\',+this.value)"></label>';
       h += '<label>Aceleração (meses)<input type="number" value="'+p.accel+'" min="0" max="6" step="0.5" onchange="updatePerson('+p.id+',\'accel\',+this.value)"></label>';
+      h += '<label>Custo extra (total R$)<input type="number" value="'+(p.extraCost||0)+'" step="100" min="0" onchange="updatePerson('+p.id+',\'extraCost\',+this.value)"></label>';
+      h += '<label>Parcelas<input type="number" value="'+(p.extraInstallments||1)+'" min="1" max="12" onchange="updatePerson('+p.id+',\'extraInstallments\',+this.value)"></label>';
+      h += '<label>Custo mensal extra R$<input type="number" value="'+(p.extraMonthly||0)+'" step="50" min="0" onchange="updatePerson('+p.id+',\'extraMonthly\',+this.value)"></label>';
       // ── Projeção de ganhos ──
       var gpe = getGlobalP();
       var agge = aggregateMonth(Math.max(p.startMonth + Math.ceil(p.train + p.accel), 1), gpe);
@@ -1295,16 +1299,22 @@ function renderGantt() {
         eVendas = agge.cl || 0; // manager gets comm on ALL sales
         eCommSale = Math.round(eVendas * p.commSale);
       }
-      var eTotal = eSal + eCommMeet + eCommSale;
+      var eExtraParc = (p.extraCost && p.extraInstallments) ? Math.round(p.extraCost / p.extraInstallments) : 0;
+      var eExtraMonth = p.extraMonthly || 0;
+      var eTotal = eSal + eCommMeet + eCommSale + eExtraParc + eExtraMonth;
+      var eTotalRecorrente = eSal + eCommMeet + eCommSale + eExtraMonth; // após parcelas
       h += '<div style="grid-column:1/-1;background:rgba(255,255,255,.03);border-radius:6px;padding:10px 12px;margin-top:4px">';
       h += '<div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px">Projeção de ganhos (plena produção)</div>';
       h += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">';
       h += '<span style="color:var(--muted)">Salário: <strong style="color:var(--text)">R$ '+fmt(eSal)+'</strong></span>';
       if (eCommMeet > 0) h += '<span style="color:var(--muted)">Comis. reunião: <strong style="color:var(--text)">R$ '+fmt(eCommMeet)+'</strong> <span style="font-size:11px;opacity:.6">('+eReun+' ag × '+(gpe.show*100)+'% show × R$'+p.commMeeting+')</span></span>';
       if (eCommSale > 0) h += '<span style="color:var(--muted)">Comis. venda: <strong style="color:var(--text)">R$ '+fmt(eCommSale)+'</strong> <span style="font-size:11px;opacity:.6">('+eVendas+' vendas × R$'+p.commSale+')</span></span>';
+      if (eExtraParc > 0) h += '<span style="color:var(--muted)">Parcela equip.: <strong style="color:var(--text)">R$ '+fmt(eExtraParc)+'/mês</strong> <span style="font-size:11px;opacity:.6">(R$'+fmt(p.extraCost)+' em '+(p.extraInstallments)+'x)</span></span>';
+      if (eExtraMonth > 0) h += '<span style="color:var(--muted)">Custo mensal extra: <strong style="color:var(--text)">R$ '+fmt(eExtraMonth)+'</strong></span>';
       h += '</div>';
       h += '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">';
       h += '<span style="color:var(--accent);font-weight:700;font-size:16px">Total: R$ '+fmt(eTotal)+'/mês</span>';
+      if (eExtraParc > 0) h += '<span style="color:var(--muted);font-size:12px">(após '+(p.extraInstallments)+'x: R$ '+fmt(eTotalRecorrente)+'/mês)</span>';
       var eCacPessoa = eVendas > 0 ? Math.round(eTotal / eVendas) : 0;
       if (eVendas > 0) h += '<span style="color:var(--warn)">Custo/venda: <strong>R$ '+fmt(eCacPessoa)+'</strong> <span style="font-size:11px;opacity:.6">(R$'+fmt(eTotal)+' ÷ '+eVendas+' vendas)</span></span>';
       h += '</div></div>';
@@ -1326,6 +1336,9 @@ function renderGantt() {
     h += '<label>Dedicação (h/dia)<input type="number" placeholder="manter" min="1" max="8" step="0.5" onchange="if(this.value)updateMulti(\'ded\',+this.value)"></label>';
     h += '<label>Treino (meses)<input type="number" placeholder="manter" min="0" max="6" step="0.25" onchange="if(this.value)updateMulti(\'train\',+this.value)"></label>';
     h += '<label>Aceleração (meses)<input type="number" placeholder="manter" min="0" max="6" step="0.5" onchange="if(this.value)updateMulti(\'accel\',+this.value)"></label>';
+    h += '<label>Custo extra (total R$)<input type="number" placeholder="manter" step="100" min="0" onchange="if(this.value)updateMulti(\'extraCost\',+this.value)"></label>';
+    h += '<label>Parcelas<input type="number" placeholder="manter" min="1" max="12" onchange="if(this.value)updateMulti(\'extraInstallments\',+this.value)"></label>';
+    h += '<label>Custo mensal extra R$<input type="number" placeholder="manter" step="50" min="0" onchange="if(this.value)updateMulti(\'extraMonthly\',+this.value)"></label>';
     if (hasSDR) {
       h += '<label>Comis./reunião R$ (SDRs)<input type="number" placeholder="manter" step="10" onchange="if(this.value)updateMulti(\'commMeeting\',+this.value)"></label>';
     }
@@ -1462,6 +1475,14 @@ function aggregateMonth(month, gp) {
     var dedF=p.ded/FD;
     hc++;
     salT += p.salary*dedF;
+    // Extra costs: parcelado + mensal
+    if (p.extraCost && p.extraInstallments) {
+      var monthsSinceStart = month - p.startMonth;
+      if (monthsSinceStart >= 0 && monthsSinceStart < p.extraInstallments) {
+        salT += Math.round(p.extraCost / p.extraInstallments);
+      }
+    }
+    if (p.extraMonthly) salT += p.extraMonthly;
     if (p.role==='sdr') {
       nSDR++; totalMeetingsWeek += p.reun*ramp*dedF;
       sdrCommMeetingBase += p.commMeeting;
